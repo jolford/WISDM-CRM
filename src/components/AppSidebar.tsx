@@ -53,12 +53,13 @@ export function AppSidebar() {
       <SidebarContent>
         <div className="px-4 py-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img 
+              src="/lovable-uploads/167bbb76-06f5-4179-ae13-705d510d0caf.png" 
+              alt="WISDM CRM Logo" 
+              className="h-8 w-auto"
+            />
             {open && (
               <div>
-                <h1 className="font-bold text-lg">WISDM CRM</h1>
                 <p className="text-xs text-muted-foreground">Sales Management</p>
               </div>
             )}
