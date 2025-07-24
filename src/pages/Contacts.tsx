@@ -195,7 +195,7 @@ export default function Contacts() {
           <h1 className="text-3xl font-bold">Contacts</h1>
           <p className="text-muted-foreground">Manage your customer relationships</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Create Contact functionality would open a modal/form here')}>
           <Plus className="h-4 w-4 mr-2" />
           Add Contact
         </Button>

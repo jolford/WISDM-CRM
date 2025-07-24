@@ -56,7 +56,7 @@ export default function Settings() {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your account and application preferences</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Save Changes functionality would save all form data')}>
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>

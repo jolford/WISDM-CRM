@@ -183,7 +183,7 @@ export default function SupportDesk() {
           <h1 className="text-3xl font-bold">Support Desk</h1>
           <p className="text-muted-foreground">Manage customer support tickets and inquiries</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Create Ticket functionality would open a modal/form here')}>
           <Plus className="h-4 w-4 mr-2" />
           New Ticket
         </Button>

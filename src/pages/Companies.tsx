@@ -99,7 +99,7 @@ export default function Companies() {
           <h1 className="text-3xl font-bold">Companies</h1>
           <p className="text-muted-foreground">Manage your business accounts</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Create Company functionality would open a modal/form here')}>
           <Plus className="h-4 w-4 mr-2" />
           Add Company
         </Button>

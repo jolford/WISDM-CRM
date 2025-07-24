@@ -125,7 +125,7 @@ export default function Deals() {
           <h1 className="text-3xl font-bold">Deals Pipeline</h1>
           <p className="text-muted-foreground">Track your sales opportunities</p>
         </div>
-        <Button>
+        <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
           <Plus className="h-4 w-4 mr-2" />
           Add Deal
         </Button>
