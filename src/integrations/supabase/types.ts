@@ -86,9 +86,13 @@ export type Database = {
           conferences_organizations_attended: string | null
           contact_name: string | null
           contact_owner: string | null
+          contact_owner_id: string | null
           country: string | null
           county: string | null
           created_at: string
+          created_by: string | null
+          created_by_id: string | null
+          created_time: string | null
           days_visited: number | null
           department: string | null
           description: string | null
@@ -109,11 +113,15 @@ export type Database = {
           linkedin_connection: string | null
           locked: boolean | null
           mobile: string | null
+          modified_by: string | null
+          modified_by_id: string | null
+          modified_time: string | null
           most_recent_visit: string | null
           name_pronunciation: string | null
           notes: string | null
           number_of_chats: number | null
           phone: string | null
+          record_id: string | null
           reference_egnyte_link: string | null
           reference_services_products: string | null
           reference_subject_matter: string | null
@@ -147,9 +155,13 @@ export type Database = {
           conferences_organizations_attended?: string | null
           contact_name?: string | null
           contact_owner?: string | null
+          contact_owner_id?: string | null
           country?: string | null
           county?: string | null
           created_at?: string
+          created_by?: string | null
+          created_by_id?: string | null
+          created_time?: string | null
           days_visited?: number | null
           department?: string | null
           description?: string | null
@@ -170,11 +182,15 @@ export type Database = {
           linkedin_connection?: string | null
           locked?: boolean | null
           mobile?: string | null
+          modified_by?: string | null
+          modified_by_id?: string | null
+          modified_time?: string | null
           most_recent_visit?: string | null
           name_pronunciation?: string | null
           notes?: string | null
           number_of_chats?: number | null
           phone?: string | null
+          record_id?: string | null
           reference_egnyte_link?: string | null
           reference_services_products?: string | null
           reference_subject_matter?: string | null
@@ -208,9 +224,13 @@ export type Database = {
           conferences_organizations_attended?: string | null
           contact_name?: string | null
           contact_owner?: string | null
+          contact_owner_id?: string | null
           country?: string | null
           county?: string | null
           created_at?: string
+          created_by?: string | null
+          created_by_id?: string | null
+          created_time?: string | null
           days_visited?: number | null
           department?: string | null
           description?: string | null
@@ -231,11 +251,15 @@ export type Database = {
           linkedin_connection?: string | null
           locked?: boolean | null
           mobile?: string | null
+          modified_by?: string | null
+          modified_by_id?: string | null
+          modified_time?: string | null
           most_recent_visit?: string | null
           name_pronunciation?: string | null
           notes?: string | null
           number_of_chats?: number | null
           phone?: string | null
+          record_id?: string | null
           reference_egnyte_link?: string | null
           reference_services_products?: string | null
           reference_subject_matter?: string | null
