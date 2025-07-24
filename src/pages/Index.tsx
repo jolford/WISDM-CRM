@@ -21,7 +21,7 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight">Welcome to WISDOM CRM</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Welcome to WISDM CRM</h1>
             <p className="text-lg text-muted-foreground">
               Manage your contacts, deals, and grow your business
             </p>
