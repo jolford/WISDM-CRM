@@ -76,59 +76,208 @@ export type Database = {
       }
       contacts: {
         Row: {
+          account_egnyte_link: string | null
+          account_name: string | null
+          account_name_id: string | null
+          average_time_spent_minutes: number | null
+          change_log_time: string | null
+          city: string | null
           company_id: string | null
+          conferences_organizations_attended: string | null
+          contact_name: string | null
+          contact_owner: string | null
+          country: string | null
+          county: string | null
           created_at: string
+          days_visited: number | null
           department: string | null
+          description: string | null
+          direct_phone: string | null
           email: string | null
+          email_opt_out: boolean | null
+          enrich_status: string | null
           first_name: string
+          first_page_visited: string | null
+          first_visit: string | null
+          general_phone: string | null
           id: string
+          industry_fb_group_memberships: string | null
+          last_activity_time: string | null
+          last_enriched_time: string | null
           last_name: string
           lead_source: string | null
+          linkedin_connection: string | null
+          locked: boolean | null
           mobile: string | null
+          most_recent_visit: string | null
+          name_pronunciation: string | null
           notes: string | null
+          number_of_chats: number | null
           phone: string | null
+          reference_egnyte_link: string | null
+          reference_services_products: string | null
+          reference_subject_matter: string | null
+          reference_type: string | null
+          referrer: string | null
+          reporting_to: string | null
+          reporting_to_id: string | null
+          role_in_deals: string | null
+          salutation: string | null
+          state: string | null
+          street: string | null
+          tag: string | null
           title: string | null
+          unsubscribed_mode: string | null
+          unsubscribed_time: string | null
           updated_at: string
           user_id: string
+          vendor_name: string | null
+          vendor_name_id: string | null
+          visitor_score: number | null
+          zip_code: string | null
         }
         Insert: {
+          account_egnyte_link?: string | null
+          account_name?: string | null
+          account_name_id?: string | null
+          average_time_spent_minutes?: number | null
+          change_log_time?: string | null
+          city?: string | null
           company_id?: string | null
+          conferences_organizations_attended?: string | null
+          contact_name?: string | null
+          contact_owner?: string | null
+          country?: string | null
+          county?: string | null
           created_at?: string
+          days_visited?: number | null
           department?: string | null
+          description?: string | null
+          direct_phone?: string | null
           email?: string | null
+          email_opt_out?: boolean | null
+          enrich_status?: string | null
           first_name: string
+          first_page_visited?: string | null
+          first_visit?: string | null
+          general_phone?: string | null
           id?: string
+          industry_fb_group_memberships?: string | null
+          last_activity_time?: string | null
+          last_enriched_time?: string | null
           last_name: string
           lead_source?: string | null
+          linkedin_connection?: string | null
+          locked?: boolean | null
           mobile?: string | null
+          most_recent_visit?: string | null
+          name_pronunciation?: string | null
           notes?: string | null
+          number_of_chats?: number | null
           phone?: string | null
+          reference_egnyte_link?: string | null
+          reference_services_products?: string | null
+          reference_subject_matter?: string | null
+          reference_type?: string | null
+          referrer?: string | null
+          reporting_to?: string | null
+          reporting_to_id?: string | null
+          role_in_deals?: string | null
+          salutation?: string | null
+          state?: string | null
+          street?: string | null
+          tag?: string | null
           title?: string | null
+          unsubscribed_mode?: string | null
+          unsubscribed_time?: string | null
           updated_at?: string
           user_id: string
+          vendor_name?: string | null
+          vendor_name_id?: string | null
+          visitor_score?: number | null
+          zip_code?: string | null
         }
         Update: {
+          account_egnyte_link?: string | null
+          account_name?: string | null
+          account_name_id?: string | null
+          average_time_spent_minutes?: number | null
+          change_log_time?: string | null
+          city?: string | null
           company_id?: string | null
+          conferences_organizations_attended?: string | null
+          contact_name?: string | null
+          contact_owner?: string | null
+          country?: string | null
+          county?: string | null
           created_at?: string
+          days_visited?: number | null
           department?: string | null
+          description?: string | null
+          direct_phone?: string | null
           email?: string | null
+          email_opt_out?: boolean | null
+          enrich_status?: string | null
           first_name?: string
+          first_page_visited?: string | null
+          first_visit?: string | null
+          general_phone?: string | null
           id?: string
+          industry_fb_group_memberships?: string | null
+          last_activity_time?: string | null
+          last_enriched_time?: string | null
           last_name?: string
           lead_source?: string | null
+          linkedin_connection?: string | null
+          locked?: boolean | null
           mobile?: string | null
+          most_recent_visit?: string | null
+          name_pronunciation?: string | null
           notes?: string | null
+          number_of_chats?: number | null
           phone?: string | null
+          reference_egnyte_link?: string | null
+          reference_services_products?: string | null
+          reference_subject_matter?: string | null
+          reference_type?: string | null
+          referrer?: string | null
+          reporting_to?: string | null
+          reporting_to_id?: string | null
+          role_in_deals?: string | null
+          salutation?: string | null
+          state?: string | null
+          street?: string | null
+          tag?: string | null
           title?: string | null
+          unsubscribed_mode?: string | null
+          unsubscribed_time?: string | null
           updated_at?: string
           user_id?: string
+          vendor_name?: string | null
+          vendor_name_id?: string | null
+          visitor_score?: number | null
+          zip_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contacts_account_name_id_fkey"
+            columns: ["account_name_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contacts_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_reporting_to_id_fkey"
+            columns: ["reporting_to_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
