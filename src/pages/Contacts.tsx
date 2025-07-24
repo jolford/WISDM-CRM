@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +24,10 @@ import {
 
 export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [allContacts, setAllContacts] = useState<any[]>([])
 
-  const contacts = [
+  // Default sample contacts
+  const defaultContacts = [
     {
       id: 1,
       name: "Sarah Johnson",
@@ -34,7 +36,8 @@ export default function Contacts() {
       company: "Acme Corp",
       position: "VP of Sales",
       status: "Active",
-      initials: "SJ"
+      initials: "SJ",
+      source: "default"
     },
     {
       id: 2,
@@ -44,7 +47,8 @@ export default function Contacts() {
       company: "TechStart Inc",
       position: "CTO",
       status: "Lead",
-      initials: "MC"
+      initials: "MC",
+      source: "default"
     },
     {
       id: 3,
@@ -54,7 +58,8 @@ export default function Contacts() {
       company: "Global Solutions",
       position: "Marketing Director",
       status: "Active",
-      initials: "ED"
+      initials: "ED",
+      source: "default"
     },
     {
       id: 4,
@@ -64,7 +69,8 @@ export default function Contacts() {
       company: "Innovation Labs",
       position: "CEO",
       status: "Prospect",
-      initials: "RK"
+      initials: "RK",
+      source: "default"
     },
     {
       id: 5,
@@ -74,11 +80,51 @@ export default function Contacts() {
       company: "FutureTech",
       position: "Product Manager",
       status: "Active",
-      initials: "LA"
+      initials: "LA",
+      source: "default"
     }
   ]
 
-  const filteredContacts = contacts.filter(contact =>
+  // Load imported contacts from localStorage
+  useEffect(() => {
+    const importedData = localStorage.getItem('wisdm_contacts')
+    let importedContacts = []
+    
+    if (importedData) {
+      try {
+        const rawContacts = JSON.parse(importedData)
+        console.log('Found imported contacts:', rawContacts.length)
+        
+        // Transform imported data to match our contact format
+        importedContacts = rawContacts.map((contact: any, index: number) => {
+          const firstName = contact['First Name'] || contact['firstName'] || ''
+          const lastName = contact['Last Name'] || contact['lastName'] || ''
+          const fullName = `${firstName} ${lastName}`.trim() || contact['Full Name'] || contact['name'] || `Contact ${index + 1}`
+          
+          return {
+            id: `imported-${index}`,
+            name: fullName,
+            email: contact['Email'] || contact['email'] || '',
+            phone: contact['Phone'] || contact['phone'] || contact['Mobile'] || '',
+            company: contact['Account Name'] || contact['company'] || contact['Company'] || '',
+            position: contact['Title'] || contact['position'] || contact['Job Title'] || '',
+            status: "Imported",
+            initials: fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'IC',
+            source: "imported"
+          }
+        })
+        
+        console.log('Transformed imported contacts:', importedContacts.slice(0, 3))
+      } catch (error) {
+        console.error('Error parsing imported contacts:', error)
+      }
+    }
+    
+    // Combine default and imported contacts
+    setAllContacts([...defaultContacts, ...importedContacts])
+  }, [])
+
+  const filteredContacts = allContacts.filter(contact =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.company.toLowerCase().includes(searchQuery.toLowerCase())
@@ -89,6 +135,7 @@ export default function Contacts() {
       case "Active": return "bg-green-100 text-green-800"
       case "Lead": return "bg-blue-100 text-blue-800"
       case "Prospect": return "bg-yellow-100 text-yellow-800"
+      case "Imported": return "bg-purple-100 text-purple-800"
       default: return "bg-gray-100 text-gray-800"
     }
   }

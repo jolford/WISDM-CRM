@@ -130,21 +130,59 @@ export default function DataImportExport() {
     setIsImporting(true)
     setImportProgress(0)
 
-    // Simulate import progress
-    const progressInterval = setInterval(() => {
-      setImportProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval)
-          setIsImporting(false)
-          toast({
-            title: "Import Complete",
-            description: `Successfully imported ${importType} from ${selectedFile.name}`,
+    try {
+      // Read the CSV file
+      const text = await selectedFile.text()
+      const lines = text.split('\n')
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+      
+      console.log('CSV headers found:', headers)
+      console.log(`Processing ${lines.length - 1} records from ${selectedFile.name}`)
+      
+      const records = []
+      
+      // Process each line
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+          const record: any = {}
+          
+          headers.forEach((header, index) => {
+            record[header] = values[index] || ''
           })
-          return 100
+          
+          records.push(record)
         }
-        return prev + 10
+        
+        // Update progress
+        setImportProgress((i / lines.length) * 100)
+        await new Promise(resolve => setTimeout(resolve, 10)) // Small delay for UI
+      }
+      
+      console.log(`Successfully processed ${records.length} records:`, records.slice(0, 3))
+      
+      // Store in localStorage for now (in a real app, this would go to a database)
+      const existingData = localStorage.getItem(`wisdm_${importType}`) || '[]'
+      const currentData = JSON.parse(existingData)
+      const newData = [...currentData, ...records]
+      localStorage.setItem(`wisdm_${importType}`, JSON.stringify(newData))
+      
+      setImportProgress(100)
+      toast({
+        title: "Import Complete",
+        description: `Successfully imported ${records.length} ${importType} from ${selectedFile.name}. Navigate to the ${importType} section to view them.`,
       })
-    }, 500)
+      
+    } catch (error) {
+      console.error('Import error:', error)
+      toast({
+        title: "Import Failed",
+        description: "There was an error processing your CSV file. Please check the format and try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsImporting(false)
+    }
   }
 
   const handleZapierTrigger = async (e: React.FormEvent) => {
