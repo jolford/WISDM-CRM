@@ -1,0 +1,97 @@
+import { 
+  LayoutDashboard, 
+  Users, 
+  Building2, 
+  Target, 
+  CheckSquare, 
+  Settings,
+  Plus
+} from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+
+const items = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Contacts", url: "/contacts", icon: Users },
+  { title: "Companies", url: "/companies", icon: Building2 },
+  { title: "Deals", url: "/deals", icon: Target },
+  { title: "Tasks", url: "/tasks", icon: CheckSquare },
+  { title: "Settings", url: "/settings", icon: Settings },
+]
+
+export function AppSidebar() {
+  const { open } = useSidebar()
+  const location = useLocation()
+  const currentPath = location.pathname
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return currentPath === "/"
+    }
+    return currentPath.startsWith(path)
+  }
+
+  const getNavCls = (path: string) =>
+    isActive(path) 
+      ? "bg-primary text-primary-foreground font-medium hover:bg-primary/90" 
+      : "hover:bg-accent"
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarContent>
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
+            </div>
+            {open && (
+              <div>
+                <h1 className="font-bold text-lg">CRM Pro</h1>
+                <p className="text-xs text-muted-foreground">Sales Management</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls(item.url)}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {open && (
+          <div className="px-4 py-4 mt-auto">
+            <Button className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Quick Add
+            </Button>
+          </div>
+        )}
+      </SidebarContent>
+    </Sidebar>
+  )
+}
