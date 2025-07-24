@@ -120,13 +120,15 @@ export default function Contacts() {
 
   // Load imported contacts from localStorage
   useEffect(() => {
+    console.log('🔄 Contacts page loading - checking for imported data')
     const importedData = localStorage.getItem('wisdm_contacts')
+    console.log('📦 Raw localStorage data:', importedData)
     let importedContacts = []
     
     if (importedData) {
       try {
         const rawContacts = JSON.parse(importedData)
-        console.log('Found imported contacts:', rawContacts.length)
+        console.log('✅ Found imported contacts:', rawContacts.length, rawContacts)
         
         // Transform imported data to match our comprehensive contact format
         importedContacts = rawContacts.map((contact: any, index: number) => {

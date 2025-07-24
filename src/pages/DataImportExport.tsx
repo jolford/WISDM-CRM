@@ -123,7 +123,10 @@ export default function DataImportExport() {
   }
 
   const handleImport = async () => {
+    console.log('🔥 Import started - handleImport called')
+    
     if (!selectedFile) {
+      console.error('❌ No file selected')
       toast({
         title: "No File Selected",
         description: "Please select a CSV file first",
@@ -131,6 +134,8 @@ export default function DataImportExport() {
       })
       return
     }
+
+    console.log('📁 File selected:', selectedFile.name, 'Size:', selectedFile.size, 'Type:', selectedFile.type)
 
     setIsImporting(true)
     setImportProgress(0)
@@ -167,10 +172,16 @@ export default function DataImportExport() {
       console.log(`Successfully processed ${records.length} records:`, records.slice(0, 3))
       
       // Store in localStorage for now (in a real app, this would go to a database)
-      const existingData = localStorage.getItem(`wisdm_${importType}`) || '[]'
+      const storageKey = `wisdm_${importType}`
+      console.log('💾 Storing data with key:', storageKey)
+      
+      const existingData = localStorage.getItem(storageKey) || '[]'
       const currentData = JSON.parse(existingData)
       const newData = [...currentData, ...records]
-      localStorage.setItem(`wisdm_${importType}`, JSON.stringify(newData))
+      localStorage.setItem(storageKey, JSON.stringify(newData))
+      
+      console.log('✅ Data stored successfully. Total records:', newData.length)
+      console.log('🔍 Verify storage:', localStorage.getItem(storageKey)?.substring(0, 100))
       
       setImportProgress(100)
       toast({
