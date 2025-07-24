@@ -239,6 +239,78 @@ export default function DataImportExport() {
       console.log('CSV headers found:', headers)
       console.log(`Processing ${lines.length - 1} records from ${selectedFile.name}`)
       
+      // Create column mapping for contacts to handle CSV headers -> database columns
+      const getColumnMapping = (importType: string) => {
+        if (importType === 'contacts') {
+          return {
+            'Record Id': 'record_id',
+            'Contact Owner.id': 'contact_owner_id', 
+            'Contact Owner': 'contact_owner',
+            'Lead Source': 'lead_source',
+            'First Name': 'first_name',
+            'Last Name': 'last_name',
+            'Account Name.id': 'account_name_id',
+            'Account Name': 'account_name',
+            'Vendor Name.id': 'vendor_name_id',
+            'Vendor Name': 'vendor_name',
+            'Email': 'email',
+            'Title': 'title',
+            'Department': 'department',
+            'Phone': 'phone',
+            'Mobile': 'mobile',
+            'Created By.id': 'created_by_id',
+            'Created By': 'created_by',
+            'Modified By.id': 'modified_by_id',
+            'Modified By': 'modified_by',
+            'Created Time': 'created_time',
+            'Modified Time': 'modified_time',
+            'Contact Name': 'contact_name',
+            'Description': 'description',
+            'Email Opt Out': 'email_opt_out',
+            'Salutation': 'salutation',
+            'Last Activity Time': 'last_activity_time',
+            'Tag': 'tag',
+            'Reporting To.id': 'reporting_to_id',
+            'Reporting To': 'reporting_to',
+            'Unsubscribed Mode': 'unsubscribed_mode',
+            'Unsubscribed Time': 'unsubscribed_time',
+            'Change Log Time': 'change_log_time',
+            'First Visit': 'first_visit',
+            'Visitor Score': 'visitor_score',
+            'Referrer': 'referrer',
+            'Average Time Spent (Minutes)': 'average_time_spent_minutes',
+            'Most Recent Visit': 'most_recent_visit',
+            'First Page Visited': 'first_page_visited',
+            'Number Of Chats': 'number_of_chats',
+            'Days Visited': 'days_visited',
+            'General Phone': 'general_phone',
+            'Direct Phone': 'direct_phone',
+            'LinkedIn Connection': 'linkedin_connection',
+            'Account Egnyte Link': 'account_egnyte_link',
+            'Name Pronunciation': 'name_pronunciation',
+            'Industry & FB Group Memberships': 'industry_fb_group_memberships',
+            'Role in deals': 'role_in_deals',
+            'Street': 'street',
+            'City': 'city',
+            'Zip Code': 'zip_code',
+            'State': 'state',
+            'Country': 'country',
+            'County': 'county',
+            'Locked': 'locked',
+            'Last Enriched Time': 'last_enriched_time',
+            'Enrich Status': 'enrich_status',
+            'Reference Type': 'reference_type',
+            'Reference Subject Matter, Use Case  & Department': 'reference_subject_matter',
+            'Reference Egnyte Link': 'reference_egnyte_link',
+            'Reference Services Products & Solutions': 'reference_services_products',
+            'Conferences & Organizations Attended': 'conferences_organizations_attended'
+          }
+        }
+        return {}
+      }
+      
+      const columnMapping = getColumnMapping(importType)
+      
       const records = []
       const validatedRecords = []
       
@@ -261,7 +333,9 @@ export default function DataImportExport() {
               throw new Error(`Potentially malicious content detected in row ${i}`)
             }
             
-            record[header] = value
+            // Map CSV header to database column name
+            const dbColumnName = columnMapping[header] || header.toLowerCase().replace(/\s+/g, '_')
+            record[dbColumnName] = value
           })
           
           // Additional validation based on import type
