@@ -133,6 +133,69 @@ export type Database = {
           },
         ]
       }
+      deals: {
+        Row: {
+          close_date: string | null
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          notes: string | null
+          probability: number | null
+          stage: Database["public"]["Enums"]["deal_stage"]
+          updated_at: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          close_date?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          probability?: number | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          close_date?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          probability?: number | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          user_id?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -178,6 +241,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "sales_rep"
+      deal_stage:
+        | "prospect"
+        | "qualified"
+        | "proposal"
+        | "negotiation"
+        | "closed_won"
+        | "closed_lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -306,6 +376,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "sales_rep"],
+      deal_stage: [
+        "prospect",
+        "qualified",
+        "proposal",
+        "negotiation",
+        "closed_won",
+        "closed_lost",
+      ],
     },
   },
 } as const
