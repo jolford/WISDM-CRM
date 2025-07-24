@@ -384,15 +384,24 @@ export default function DataImportExport() {
           'unsubscribed_mode', 'referrer', 'first_page_visited', 'general_phone',
           'direct_phone', 'linkedin_connection', 'account_egnyte_link', 'name_pronunciation',
           'industry_fb_group_memberships', 'role_in_deals', 'street', 'city', 'zip_code',
-          'state', 'country', 'county', 'record_id', 'contact_owner_id', 'created_by',
-          'modified_by', 'account_name_id', 'vendor_name_id', 'created_by_id', 'modified_by_id',
-          'reporting_to_id', 'email_opt_out', 'locked', 'enrich_status', 'reference_type',
-          'reference_subject_matter', 'reference_egnyte_link', 'reference_services_products',
-          'conferences_organizations_attended', 'average_time_spent_minutes', 'visitor_score',
-          'number_of_chats', 'days_visited', 'created_time', 'modified_time', 'last_activity_time',
-          'unsubscribed_time', 'change_log_time', 'first_visit', 'most_recent_visit',
-          'last_enriched_time', 'user_id'
+          'state', 'country', 'county', 'record_id', 'contact_owner', 'created_by',
+          'modified_by', 'account_name', 'vendor_name', 'email_opt_out', 'locked', 
+          'enrich_status', 'reference_type', 'reference_subject_matter', 'reference_egnyte_link', 
+          'reference_services_products', 'conferences_organizations_attended', 'average_time_spent_minutes', 
+          'visitor_score', 'number_of_chats', 'days_visited', 'user_id'
         ])
+
+        // UUID columns that should be excluded if they contain non-UUID values
+        const uuidColumns = new Set([
+          'contact_owner_id', 'created_by_id', 'modified_by_id', 'account_name_id', 
+          'vendor_name_id', 'reporting_to_id', 'company_id'
+        ])
+
+        // Helper function to check if a string is a valid UUID
+        const isValidUUID = (str: string) => {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          return uuidRegex.test(str)
+        }
 
         const recordsWithUserId = validatedRecords.map(record => {
           const cleanRecord: any = { user_id: user.id }
@@ -400,6 +409,11 @@ export default function DataImportExport() {
           // Only include columns that exist in the database
           Object.keys(record).forEach(key => {
             if (validDbColumns.has(key) && record[key] !== '') {
+              // Skip UUID columns that don't contain valid UUIDs
+              if (uuidColumns.has(key) && !isValidUUID(record[key])) {
+                console.warn(`Skipping invalid UUID for ${key}: ${record[key]}`)
+                return
+              }
               cleanRecord[key] = record[key]
             }
           })
