@@ -58,7 +58,7 @@ export function AppSidebar() {
             </div>
             {open && (
               <div>
-                <h1 className="font-bold text-lg">CRM Pro</h1>
+                <h1 className="font-bold text-lg">WISDM CRM</h1>
                 <p className="text-xs text-muted-foreground">Sales Management</p>
               </div>
             )}
