@@ -229,6 +229,76 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          company_id: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          status: Database["public"]["Enums"]["task_status"]
+          task_type: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          task_type?: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          task_type?: Database["public"]["Enums"]["task_type"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -248,6 +318,8 @@ export type Database = {
         | "negotiation"
         | "closed_won"
         | "closed_lost"
+      task_status: "pending" | "completed" | "cancelled"
+      task_type: "call" | "email" | "meeting" | "follow_up" | "demo" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -384,6 +456,8 @@ export const Constants = {
         "closed_won",
         "closed_lost",
       ],
+      task_status: ["pending", "completed", "cancelled"],
+      task_type: ["call", "email", "meeting", "follow_up", "demo", "other"],
     },
   },
 } as const
