@@ -107,19 +107,51 @@ export default function DataImportExport() {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file && file.type === "text/csv") {
-      setSelectedFile(file)
+    
+    if (!file) return
+
+    // Enhanced security validation
+    const maxFileSize = 10 * 1024 * 1024 // 10MB limit
+    const allowedTypes = ['text/csv', 'application/vnd.ms-excel']
+    const allowedExtensions = ['.csv']
+    
+    // Check file size
+    if (file.size > maxFileSize) {
       toast({
-        title: "File Selected",
-        description: `${file.name} is ready for import`,
-      })
-    } else {
-      toast({
-        title: "Invalid File",
-        description: "Please select a CSV file",
+        title: "File Too Large",
+        description: "File size must be less than 10MB",
         variant: "destructive",
       })
+      return
     }
+    
+    // Check file type and extension
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a CSV file only",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Check filename for suspicious patterns
+    const suspiciousPatterns = /[<>:"\\|?*\x00-\x1f]|^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
+    if (suspiciousPatterns.test(file.name)) {
+      toast({
+        title: "Invalid File Name",
+        description: "File name contains invalid characters",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setSelectedFile(file)
+    toast({
+      title: "File Selected",
+      description: `${file.name} is ready for import`,
+    })
   }
 
   const handleImport = async () => {
@@ -141,35 +173,102 @@ export default function DataImportExport() {
     setImportProgress(0)
 
     try {
-      // Read the CSV file
+      // Read the CSV file with security checks
       const text = await selectedFile.text()
-      const lines = text.split('\n')
+      
+      // Security: Check for excessive content or potential attacks
+      const maxContentSize = 5 * 1024 * 1024 // 5MB text limit
+      if (text.length > maxContentSize) {
+        throw new Error('File content exceeds size limit')
+      }
+      
+      // Security: Check for malicious patterns in content
+      const maliciousPatterns = [
+        /<script/i,
+        /javascript:/i,
+        /data:text\/html/i,
+        /vbscript:/i,
+        /<iframe/i,
+        /<embed/i,
+        /<object/i
+      ]
+      
+      if (maliciousPatterns.some(pattern => pattern.test(text))) {
+        throw new Error('File contains potentially malicious content')
+      }
+      
+      const lines = text.split('\n').filter(line => line.trim()) // Remove empty lines
+      
+      // Security: Limit number of records
+      const maxRecords = 10000
+      if (lines.length > maxRecords) {
+        throw new Error(`File contains too many records. Maximum allowed: ${maxRecords}`)
+      }
+      
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+      
+      // Security: Validate headers
+      const allowedHeaderPattern = /^[a-zA-Z0-9\s_.-]+$/
+      if (!headers.every(header => allowedHeaderPattern.test(header))) {
+        throw new Error('File contains invalid header names')
+      }
       
       console.log('CSV headers found:', headers)
       console.log(`Processing ${lines.length - 1} records from ${selectedFile.name}`)
       
       const records = []
+      const validatedRecords = []
       
-      // Process each line
+      // Process each line with validation
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim()) {
           const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
           const record: any = {}
           
           headers.forEach((header, index) => {
-            record[header] = values[index] || ''
+            const value = values[index] || ''
+            
+            // Security: Sanitize and validate individual values
+            if (value.length > 1000) { // Max field length
+              throw new Error(`Field value too long in row ${i}`)
+            }
+            
+            // Security: Check for script injection in values
+            if (maliciousPatterns.some(pattern => pattern.test(value))) {
+              throw new Error(`Potentially malicious content detected in row ${i}`)
+            }
+            
+            record[header] = value
           })
           
-          records.push(record)
+          // Additional validation based on import type
+          try {
+            if (importType === 'contacts' && record.email) {
+              const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+              if (!emailPattern.test(record.email)) {
+                console.warn(`Invalid email in row ${i}: ${record.email}`)
+                record.email = '' // Clear invalid email instead of failing
+              }
+            }
+            
+            records.push(record)
+            validatedRecords.push(record)
+          } catch (validationError) {
+            console.warn(`Validation error in row ${i}:`, validationError)
+            // Skip invalid records but continue processing
+          }
         }
         
         // Update progress
         setImportProgress((i / lines.length) * 100)
-        await new Promise(resolve => setTimeout(resolve, 10)) // Small delay for UI
+        await new Promise(resolve => setTimeout(resolve, 5)) // Small delay for UI
       }
       
-      console.log(`Successfully processed ${records.length} records:`, records.slice(0, 3))
+      if (validatedRecords.length === 0) {
+        throw new Error('No valid records found in the file')
+      }
+      
+      console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
       
       // Store in localStorage for now (in a real app, this would go to a database)
       const storageKey = `wisdm_${importType}`
@@ -177,23 +276,30 @@ export default function DataImportExport() {
       
       const existingData = localStorage.getItem(storageKey) || '[]'
       const currentData = JSON.parse(existingData)
-      const newData = [...currentData, ...records]
+      const newData = [...currentData, ...validatedRecords]
       localStorage.setItem(storageKey, JSON.stringify(newData))
       
       console.log('✅ Data stored successfully. Total records:', newData.length)
-      console.log('🔍 Verify storage:', localStorage.getItem(storageKey)?.substring(0, 100))
       
       setImportProgress(100)
+      
+      // Show detailed results
+      const skippedCount = records.length - validatedRecords.length
+      const message = skippedCount > 0 
+        ? `Successfully imported ${validatedRecords.length} ${importType}. ${skippedCount} records were skipped due to validation errors.`
+        : `Successfully imported ${validatedRecords.length} ${importType} from ${selectedFile.name}.`
+      
       toast({
         title: "Import Complete",
-        description: `Successfully imported ${records.length} ${importType} from ${selectedFile.name}. Navigate to the ${importType} section to view them.`,
+        description: `${message} Navigate to the ${importType} section to view them.`,
       })
       
     } catch (error) {
       console.error('Import error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       toast({
         title: "Import Failed",
-        description: "There was an error processing your CSV file. Please check the format and try again.",
+        description: `Error: ${errorMessage}. Please check the file format and try again.`,
         variant: "destructive",
       })
     } finally {
@@ -213,22 +319,74 @@ export default function DataImportExport() {
       return
     }
 
+    // Enhanced webhook URL validation
+    try {
+      const url = new URL(webhookUrl)
+      
+      // Only allow HTTPS for security
+      if (url.protocol !== 'https:') {
+        toast({
+          title: "Invalid URL",
+          description: "Webhook URL must use HTTPS for security",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      // Validate that it's a legitimate Zapier webhook
+      const allowedHosts = [
+        'hooks.zapier.com',
+        'hooks.zapierapp.com'
+      ]
+      
+      if (!allowedHosts.includes(url.hostname)) {
+        toast({
+          title: "Invalid Webhook",
+          description: "Please use a valid Zapier webhook URL",
+          variant: "destructive",
+        })
+        return
+      }
+      
+      // Check URL length (reasonable limit)
+      if (webhookUrl.length > 500) {
+        toast({
+          title: "Invalid URL",
+          description: "Webhook URL is too long",
+          variant: "destructive",
+        })
+        return
+      }
+      
+    } catch (urlError) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid webhook URL",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     console.log("Triggering Zapier webhook:", webhookUrl)
 
     try {
+      // Sanitize data before sending
+      const payload = {
+        timestamp: new Date().toISOString(),
+        triggered_from: window.location.origin,
+        action: "zoho_data_sync",
+        crm: "WISDM CRM",
+        user_agent: navigator.userAgent.substring(0, 100) // Limit length
+      }
+
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         mode: "no-cors",
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          triggered_from: window.location.origin,
-          action: "zoho_data_sync",
-          crm: "WISDM CRM",
-        }),
+        body: JSON.stringify(payload),
       })
 
       toast({

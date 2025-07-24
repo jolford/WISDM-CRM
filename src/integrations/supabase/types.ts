@@ -736,9 +736,17 @@ export type Database = {
       }
     }
     Functions: {
+      check_import_rate_limit: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      validate_csv_data: {
+        Args: { data_type: string; row_data: Json }
+        Returns: boolean
       }
     }
     Enums: {
