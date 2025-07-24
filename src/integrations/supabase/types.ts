@@ -304,6 +304,13 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contacts_reporting_to_id_fkey"
+            columns: ["reporting_to_id"]
+            isOneToOne: false
+            referencedRelation: "contacts_import_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       deals: {
@@ -365,6 +372,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts_import_view"
             referencedColumns: ["id"]
           },
         ]
@@ -464,6 +478,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts_import_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
@@ -474,7 +495,245 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contacts_import_view: {
+        Row: {
+          "Account Egnyte Link": string | null
+          "Account Name": string | null
+          "Account Name.id": string | null
+          "Average Time Spent (Minutes)": number | null
+          "Change Log Time": string | null
+          City: string | null
+          company_id: string | null
+          "Conferences & Organizations Attended": string | null
+          "Contact Name": string | null
+          "Contact Owner": string | null
+          "Contact Owner.id": string | null
+          Country: string | null
+          County: string | null
+          "Created By": string | null
+          "Created By.id": string | null
+          "Created Time": string | null
+          created_at: string | null
+          "Days Visited": number | null
+          Department: string | null
+          Description: string | null
+          "Direct Phone": string | null
+          Email: string | null
+          "Email Opt Out": boolean | null
+          "Enrich Status": string | null
+          "First Name": string | null
+          "First Page Visited": string | null
+          "First Visit": string | null
+          "General Phone": string | null
+          id: string | null
+          "Industry & FB Group Memberships": string | null
+          "Last Activity Time": string | null
+          "Last Enriched Time": string | null
+          "Last Name": string | null
+          "Lead Source": string | null
+          "LinkedIn Connection": string | null
+          Locked: boolean | null
+          Mobile: string | null
+          "Modified By": string | null
+          "Modified By.id": string | null
+          "Modified Time": string | null
+          "Most Recent Visit": string | null
+          "Name Pronunciation": string | null
+          notes: string | null
+          "Number Of Chats": number | null
+          Phone: string | null
+          "Record Id": string | null
+          "Reference Egnyte Link": string | null
+          "Reference Services Products & Solutions": string | null
+          "Reference Subject Matter, Use Case & Department": string | null
+          "Reference Type": string | null
+          Referrer: string | null
+          "Reporting To": string | null
+          "Reporting To.id": string | null
+          "Role in deals": string | null
+          Salutation: string | null
+          State: string | null
+          Street: string | null
+          Tag: string | null
+          Title: string | null
+          "Unsubscribed Mode": string | null
+          "Unsubscribed Time": string | null
+          updated_at: string | null
+          user_id: string | null
+          "Vendor Name": string | null
+          "Vendor Name.id": string | null
+          "Visitor Score": number | null
+          "Zip Code": string | null
+        }
+        Insert: {
+          "Account Egnyte Link"?: string | null
+          "Account Name"?: string | null
+          "Account Name.id"?: string | null
+          "Average Time Spent (Minutes)"?: number | null
+          "Change Log Time"?: string | null
+          City?: string | null
+          company_id?: string | null
+          "Conferences & Organizations Attended"?: string | null
+          "Contact Name"?: string | null
+          "Contact Owner"?: string | null
+          "Contact Owner.id"?: string | null
+          Country?: string | null
+          County?: string | null
+          "Created By"?: string | null
+          "Created By.id"?: string | null
+          "Created Time"?: string | null
+          created_at?: string | null
+          "Days Visited"?: number | null
+          Department?: string | null
+          Description?: string | null
+          "Direct Phone"?: string | null
+          Email?: string | null
+          "Email Opt Out"?: boolean | null
+          "Enrich Status"?: string | null
+          "First Name"?: string | null
+          "First Page Visited"?: string | null
+          "First Visit"?: string | null
+          "General Phone"?: string | null
+          id?: string | null
+          "Industry & FB Group Memberships"?: string | null
+          "Last Activity Time"?: string | null
+          "Last Enriched Time"?: string | null
+          "Last Name"?: string | null
+          "Lead Source"?: string | null
+          "LinkedIn Connection"?: string | null
+          Locked?: boolean | null
+          Mobile?: string | null
+          "Modified By"?: string | null
+          "Modified By.id"?: string | null
+          "Modified Time"?: string | null
+          "Most Recent Visit"?: string | null
+          "Name Pronunciation"?: string | null
+          notes?: string | null
+          "Number Of Chats"?: number | null
+          Phone?: string | null
+          "Record Id"?: string | null
+          "Reference Egnyte Link"?: string | null
+          "Reference Services Products & Solutions"?: string | null
+          "Reference Subject Matter, Use Case & Department"?: string | null
+          "Reference Type"?: string | null
+          Referrer?: string | null
+          "Reporting To"?: string | null
+          "Reporting To.id"?: string | null
+          "Role in deals"?: string | null
+          Salutation?: string | null
+          State?: string | null
+          Street?: string | null
+          Tag?: string | null
+          Title?: string | null
+          "Unsubscribed Mode"?: string | null
+          "Unsubscribed Time"?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          "Vendor Name"?: string | null
+          "Vendor Name.id"?: string | null
+          "Visitor Score"?: number | null
+          "Zip Code"?: string | null
+        }
+        Update: {
+          "Account Egnyte Link"?: string | null
+          "Account Name"?: string | null
+          "Account Name.id"?: string | null
+          "Average Time Spent (Minutes)"?: number | null
+          "Change Log Time"?: string | null
+          City?: string | null
+          company_id?: string | null
+          "Conferences & Organizations Attended"?: string | null
+          "Contact Name"?: string | null
+          "Contact Owner"?: string | null
+          "Contact Owner.id"?: string | null
+          Country?: string | null
+          County?: string | null
+          "Created By"?: string | null
+          "Created By.id"?: string | null
+          "Created Time"?: string | null
+          created_at?: string | null
+          "Days Visited"?: number | null
+          Department?: string | null
+          Description?: string | null
+          "Direct Phone"?: string | null
+          Email?: string | null
+          "Email Opt Out"?: boolean | null
+          "Enrich Status"?: string | null
+          "First Name"?: string | null
+          "First Page Visited"?: string | null
+          "First Visit"?: string | null
+          "General Phone"?: string | null
+          id?: string | null
+          "Industry & FB Group Memberships"?: string | null
+          "Last Activity Time"?: string | null
+          "Last Enriched Time"?: string | null
+          "Last Name"?: string | null
+          "Lead Source"?: string | null
+          "LinkedIn Connection"?: string | null
+          Locked?: boolean | null
+          Mobile?: string | null
+          "Modified By"?: string | null
+          "Modified By.id"?: string | null
+          "Modified Time"?: string | null
+          "Most Recent Visit"?: string | null
+          "Name Pronunciation"?: string | null
+          notes?: string | null
+          "Number Of Chats"?: number | null
+          Phone?: string | null
+          "Record Id"?: string | null
+          "Reference Egnyte Link"?: string | null
+          "Reference Services Products & Solutions"?: string | null
+          "Reference Subject Matter, Use Case & Department"?: string | null
+          "Reference Type"?: string | null
+          Referrer?: string | null
+          "Reporting To"?: string | null
+          "Reporting To.id"?: string | null
+          "Role in deals"?: string | null
+          Salutation?: string | null
+          State?: string | null
+          Street?: string | null
+          Tag?: string | null
+          Title?: string | null
+          "Unsubscribed Mode"?: string | null
+          "Unsubscribed Time"?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          "Vendor Name"?: string | null
+          "Vendor Name.id"?: string | null
+          "Visitor Score"?: number | null
+          "Zip Code"?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_account_name_id_fkey"
+            columns: ["Account Name.id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_reporting_to_id_fkey"
+            columns: ["Reporting To.id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_reporting_to_id_fkey"
+            columns: ["Reporting To.id"]
+            isOneToOne: false
+            referencedRelation: "contacts_import_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_current_user_role: {
