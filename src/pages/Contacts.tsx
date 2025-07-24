@@ -13,7 +13,10 @@ import {
   Building2,
   MoreHorizontal,
   Edit,
-  Trash2
+  Trash2,
+  User,
+  Users,
+  Smartphone
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -26,59 +29,89 @@ export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("")
   const [allContacts, setAllContacts] = useState<any[]>([])
 
-  // Default sample contacts
+  // Default sample contacts with comprehensive fields
   const defaultContacts = [
     {
       id: 1,
-      name: "Sarah Johnson",
+      firstName: "Sarah",
+      lastName: "Johnson",
       email: "sarah.johnson@acmecorp.com",
       phone: "+1 (555) 123-4567",
-      company: "Acme Corp",
-      position: "VP of Sales",
+      mobile: "+1 (555) 123-4568",
+      accountName: "Acme Corp",
+      vendorName: "",
+      title: "VP of Sales",
+      department: "Sales",
+      contactOwner: "John Smith",
+      leadSource: "Website",
       status: "Active",
       initials: "SJ",
       source: "default"
     },
     {
       id: 2,
-      name: "Michael Chen",
-      email: "m.chen@techstart.io",
+      firstName: "Michael",
+      lastName: "Chen",
+      email: "m.chen@techstart.io", 
       phone: "+1 (555) 234-5678",
-      company: "TechStart Inc",
-      position: "CTO",
+      mobile: "+1 (555) 234-5679",
+      accountName: "TechStart Inc",
+      vendorName: "",
+      title: "CTO",
+      department: "Technology",
+      contactOwner: "Emma Wilson",
+      leadSource: "Referral",
       status: "Lead",
       initials: "MC",
       source: "default"
     },
     {
       id: 3,
-      name: "Emma Davis",
+      firstName: "Emma",
+      lastName: "Davis",
       email: "emma.davis@globalsol.com",
       phone: "+1 (555) 345-6789",
-      company: "Global Solutions",
-      position: "Marketing Director",
+      mobile: "+1 (555) 345-6790",
+      accountName: "Global Solutions",
+      vendorName: "",
+      title: "Marketing Director",
+      department: "Marketing",
+      contactOwner: "David Brown",
+      leadSource: "Cold Call",
       status: "Active",
       initials: "ED",
       source: "default"
     },
     {
       id: 4,
-      name: "Robert Kim",
+      firstName: "Robert",
+      lastName: "Kim",
       email: "robert.kim@innovlabs.com",
       phone: "+1 (555) 456-7890",
-      company: "Innovation Labs",
-      position: "CEO",
+      mobile: "+1 (555) 456-7891",
+      accountName: "Innovation Labs",
+      vendorName: "Tech Vendor Co",
+      title: "CEO",
+      department: "Executive",
+      contactOwner: "Lisa Anderson",
+      leadSource: "Trade Show",
       status: "Prospect",
       initials: "RK",
       source: "default"
     },
     {
       id: 5,
-      name: "Lisa Anderson",
+      firstName: "Lisa",
+      lastName: "Anderson",
       email: "l.anderson@futuretech.com",
       phone: "+1 (555) 567-8901",
-      company: "FutureTech",
-      position: "Product Manager",
+      mobile: "+1 (555) 567-8902",
+      accountName: "FutureTech",
+      vendorName: "",
+      title: "Product Manager",
+      department: "Product",
+      contactOwner: "Sarah Johnson",
+      leadSource: "Email Campaign",
       status: "Active",
       initials: "LA",
       source: "default"
@@ -95,7 +128,7 @@ export default function Contacts() {
         const rawContacts = JSON.parse(importedData)
         console.log('Found imported contacts:', rawContacts.length)
         
-        // Transform imported data to match our contact format
+        // Transform imported data to match our comprehensive contact format
         importedContacts = rawContacts.map((contact: any, index: number) => {
           const firstName = contact['First Name'] || contact['firstName'] || ''
           const lastName = contact['Last Name'] || contact['lastName'] || ''
@@ -103,11 +136,18 @@ export default function Contacts() {
           
           return {
             id: `imported-${index}`,
-            name: fullName,
+            firstName: firstName,
+            lastName: lastName,
+            fullName: fullName,
             email: contact['Email'] || contact['email'] || '',
-            phone: contact['Phone'] || contact['phone'] || contact['Mobile'] || '',
-            company: contact['Account Name'] || contact['company'] || contact['Company'] || '',
-            position: contact['Title'] || contact['position'] || contact['Job Title'] || '',
+            phone: contact['Phone'] || contact['phone'] || '',
+            mobile: contact['Mobile'] || contact['mobile'] || contact['Mobile Phone'] || '',
+            accountName: contact['Account Name'] || contact['accountName'] || contact['Company'] || '',
+            vendorName: contact['Vendor Name'] || contact['vendorName'] || '',
+            title: contact['Title'] || contact['title'] || contact['Job Title'] || '',
+            department: contact['Department'] || contact['department'] || '',
+            contactOwner: contact['Contact Owner'] || contact['contactOwner'] || contact['Owner'] || 'Imported User',
+            leadSource: contact['Lead Source'] || contact['leadSource'] || 'Import',
             status: "Imported",
             initials: fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'IC',
             source: "imported"
@@ -124,11 +164,16 @@ export default function Contacts() {
     setAllContacts([...defaultContacts, ...importedContacts])
   }, [])
 
-  const filteredContacts = allContacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.company.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredContacts = allContacts.filter(contact => {
+    const fullName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim()
+    const searchLower = searchQuery.toLowerCase()
+    
+    return fullName.toLowerCase().includes(searchLower) ||
+           contact.email.toLowerCase().includes(searchLower) ||
+           contact.accountName.toLowerCase().includes(searchLower) ||
+           contact.title.toLowerCase().includes(searchLower) ||
+           contact.department.toLowerCase().includes(searchLower)
+  })
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -177,69 +222,100 @@ export default function Contacts() {
 
       {/* Contacts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredContacts.map((contact) => (
-          <Card key={contact.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {contact.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">{contact.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{contact.position}</p>
+        {filteredContacts.map((contact) => {
+          const displayName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim()
+          return (
+            <Card key={contact.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {contact.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">{displayName}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{contact.title}</p>
+                      {contact.department && (
+                        <p className="text-xs text-muted-foreground">{contact.department} Department</p>
+                      )}
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{contact.accountName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{contact.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{contact.phone}</span>
+                </div>
+                {contact.mobile && (
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{contact.mobile}</span>
+                  </div>
+                )}
+                
+                {/* Additional contact details */}
+                <div className="pt-2 border-t space-y-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Owner: {contact.contactOwner}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Users className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Source: {contact.leadSource}</span>
+                  </div>
+                  {contact.vendorName && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Building2 className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Vendor: {contact.vendorName}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Badge className={getStatusColor(contact.status)}>
+                    {contact.status}
+                  </Badge>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon">
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Phone className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{contact.company}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{contact.email}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{contact.phone}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <Badge className={getStatusColor(contact.status)}>
-                  {contact.status}
-                </Badge>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon">
-                    <Mail className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
