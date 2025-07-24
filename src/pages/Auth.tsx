@@ -113,7 +113,14 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to WISDOM CRM</CardTitle>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/167bbb76-06f5-4179-ae13-705d510d0caf.png" 
+              alt="WISDM CRM Logo" 
+              className="h-12 w-auto"
+            />
+          </div>
+          <CardTitle className="text-2xl font-bold">Welcome to WISDM CRM</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>
