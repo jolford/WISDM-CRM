@@ -14,6 +14,7 @@ import SupportDesk from "./pages/SupportDesk";
 import Settings from "./pages/Settings";
 import SalesReporting from "./pages/SalesReporting";
 import ProjectManagement from "./pages/ProjectManagement";
+import DataImportExport from "./pages/DataImportExport";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
           <Route path="/reports" element={<Layout><SalesReporting /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

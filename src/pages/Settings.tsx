@@ -17,7 +17,8 @@ import {
   Eye,
   EyeOff,
   Download,
-  Upload
+  Upload,
+  Import
 } from "lucide-react"
 import {
   Tabs,
@@ -383,7 +384,7 @@ export default function Settings() {
               
               <div className="space-y-4">
                 <h4 className="font-medium">Data Management</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Button variant="outline" className="justify-start">
                     <Download className="h-4 w-4 mr-2" />
                     Export Data
@@ -391,6 +392,10 @@ export default function Settings() {
                   <Button variant="outline" className="justify-start">
                     <Upload className="h-4 w-4 mr-2" />
                     Import Data
+                  </Button>
+                  <Button variant="outline" className="justify-start" onClick={() => window.location.href = '/data-migration'}>
+                    <Import className="h-4 w-4 mr-2" />
+                    Zoho Migration
                   </Button>
                 </div>
               </div>
