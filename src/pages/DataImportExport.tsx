@@ -293,30 +293,51 @@ export default function DataImportExport() {
       
       console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
       
-      // Store in localStorage for now (in a real app, this would go to a database)
-      const storageKey = `wisdm_${importType}`
-      console.log('💾 Storing data with key:', storageKey)
+      // Store directly in database instead of localStorage
+      console.log('💾 Storing data directly in database')
       
-      const existingData = localStorage.getItem(storageKey) || '[]'
-      const currentData = JSON.parse(existingData)
-      const newData = [...currentData, ...validatedRecords]
-      localStorage.setItem(storageKey, JSON.stringify(newData))
+      setImportProgress(50)
       
-      console.log('✅ Data stored successfully. Total records:', newData.length)
-      
-      setImportProgress(100)
-      
-      // Show detailed results
-      const skippedCount = records.length - validatedRecords.length
-      const message = skippedCount > 0 
-        ? `Successfully imported ${validatedRecords.length} ${importType}. ${skippedCount} records were skipped due to validation errors.`
-        : `Successfully imported ${validatedRecords.length} ${importType} from ${selectedFile.name}.`
-      
-      toast({
-        title: "Import Complete",
-        description: `${message} Navigate to the ${importType} section to view them.`,
-      })
-      
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('User not authenticated')
+
+        // Add user_id to each record and insert into database
+        const recordsWithUserId = validatedRecords.map(record => ({
+          ...record,
+          user_id: user.id
+        }))
+
+        const tableName = importType as 'contacts' | 'companies' | 'deals'
+        const { error: insertError } = await supabase
+          .from(tableName)
+          .insert(recordsWithUserId)
+
+        if (insertError) {
+          console.error('Database insert error:', insertError)
+          throw new Error(`Failed to save data: ${insertError.message}`)
+        }
+
+        console.log('✅ Data stored successfully in database. Total records:', validatedRecords.length)
+        
+        setImportProgress(100)
+        
+        // Show detailed results
+        const skippedCount = records.length - validatedRecords.length
+        const message = skippedCount > 0 
+          ? `Successfully imported ${validatedRecords.length} ${importType}. ${skippedCount} records were skipped due to validation errors.`
+          : `Successfully imported ${validatedRecords.length} ${importType}!`
+        
+        toast({
+          title: "Import Complete",
+          description: `${message} Navigate to the ${importType} section to view them.`,
+        })
+        
+      } catch (dbError) {
+        console.error('Database storage error:', dbError)
+        throw new Error(`Failed to save data to database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`)
+      }
+
     } catch (error) {
       console.error('Import error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
