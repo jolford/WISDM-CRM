@@ -376,11 +376,36 @@ export default function DataImportExport() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('User not authenticated')
 
-        // Add user_id to each record and insert into database
-        const recordsWithUserId = validatedRecords.map(record => ({
-          ...record,
-          user_id: user.id
-        }))
+        // Add user_id to each record and filter only valid database columns
+        const validDbColumns = new Set([
+          'first_name', 'last_name', 'email', 'phone', 'mobile', 'title', 'department',
+          'lead_source', 'notes', 'contact_owner', 'account_name', 'vendor_name',
+          'contact_name', 'description', 'salutation', 'tag', 'reporting_to',
+          'unsubscribed_mode', 'referrer', 'first_page_visited', 'general_phone',
+          'direct_phone', 'linkedin_connection', 'account_egnyte_link', 'name_pronunciation',
+          'industry_fb_group_memberships', 'role_in_deals', 'street', 'city', 'zip_code',
+          'state', 'country', 'county', 'record_id', 'contact_owner_id', 'created_by',
+          'modified_by', 'account_name_id', 'vendor_name_id', 'created_by_id', 'modified_by_id',
+          'reporting_to_id', 'email_opt_out', 'locked', 'enrich_status', 'reference_type',
+          'reference_subject_matter', 'reference_egnyte_link', 'reference_services_products',
+          'conferences_organizations_attended', 'average_time_spent_minutes', 'visitor_score',
+          'number_of_chats', 'days_visited', 'created_time', 'modified_time', 'last_activity_time',
+          'unsubscribed_time', 'change_log_time', 'first_visit', 'most_recent_visit',
+          'last_enriched_time', 'user_id'
+        ])
+
+        const recordsWithUserId = validatedRecords.map(record => {
+          const cleanRecord: any = { user_id: user.id }
+          
+          // Only include columns that exist in the database
+          Object.keys(record).forEach(key => {
+            if (validDbColumns.has(key) && record[key] !== '') {
+              cleanRecord[key] = record[key]
+            }
+          })
+          
+          return cleanRecord
+        })
 
         const tableName = importType as 'contacts' | 'companies' | 'deals'
         const { error: insertError } = await supabase
