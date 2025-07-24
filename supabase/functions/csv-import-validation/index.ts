@@ -60,13 +60,36 @@ serve(async (req) => {
       throw new Error('Invalid data type. Must be: contacts, companies, or deals');
     }
 
-    // Parse CSV data
-    const lines = csvData.trim().split('\n');
+    // Parse CSV data with better error handling
+    const lines = csvData.trim().split('\n').filter(line => line.trim());
     if (lines.length < 2) {
       throw new Error('CSV must contain headers and at least one data row');
     }
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    // More robust CSV parsing for headers
+    const headerLine = lines[0];
+    let headers;
+    
+    try {
+      // Handle different CSV formats including quoted fields
+      if (headerLine.includes('"')) {
+        // Complex parsing for quoted fields
+        headers = headerLine.match(/("([^"]*)"|[^,]*)/g)?.map(h => 
+          h.trim().replace(/^"|"$/g, '').trim()
+        ) || [];
+      } else {
+        // Simple comma-separated parsing
+        headers = headerLine.split(',').map(h => h.trim());
+      }
+      
+      if (headers.length === 0) {
+        throw new Error('No headers found in CSV file');
+      }
+      
+      console.log('Parsed headers:', headers);
+    } catch (error) {
+      throw new Error(`Failed to parse CSV headers: ${error.message}`);
+    }
     
     // Enhanced security validation for headers
     const allowedHeaderPattern = /^[a-zA-Z0-9\s_.,&():/-]+$/;
