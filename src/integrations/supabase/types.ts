@@ -383,6 +383,51 @@ export type Database = {
           },
         ]
       }
+      import_audit_log: {
+        Row: {
+          created_at: string
+          data_type: string
+          file_name: string
+          file_size: number
+          id: string
+          import_status: string
+          ip_address: unknown | null
+          records_imported: number
+          records_processed: number
+          security_flags: string[] | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_type: string
+          file_name: string
+          file_size: number
+          id?: string
+          import_status?: string
+          ip_address?: unknown | null
+          records_imported: number
+          records_processed: number
+          security_flags?: string[] | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_type?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          import_status?: string
+          ip_address?: unknown | null
+          records_imported?: number
+          records_processed?: number
+          security_flags?: string[] | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -650,6 +695,15 @@ export type Database = {
       }
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          target_user_id: string
+          new_role: string
+          reason?: string
+          expires_at?: string
+        }
+        Returns: boolean
+      }
       check_import_rate_limit: {
         Args: { user_id: string }
         Returns: boolean
