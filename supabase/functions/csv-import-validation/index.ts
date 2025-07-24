@@ -147,13 +147,49 @@ serve(async (req) => {
       validatedRows++;
     }
 
-    // Rate limiting check (simple implementation)
+    // Enhanced rate limiting check with user role verification
+    const { data: userRole } = await supabase.rpc('get_current_user_role');
+    
+    // Check user permissions for data import
+    if (!userRole || (userRole !== 'admin' && userRole !== 'manager')) {
+      throw new Error('Insufficient permissions for data import. Contact your administrator.');
+    }
+
+    // Enhanced rate limiting check
     const { data: rateLimitCheck } = await supabase.rpc('check_import_rate_limit', { 
       user_id: user.id 
     });
 
     if (!rateLimitCheck) {
       throw new Error('Rate limit exceeded. Please try again later.');
+    }
+
+    // Additional security: Implement file size and content validation limits
+    const csvSizeBytes = new TextEncoder().encode(csvData).length;
+    const maxSizeBytes = 5 * 1024 * 1024; // 5MB limit
+    
+    if (csvSizeBytes > maxSizeBytes) {
+      throw new Error('File size too large. Maximum allowed size is 5MB.');
+    }
+
+    // Enhanced malicious content detection
+    const suspiciousContentPatterns = [
+      /<script[^>]*>.*?<\/script>/gi,
+      /javascript:/gi,
+      /data:text\/html/gi,
+      /vbscript:/gi,
+      /onload|onerror|onclick/gi,
+      /eval\s*\(/gi,
+      /expression\s*\(/gi,
+      /import\s+/gi,
+      /require\s*\(/gi
+    ];
+
+    for (const pattern of suspiciousContentPatterns) {
+      if (pattern.test(csvData)) {
+        console.error('Malicious content pattern detected:', pattern);
+        throw new Error('Potentially malicious content detected in file. Upload rejected for security.');
+      }
     }
 
     console.log(`Validation completed: ${validatedRows} valid rows, ${errors.length} errors`);

@@ -117,16 +117,26 @@ export default function DataImportExport() {
     
     if (!file) return
 
-    // Enhanced security validation
-    const maxFileSize = 10 * 1024 * 1024 // 10MB limit
+    // Enhanced security validation with stricter limits
+    const maxFileSize = 5 * 1024 * 1024 // 5MB limit (reduced for security)
     const allowedTypes = ['text/csv', 'application/vnd.ms-excel']
     const allowedExtensions = ['.csv']
+    
+    // Check permissions first
+    if (!canImport) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to import data. Contact your administrator.",
+        variant: "destructive",
+      })
+      return
+    }
     
     // Check file size
     if (file.size > maxFileSize) {
       toast({
         title: "File Too Large",
-        description: "File size must be less than 10MB",
+        description: "File size must be less than 5MB for security reasons",
         variant: "destructive",
       })
       return
@@ -143,12 +153,12 @@ export default function DataImportExport() {
       return
     }
     
-    // Check filename for suspicious patterns
-    const suspiciousPatterns = /[<>:"\\|?*\x00-\x1f]|^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
+    // Enhanced filename security validation
+    const suspiciousPatterns = /[<>:"\\|?*\x00-\x1f#%&{}[\]$!]|^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
     if (suspiciousPatterns.test(file.name)) {
       toast({
         title: "Invalid File Name",
-        description: "File name contains invalid characters",
+        description: "File name contains invalid characters. Use only letters, numbers, hyphens, and underscores.",
         variant: "destructive",
       })
       return
