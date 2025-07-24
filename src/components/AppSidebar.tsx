@@ -6,7 +6,8 @@ import {
   CheckSquare, 
   Settings,
   Plus,
-  Headphones
+  Headphones,
+  BarChart3
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -29,6 +30,7 @@ const items = [
   { title: "Companies", url: "/companies", icon: Building2 },
   { title: "Deals", url: "/deals", icon: Target },
   { title: "Tasks", url: "/tasks", icon: CheckSquare },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Support", url: "/support", icon: Headphones },
   { title: "Settings", url: "/settings", icon: Settings },
 ]
