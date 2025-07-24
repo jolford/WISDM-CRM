@@ -23,6 +23,9 @@ export default function Layout({ children }: LayoutProps) {
     });
   };
 
+  // Check if user is admin
+  const isAdmin = profile?.role === 'admin';
+
   return (
     <ProtectedRoute>
       <SidebarProvider>
@@ -52,8 +55,12 @@ export default function Layout({ children }: LayoutProps) {
                     <span className="text-muted-foreground">
                       {profile?.first_name} {profile?.last_name}
                     </span>
-                    <span className="bg-muted px-2 py-1 rounded text-xs capitalize">
-                      {profile?.role?.replace('_', ' ')}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      profile?.role === 'admin' ? 'bg-red-100 text-red-800' :
+                      profile?.role === 'manager' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {profile?.role?.replace('_', ' ').toUpperCase()}
                     </span>
                   </div>
                   <Button variant="ghost" size="icon">

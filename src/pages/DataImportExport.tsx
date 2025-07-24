@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { useRoleAccess } from "@/hooks/useRoleAccess"
+import { supabase } from "@/integrations/supabase/client"
 import { 
   Upload, 
   Download, 
@@ -36,12 +38,17 @@ import { Progress } from "@/components/ui/progress"
 
 export default function DataImportExport() {
   const { toast } = useToast()
+  const { hasPermission, requiresPermission } = useRoleAccess()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [importProgress, setImportProgress] = useState(0)
   const [isImporting, setIsImporting] = useState(false)
   const [webhookUrl, setWebhookUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [importType, setImportType] = useState("contacts")
+
+  // Check permissions
+  const canImport = hasPermission('canImportData')
+  const canExport = hasPermission('canExportData')
 
   const importSteps = [
     {
@@ -155,6 +162,17 @@ export default function DataImportExport() {
   }
 
   const handleImport = async () => {
+    // Check permissions first
+    if (!requiresPermission('canImportData', () => {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to import data",
+        variant: "destructive",
+      })
+    })) {
+      return
+    }
+
     console.log('🔥 Import started - handleImport called')
     
     if (!selectedFile) {
@@ -173,8 +191,24 @@ export default function DataImportExport() {
     setImportProgress(0)
 
     try {
-      // Read the CSV file with security checks
+      // Enhanced server-side validation using Edge Function
       const text = await selectedFile.text()
+
+      // Call the secure validation edge function
+      const { data: validationResult, error: validationError } = await supabase.functions.invoke('csv-import-validation', {
+        body: {
+          csvData: text,
+          dataType: importType
+        }
+      })
+
+      if (validationError || !validationResult?.success) {
+        throw new Error(validationResult?.error || 'Validation failed')
+      }
+
+      console.log('Server validation passed:', validationResult)
+
+      // Continue with client-side processing for UI feedback
       
       // Security: Check for excessive content or potential attacks
       const maxContentSize = 5 * 1024 * 1024 // 5MB text limit
@@ -407,6 +441,17 @@ export default function DataImportExport() {
   }
 
   const exportData = (dataType: string) => {
+    // Check permissions first
+    if (!requiresPermission('canExportData', () => {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to export data",
+        variant: "destructive",
+      })
+    })) {
+      return
+    }
+
     // Simulate export
     toast({
       title: "Export Started",
@@ -433,8 +478,12 @@ export default function DataImportExport() {
 
       <Tabs defaultValue="import" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="import">Import Data</TabsTrigger>
-          <TabsTrigger value="export">Export Data</TabsTrigger>
+          <TabsTrigger value="import" disabled={!canImport}>
+            Import Data {!canImport && "🔒"}
+          </TabsTrigger>
+          <TabsTrigger value="export" disabled={!canExport}>
+            Export Data {!canExport && "🔒"}
+          </TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
         </TabsList>
 
