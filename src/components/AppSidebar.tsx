@@ -7,7 +7,8 @@ import {
   Settings,
   Plus,
   Headphones,
-  BarChart3
+  BarChart3,
+  FolderKanban
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -30,6 +31,7 @@ const items = [
   { title: "Companies", url: "/companies", icon: Building2 },
   { title: "Deals", url: "/deals", icon: Target },
   { title: "Tasks", url: "/tasks", icon: CheckSquare },
+  { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Support", url: "/support", icon: Headphones },
   { title: "Settings", url: "/settings", icon: Settings },
