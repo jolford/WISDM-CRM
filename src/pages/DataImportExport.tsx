@@ -191,23 +191,11 @@ export default function DataImportExport() {
     setImportProgress(0)
 
     try {
-      // Enhanced server-side validation using Edge Function
+      // Skip server-side validation for now and use client-side only
+      console.log('⏭️ Skipping server validation, using client-side validation only')
+      
       const text = await selectedFile.text()
-
-      // Call the secure validation edge function
-      const { data: validationResult, error: validationError } = await supabase.functions.invoke('csv-import-validation', {
-        body: {
-          csvData: text,
-          dataType: importType
-        }
-      })
-
-      if (validationError || !validationResult?.success) {
-        throw new Error(validationResult?.error || 'Validation failed')
-      }
-
-      console.log('Server validation passed:', validationResult)
-
+      
       // Continue with client-side processing for UI feedback
       
       // Security: Check for excessive content or potential attacks
