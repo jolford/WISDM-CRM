@@ -74,6 +74,65 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          lead_source: string | null
+          mobile: string | null
+          notes: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          lead_source?: string | null
+          mobile?: string | null
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          lead_source?: string | null
+          mobile?: string | null
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
