@@ -388,17 +388,42 @@ export default function DataImportExport() {
           } else if (importType === 'maintenance') {
             return {
               'Product Name': 'product_name',
+              'Product': 'product_name',
+              'Name': 'product_name',
+              'Software Name': 'product_name',
+              'Hardware Name': 'product_name',
+              'Item Name': 'product_name',
+              'Asset Name': 'product_name',
               'Product Type': 'product_type',
+              'Type': 'product_type',
+              'Category': 'product_type',
               'Vendor Name': 'vendor_name',
+              'Vendor': 'vendor_name',
+              'Manufacturer': 'vendor_name',
               'Serial Number': 'serial_number',
+              'Serial': 'serial_number',
+              'S/N': 'serial_number',
               'License Key': 'license_key',
+              'License': 'license_key',
+              'Key': 'license_key',
               'Purchase Date': 'purchase_date',
+              'Purchased': 'purchase_date',
               'Start Date': 'start_date',
+              'Start': 'start_date',
               'End Date': 'end_date',
+              'End': 'end_date',
+              'Expiry Date': 'end_date',
+              'Expiration Date': 'end_date',
               'Cost': 'cost',
+              'Price': 'cost',
+              'Amount': 'cost',
               'Status': 'status',
+              'State': 'status',
               'Notes': 'notes',
-              'Renewal Reminder Days': 'renewal_reminder_days'
+              'Comments': 'notes',
+              'Description': 'notes',
+              'Renewal Reminder Days': 'renewal_reminder_days',
+              'Reminder Days': 'renewal_reminder_days'
             }
           }
         return {}
