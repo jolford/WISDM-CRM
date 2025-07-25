@@ -47,6 +47,7 @@ interface Deal {
   company_id: string | null
   contact_id: string | null
   user_id: string | null
+  deal_owner_name?: string | null
   profiles?: {
     first_name: string | null
     last_name: string | null
@@ -87,7 +88,10 @@ export default function Deals() {
       
       // Fetch all data in parallel
       const [dealsResult, companiesResult, contactsResult] = await Promise.all([
-        supabase.from('deals').select('*').order('created_at', { ascending: false }),
+        supabase.from('deals').select(`
+          *,
+          profiles(first_name, last_name, email)
+        `).order('created_at', { ascending: false }),
         supabase.from('companies').select('id, name'),
         supabase.from('contacts').select('id, first_name, last_name')
       ])
@@ -163,12 +167,23 @@ export default function Deals() {
   }
 
   const getDealOwnerName = (deal: Deal) => {
+    // First check if we have imported deal_owner_name
+    if (deal.deal_owner_name) return deal.deal_owner_name
+    
+    // Then check profiles from user_id
     if (!deal.profiles || typeof deal.profiles !== 'object' || Array.isArray(deal.profiles)) return "Unassigned"
     const { first_name, last_name, email } = deal.profiles
     return `${first_name || ''} ${last_name || ''}`.trim() || email
   }
 
   const getDealOwnerInitials = (deal: Deal) => {
+    // If we have deal_owner_name from import, generate initials
+    if (deal.deal_owner_name) {
+      const names = deal.deal_owner_name.split(' ')
+      return names.map(n => n[0]).join('').toUpperCase().slice(0, 2) || "DO"
+    }
+    
+    // Otherwise use profiles
     if (!deal.profiles || typeof deal.profiles !== 'object' || Array.isArray(deal.profiles)) return "UA"
     const { first_name, last_name } = deal.profiles
     return `${first_name?.[0] || ''}${last_name?.[0] || ''}`.toUpperCase() || "UA"

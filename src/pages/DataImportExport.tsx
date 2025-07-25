@@ -416,7 +416,7 @@ export default function DataImportExport() {
               'Deal Name': 'name',
               'Name': 'name',
               'Title': 'name',
-              'Deal Owner': 'notes', // Store in notes since deals don't have owner field
+              'Deal Owner': 'deal_owner_name', // Store owner name as text field
               'Account Name': 'company_id', // Note: This might need lookup
               'Company': 'company_id',
               'Amount': 'value',
@@ -623,11 +623,11 @@ export default function DataImportExport() {
               'name', 'website', 'industry', 'size', 'revenue', 'phone', 'email', 
               'address', 'city', 'state', 'country', 'zip_code', 'notes', 'user_id'
             ])
-           } else if (importType === 'deals') {
-             return new Set([
-               'name', 'value', 'stage', 'probability', 'close_date', 'description', 
-               'notes', 'company_id', 'contact_id', 'user_id'
-             ])
+            } else if (importType === 'deals') {
+              return new Set([
+                'name', 'value', 'stage', 'probability', 'close_date', 'description', 
+                'notes', 'company_id', 'contact_id', 'deal_owner_name', 'user_id'
+              ])
            } else if (importType === 'tickets') {
              return new Set([
                'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
