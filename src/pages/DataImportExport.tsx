@@ -510,8 +510,23 @@ export default function DataImportExport() {
               cleanRecord[key] = record[key]
             }
           })
+
+          // Ensure required fields are present - first_name and last_name are NOT NULL in database
+          if (!cleanRecord.first_name || cleanRecord.first_name.trim() === '') {
+            cleanRecord.first_name = 'Unknown'
+          }
+          if (!cleanRecord.last_name || cleanRecord.last_name.trim() === '') {
+            cleanRecord.last_name = 'Contact'
+          }
           
           return cleanRecord
+        }).filter(record => {
+          // Additional validation: ensure we have at least basic contact info
+          const hasBasicInfo = record.first_name && record.last_name
+          if (!hasBasicInfo) {
+            console.warn('Skipping record with missing required fields:', record)
+          }
+          return hasBasicInfo
         })
 
         const tableName = importType as 'contacts' | 'companies' | 'deals'
