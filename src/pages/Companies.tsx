@@ -73,6 +73,51 @@ export default function Companies() {
     }
   }
 
+  const handleEdit = (company: any) => {
+    // TODO: Open edit modal/form with company data
+    toast({
+      title: "Edit Company",
+      description: `Edit functionality for ${company.name} will be implemented here`,
+    })
+  }
+
+  const handleDelete = async (companyId: string) => {
+    if (!confirm('Are you sure you want to delete this company?')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyId)
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete company",
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: "Success",
+        description: "Company deleted successfully"
+      })
+      
+      // Refresh the companies list
+      fetchCompanies()
+    } catch (error) {
+      console.error('Error deleting company:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete company",
+        variant: "destructive"
+      })
+    }
+  }
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -283,17 +328,20 @@ export default function Companies() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(company)}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
                           {company.website && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(company.website.startsWith('http') ? company.website : `https://${company.website}`, '_blank')}>
                               <ExternalLink className="h-4 w-4 mr-2" />
                               Visit Website
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDelete(company.id)}
+                          >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
                           </DropdownMenuItem>

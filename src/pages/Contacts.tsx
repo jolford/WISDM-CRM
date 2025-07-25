@@ -134,6 +134,14 @@ export default function Contacts() {
     }
   }
 
+  const handleEditContact = (contact: Contact) => {
+    // TODO: Open edit modal/form with contact data
+    toast({
+      title: "Edit Contact",
+      description: `Edit functionality for ${contact.first_name} ${contact.last_name} will be implemented here`,
+    })
+  }
+
   // Filter contacts based on search query
   const filteredContacts = contacts.filter(contact => {
     const searchLower = searchQuery.toLowerCase()
@@ -367,7 +375,7 @@ export default function Contacts() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditContact(contact)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
