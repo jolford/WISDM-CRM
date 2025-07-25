@@ -288,6 +288,11 @@ export default function DataImportExport() {
       
         const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
         console.log('📋 CSV Headers found:', headers)
+        
+        // Check if CSV has proper headers (more than 1 column or doesn't look like a filename)
+        if (headers.length === 1 && (headers[0].includes('.csv') || headers[0].includes('report') || headers[0].length > 50)) {
+          throw new Error('Invalid CSV format: The file appears to have malformed headers. Please ensure your CSV has proper column headers in the first row.')
+        }
       
       // Security: Validate headers (allow common CSV characters including special chars, quotes, etc.)
       const allowedHeaderPattern = /^[a-zA-Z0-9\s_.,&():/'"#@%$*+=\[\]{}|\\~`!?-]+$/
