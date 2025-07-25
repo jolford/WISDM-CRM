@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/integrations/supabase/client"
 import { 
   User, 
   Bell, 
@@ -40,9 +42,18 @@ import { Separator } from "@/components/ui/separator"
 
 export default function Settings() {
   const { toast } = useToast()
+  const { user, profile } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [theme, setTheme] = useState("light")
   const [accentColor, setAccentColor] = useState("blue")
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [profileData, setProfileData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    avatar_url: ''
+  })
   const [notifications, setNotifications] = useState({
     email: true,
     desktop: false,
@@ -57,7 +68,17 @@ export default function Settings() {
     setTheme(savedTheme)
     setAccentColor(savedAccent)
     applyTheme(savedTheme, savedAccent)
-  }, [])
+    
+    // Load profile data
+    if (profile) {
+      setProfileData({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        email: profile.email || '',
+        avatar_url: profile.avatar_url || ''
+      })
+    }
+  }, [profile])
 
   const applyTheme = (newTheme: string, newAccent: string) => {
     const root = document.documentElement
@@ -108,6 +129,107 @@ export default function Settings() {
     setNotifications(prev => ({ ...prev, [key]: value }))
   }
 
+  const handleProfileUpdate = async () => {
+    if (!user?.id) return
+    
+    setLoading(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      })
+    } catch (error) {
+      console.error('Profile update error:', error)
+      toast({
+        title: "Update Failed", 
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user?.id) return
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file (JPG, PNG, or GIF).",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 2MB.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.id}/avatar.${fileExt}`
+
+      // Upload file to storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName)
+
+      // Update profile with avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          avatar_url: data.publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (updateError) throw updateError
+
+      setProfileData(prev => ({ ...prev, avatar_url: data.publicUrl }))
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      })
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload avatar. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -116,9 +238,9 @@ export default function Settings() {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your account and application preferences</p>
         </div>
-        <Button onClick={() => alert('Save Changes functionality would save all form data')}>
+        <Button onClick={handleProfileUpdate} disabled={loading}>
           <Save className="h-4 w-4 mr-2" />
-          Save Changes
+          {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
@@ -143,14 +265,27 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-6">
                 <Avatar className="h-20 w-20">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                    JD
-                  </AvatarFallback>
+                  {profileData.avatar_url ? (
+                    <AvatarImage src={profileData.avatar_url} alt="Profile picture" />
+                  ) : (
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                      {profileData.first_name?.[0]?.toUpperCase()}{profileData.last_name?.[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="space-y-2">
-                  <Button variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                    id="avatar-upload"
+                  />
+                  <Button variant="outline" asChild disabled={uploading}>
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Uploading...' : 'Upload Photo'}
+                    </label>
                   </Button>
                   <p className="text-sm text-muted-foreground">
                     JPG, PNG or GIF. Max size 2MB.
@@ -163,37 +298,44 @@ export default function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
+                  <Input 
+                    id="firstName" 
+                    value={profileData.first_name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, first_name: e.target.value }))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Doe" />
+                  <Input 
+                    id="lastName" 
+                    value={profileData.last_name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, last_name: e.target.value }))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="john.doe@company.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={profileData.email}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Email cannot be changed here. Contact support if you need to update your email.
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" defaultValue="+1 (555) 123-4567" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="title">Job Title</Label>
-                  <Input id="title" defaultValue="Sales Manager" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Select defaultValue="sales">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sales">Sales</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="support">Support</SelectItem>
-                      <SelectItem value="admin">Administration</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="role">Role</Label>
+                  <Input 
+                    id="role" 
+                    value={profile?.role?.replace('_', ' ').toUpperCase() || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Role is managed by administrators.
+                  </p>
                 </div>
               </div>
             </CardContent>

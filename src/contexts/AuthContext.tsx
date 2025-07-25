@@ -9,6 +9,9 @@ interface Profile {
   last_name: string | null;
   role: 'admin' | 'manager' | 'sales_rep';
   is_active: boolean;
+  avatar_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
