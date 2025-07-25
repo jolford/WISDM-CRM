@@ -26,6 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import { QuickAddDialog } from "./QuickAddDialog"
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -96,13 +97,12 @@ export function AppSidebar() {
 
         {open && (
           <div className="px-4 py-4 mt-auto">
-            <Button 
-              className="w-full"
-              onClick={() => alert("Quick Add menu - Choose what to add")}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Quick Add
-            </Button>
+            <QuickAddDialog>
+              <Button className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Quick Add
+              </Button>
+            </QuickAddDialog>
           </div>
         )}
       </SidebarContent>
