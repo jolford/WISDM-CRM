@@ -313,6 +313,59 @@ export type Database = {
           },
         ]
       }
+      dashboard_widgets: {
+        Row: {
+          created_at: string
+          dashboard_id: string
+          data_source: string
+          height: number
+          id: string
+          position_x: number
+          position_y: number
+          updated_at: string
+          widget_config: Json
+          widget_title: string | null
+          widget_type: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          dashboard_id: string
+          data_source: string
+          height?: number
+          id?: string
+          position_x?: number
+          position_y?: number
+          updated_at?: string
+          widget_config: Json
+          widget_title?: string | null
+          widget_type: string
+          width?: number
+        }
+        Update: {
+          created_at?: string
+          dashboard_id?: string
+          data_source?: string
+          height?: number
+          id?: string
+          position_x?: number
+          position_y?: number
+          updated_at?: string
+          widget_config?: Json
+          widget_title?: string | null
+          widget_type?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_widgets_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           close_date: string | null
@@ -560,59 +613,230 @@ export type Database = {
         }
         Relationships: []
       }
-      reports: {
+      report_charts: {
+        Row: {
+          aggregate_function: string | null
+          chart_config: Json | null
+          chart_title: string | null
+          chart_type: string
+          created_at: string
+          height: number | null
+          id: string
+          position_x: number | null
+          position_y: number | null
+          report_id: string
+          updated_at: string
+          width: number | null
+          x_axis_field: string | null
+          y_axis_field: string | null
+        }
+        Insert: {
+          aggregate_function?: string | null
+          chart_config?: Json | null
+          chart_title?: string | null
+          chart_type: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          report_id: string
+          updated_at?: string
+          width?: number | null
+          x_axis_field?: string | null
+          y_axis_field?: string | null
+        }
+        Update: {
+          aggregate_function?: string | null
+          chart_config?: Json | null
+          chart_title?: string | null
+          chart_type?: string
+          created_at?: string
+          height?: number | null
+          id?: string
+          position_x?: number | null
+          position_y?: number | null
+          report_id?: string
+          updated_at?: string
+          width?: number | null
+          x_axis_field?: string | null
+          y_axis_field?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_charts_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_filters: {
         Row: {
           created_at: string
-          data_source: string | null
+          field_name: string
+          filter_group: number | null
+          id: string
+          logical_operator: string | null
+          operator: string
+          report_id: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          field_name: string
+          filter_group?: number | null
+          id?: string
+          logical_operator?: string | null
+          operator: string
+          report_id: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          field_name?: string
+          filter_group?: number | null
+          id?: string
+          logical_operator?: string | null
+          operator?: string
+          report_id?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_filters_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          aggregate_functions: Json | null
+          chart_config: Json | null
+          created_at: string
+          dashboard_layout: Json | null
+          data_sources: string[] | null
           description: string | null
-          format: string | null
+          group_by_fields: string[] | null
           id: string
           is_active: boolean | null
+          is_dashboard: boolean | null
+          is_public: boolean | null
           last_run: string | null
           name: string
           next_run: string | null
-          parameters: Json | null
-          recipients: string[] | null
-          report_type: string | null
-          schedule: string | null
+          report_type: string
+          selected_fields: Json | null
+          shared_with: string[] | null
+          sort_fields: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aggregate_functions?: Json | null
+          chart_config?: Json | null
+          created_at?: string
+          dashboard_layout?: Json | null
+          data_sources?: string[] | null
+          description?: string | null
+          group_by_fields?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          is_dashboard?: boolean | null
+          is_public?: boolean | null
+          last_run?: string | null
+          name: string
+          next_run?: string | null
+          report_type?: string
+          selected_fields?: Json | null
+          shared_with?: string[] | null
+          sort_fields?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aggregate_functions?: Json | null
+          chart_config?: Json | null
+          created_at?: string
+          dashboard_layout?: Json | null
+          data_sources?: string[] | null
+          description?: string | null
+          group_by_fields?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          is_dashboard?: boolean | null
+          is_public?: boolean | null
+          last_run?: string | null
+          name?: string
+          next_run?: string | null
+          report_type?: string
+          selected_fields?: Json | null
+          shared_with?: string[] | null
+          sort_fields?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          format: string
+          id: string
+          is_active: boolean | null
+          last_sent: string | null
+          next_send: string | null
+          recipients: string[]
+          report_id: string
+          schedule_config: Json
+          schedule_type: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          data_source?: string | null
-          description?: string | null
-          format?: string | null
+          format?: string
           id?: string
           is_active?: boolean | null
-          last_run?: string | null
-          name: string
-          next_run?: string | null
-          parameters?: Json | null
-          recipients?: string[] | null
-          report_type?: string | null
-          schedule?: string | null
+          last_sent?: string | null
+          next_send?: string | null
+          recipients: string[]
+          report_id: string
+          schedule_config: Json
+          schedule_type: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          data_source?: string | null
-          description?: string | null
-          format?: string | null
+          format?: string
           id?: string
           is_active?: boolean | null
-          last_run?: string | null
-          name?: string
-          next_run?: string | null
-          parameters?: Json | null
-          recipients?: string[] | null
-          report_type?: string | null
-          schedule?: string | null
+          last_sent?: string | null
+          next_send?: string | null
+          recipients?: string[]
+          report_id?: string
+          schedule_config?: Json
+          schedule_type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_reports_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
