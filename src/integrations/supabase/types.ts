@@ -370,7 +370,9 @@ export type Database = {
         Row: {
           close_date: string | null
           company_id: string | null
+          company_name: string | null
           contact_id: string | null
+          contact_name: string | null
           created_at: string
           deal_owner_name: string | null
           description: string | null
@@ -386,7 +388,9 @@ export type Database = {
         Insert: {
           close_date?: string | null
           company_id?: string | null
+          company_name?: string | null
           contact_id?: string | null
+          contact_name?: string | null
           created_at?: string
           deal_owner_name?: string | null
           description?: string | null
@@ -402,7 +406,9 @@ export type Database = {
         Update: {
           close_date?: string | null
           company_id?: string | null
+          company_name?: string | null
           contact_id?: string | null
+          contact_name?: string | null
           created_at?: string
           deal_owner_name?: string | null
           description?: string | null

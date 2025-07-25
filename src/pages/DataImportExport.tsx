@@ -417,8 +417,8 @@ export default function DataImportExport() {
               'Name': 'name',
               'Title': 'name',
               'Deal Owner': 'deal_owner_name', // Store owner name as text field
-              'Account Name': 'company_id', // Note: This might need lookup
-              'Company': 'company_id',
+              'Account Name': 'company_name', // Store company name as text
+              'Company': 'company_name',
               'Amount': 'value',
               'Value': 'value',
               'Deal Value': 'value',
@@ -428,8 +428,8 @@ export default function DataImportExport() {
               'Close Date': 'close_date',
               'Closing Date': 'close_date',
               'Expected Close': 'close_date',
-              'Probability': 'probability',
-              'Probability (%)': 'probability',
+              'Contact Name': 'contact_name',
+              'Contact': 'contact_name',
               'Win Probability': 'probability',
               'Description': 'description',
               'Notes': 'notes',
@@ -626,7 +626,7 @@ export default function DataImportExport() {
             } else if (importType === 'deals') {
               return new Set([
                 'name', 'value', 'stage', 'probability', 'close_date', 'description', 
-                'notes', 'company_id', 'contact_id', 'deal_owner_name', 'user_id'
+                'notes', 'company_id', 'contact_id', 'deal_owner_name', 'company_name', 'contact_name', 'user_id'
               ])
            } else if (importType === 'tickets') {
              return new Set([

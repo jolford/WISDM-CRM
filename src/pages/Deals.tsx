@@ -48,6 +48,8 @@ interface Deal {
   contact_id: string | null
   user_id: string | null
   deal_owner_name?: string | null
+  company_name?: string | null
+  contact_name?: string | null
   profiles?: {
     first_name: string | null
     last_name: string | null
@@ -147,21 +149,36 @@ export default function Deals() {
     })
   }
 
-  const getCompanyName = (companyId: string | null) => {
-    if (!companyId) return "No company"
-    const company = companies.find(c => c.id === companyId)
+  const getCompanyName = (deal: Deal) => {
+    // First check if we have imported company_name
+    if (deal.company_name) return deal.company_name
+    
+    // Then check by company_id lookup
+    if (!deal.company_id) return "No company"
+    const company = companies.find(c => c.id === deal.company_id)
     return company?.name || "Unknown company"
   }
 
-  const getContactName = (contactId: string | null) => {
-    if (!contactId) return "No contact"
-    const contact = contacts.find(c => c.id === contactId)
+  const getContactName = (deal: Deal) => {
+    // First check if we have imported contact_name
+    if (deal.contact_name) return deal.contact_name
+    
+    // Then check by contact_id lookup
+    if (!deal.contact_id) return "No contact"
+    const contact = contacts.find(c => c.id === deal.contact_id)
     return contact ? `${contact.first_name} ${contact.last_name}` : "Unknown contact"
   }
 
-  const getContactInitials = (contactId: string | null) => {
-    if (!contactId) return "NC"
-    const contact = contacts.find(c => c.id === contactId)
+  const getContactInitials = (deal: Deal) => {
+    // If we have contact_name from import, generate initials
+    if (deal.contact_name) {
+      const names = deal.contact_name.split(' ')
+      return names.map(n => n[0]).join('').toUpperCase().slice(0, 2) || "CO"
+    }
+    
+    // Otherwise use contact_id lookup
+    if (!deal.contact_id) return "NC"
+    const contact = contacts.find(c => c.id === deal.contact_id)
     if (!contact) return "UK"
     return `${contact.first_name?.[0] || ''}${contact.last_name?.[0] || ''}`.toUpperCase()
   }
@@ -327,17 +344,17 @@ export default function Deals() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
-                    {getCompanyName(deal.company_id)}
+                    {getCompanyName(deal)}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                       <AvatarFallback className="text-xs">
-                        {getContactInitials(deal.contact_id)}
+                        {getContactInitials(deal)}
                       </AvatarFallback>
                     </Avatar>
-                    {getContactName(deal.contact_id)}
+                    {getContactName(deal)}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -452,23 +469,23 @@ export default function Deals() {
                     </div>
                     
                      <div className="space-y-2">
-                       <div className="flex items-center gap-2">
-                         <Building2 className="h-3 w-3 text-muted-foreground" />
-                         <span className="text-xs text-muted-foreground">
-                           {getCompanyName(deal.company_id)}
-                         </span>
-                       </div>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {getCompanyName(deal)}
+                          </span>
+                        </div>
                        
-                       <div className="flex items-center gap-2">
-                         <Avatar className="h-4 w-4">
-                           <AvatarFallback className="text-xs">
-                             {getContactInitials(deal.contact_id)}
-                           </AvatarFallback>
-                         </Avatar>
-                         <span className="text-xs text-muted-foreground">
-                           {getContactName(deal.contact_id)}
-                         </span>
-                       </div>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback className="text-xs">
+                              {getContactInitials(deal)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-muted-foreground">
+                            {getContactName(deal)}
+                          </span>
+                        </div>
                        
                        <div className="flex items-center gap-2">
                          <Avatar className="h-4 w-4">
