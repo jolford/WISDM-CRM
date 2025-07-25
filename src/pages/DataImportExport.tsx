@@ -697,11 +697,17 @@ export default function DataImportExport() {
               cleanRecord.product_name = 'Unknown Product'
             }
             if (!cleanRecord.product_type || cleanRecord.product_type.trim() === '') {
-              cleanRecord.product_type = 'Software'
+              cleanRecord.product_type = 'software'  // lowercase to match constraint
+            } else {
+              // Normalize product_type to lowercase to match constraint
+              cleanRecord.product_type = cleanRecord.product_type.toLowerCase()
             }
             // Set default status if not provided
             if (!cleanRecord.status || cleanRecord.status.trim() === '') {
               cleanRecord.status = 'active'
+            } else {
+              // Normalize status to lowercase to match constraint
+              cleanRecord.status = cleanRecord.status.toLowerCase()
             }
             // Set default renewal reminder days if not provided
             if (!cleanRecord.renewal_reminder_days) {
