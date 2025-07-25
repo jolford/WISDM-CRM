@@ -120,6 +120,19 @@ export default function DataImportExport() {
       { zoho: "Status", wisdm: "status" },
       { zoho: "Assignee", wisdm: "assignee" },
       { zoho: "Category", wisdm: "task_type" },
+    ],
+    maintenance: [
+      { zoho: "Product Name", wisdm: "product_name" },
+      { zoho: "Product Type", wisdm: "product_type" },
+      { zoho: "Vendor Name", wisdm: "vendor_name" },
+      { zoho: "Serial Number", wisdm: "serial_number" },
+      { zoho: "License Key", wisdm: "license_key" },
+      { zoho: "Purchase Date", wisdm: "purchase_date" },
+      { zoho: "Start Date", wisdm: "start_date" },
+      { zoho: "End Date", wisdm: "end_date" },
+      { zoho: "Cost", wisdm: "cost" },
+      { zoho: "Status", wisdm: "status" },
+      { zoho: "Notes", wisdm: "notes" },
     ]
   }
 
@@ -352,27 +365,42 @@ export default function DataImportExport() {
             'Notes': 'notes',
             'Description': 'notes'
           }
-        } else if (importType === 'tickets') {
-          return {
-            'Ticket Number': 'title',
-            'Subject': 'title',
-            'Title': 'title',
-            'Description': 'description',
-            'Contact Name': 'description', // Append to description since tasks table doesn't have contact_name
-            'Contact': 'description',
-            'Account Name': 'description', // Append to description since tasks table doesn't have company_name
-            'Company': 'description',
-            'Priority': 'priority',
-            'Status': 'status',
-            'Assignee': 'assignee',
-            'Assigned To': 'assignee',
-            'Category': 'task_type',
-            'Type': 'task_type',
-            'Due Date': 'due_date',
-            'Created Date': 'created_at',
-            'Modified Date': 'updated_at'
+          } else if (importType === 'tickets') {
+            return {
+              'Ticket Number': 'title',
+              'Subject': 'title',
+              'Title': 'title',
+              'Description': 'description',
+              'Contact Name': 'description', // Append to description since tasks table doesn't have contact_name
+              'Contact': 'description',
+              'Account Name': 'description', // Append to description since tasks table doesn't have company_name
+              'Company': 'description',
+              'Priority': 'priority',
+              'Status': 'status',
+              'Assignee': 'assignee',
+              'Assigned To': 'assignee',
+              'Category': 'task_type',
+              'Type': 'task_type',
+              'Due Date': 'due_date',
+              'Created Date': 'created_at',
+              'Modified Date': 'updated_at'
+            }
+          } else if (importType === 'maintenance') {
+            return {
+              'Product Name': 'product_name',
+              'Product Type': 'product_type',
+              'Vendor Name': 'vendor_name',
+              'Serial Number': 'serial_number',
+              'License Key': 'license_key',
+              'Purchase Date': 'purchase_date',
+              'Start Date': 'start_date',
+              'End Date': 'end_date',
+              'Cost': 'cost',
+              'Status': 'status',
+              'Notes': 'notes',
+              'Renewal Reminder Days': 'renewal_reminder_days'
+            }
           }
-        }
         return {}
       }
       
@@ -470,6 +498,12 @@ export default function DataImportExport() {
             return new Set([
               'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
             ])
+          } else if (importType === 'maintenance') {
+            return new Set([
+              'product_name', 'product_type', 'vendor_name', 'serial_number', 
+              'license_key', 'purchase_date', 'start_date', 'end_date', 
+              'cost', 'status', 'notes', 'renewal_reminder_days', 'user_id'
+            ])
           }
           return new Set(['user_id'])
         }
@@ -490,13 +524,19 @@ export default function DataImportExport() {
 
         // Define numeric columns that need special handling
         const numericColumns = new Set([
-          'visitor_score', 'number_of_chats', 'days_visited', 'average_time_spent_minutes'
+          'visitor_score', 'number_of_chats', 'days_visited', 'average_time_spent_minutes',
+          'cost', 'renewal_reminder_days'
         ])
 
         // Define timestamp columns that need special handling
         const timestampColumns = new Set([
           'created_time', 'modified_time', 'last_activity_time', 'unsubscribed_time', 
           'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time'
+        ])
+
+        // Define date columns for maintenance records
+        const dateColumns = new Set([
+          'purchase_date', 'start_date', 'end_date'
         ])
 
         // Define boolean columns
@@ -538,6 +578,25 @@ export default function DataImportExport() {
           }
         }
 
+        // Helper function to safely convert to date (YYYY-MM-DD format)
+        const safeDateConvert = (value: string): string | null => {
+          if (!value || value.trim() === '') return null
+          
+          try {
+            // Try to parse the date
+            const date = new Date(value)
+            if (isNaN(date.getTime())) {
+              console.warn(`Invalid date "${value}", setting to null`)
+              return null
+            }
+            // Return date in YYYY-MM-DD format
+            return date.toISOString().split('T')[0]
+          } catch (error) {
+            console.warn(`Error parsing date "${value}":`, error)
+            return null
+          }
+        }
+
         // Helper function to safely convert to boolean
         const safeBooleanConvert = (value: string): boolean => {
           if (!value || value.trim() === '') return false
@@ -571,6 +630,15 @@ export default function DataImportExport() {
                 const timestampValue = safeTimestampConvert(record[key])
                 if (timestampValue !== null) {
                   cleanRecord[key] = timestampValue
+                }
+                return
+              }
+
+              // Handle date columns (for maintenance records)
+              if (dateColumns.has(key)) {
+                const dateValue = safeDateConvert(record[key])
+                if (dateValue !== null) {
+                  cleanRecord[key] = dateValue
                 }
                 return
               }
@@ -623,6 +691,22 @@ export default function DataImportExport() {
             } else {
               cleanRecord.task_type = cleanRecord.task_type.toLowerCase()
             }
+          } else if (importType === 'maintenance') {
+            // product_name and product_type are NOT NULL in maintenance_records table
+            if (!cleanRecord.product_name || cleanRecord.product_name.trim() === '') {
+              cleanRecord.product_name = 'Unknown Product'
+            }
+            if (!cleanRecord.product_type || cleanRecord.product_type.trim() === '') {
+              cleanRecord.product_type = 'Software'
+            }
+            // Set default status if not provided
+            if (!cleanRecord.status || cleanRecord.status.trim() === '') {
+              cleanRecord.status = 'active'
+            }
+            // Set default renewal reminder days if not provided
+            if (!cleanRecord.renewal_reminder_days) {
+              cleanRecord.renewal_reminder_days = 30
+            }
           }
           
           return cleanRecord
@@ -636,6 +720,8 @@ export default function DataImportExport() {
             hasRequiredFields = record.name
           } else if (importType === 'tickets') {
             hasRequiredFields = record.title
+          } else if (importType === 'maintenance') {
+            hasRequiredFields = record.product_name && record.product_type
           }
           
           if (!hasRequiredFields) {
@@ -644,7 +730,9 @@ export default function DataImportExport() {
           return hasRequiredFields
         })
 
-        const tableName = importType === 'tickets' ? 'tasks' : importType as 'contacts' | 'companies' | 'deals'
+        const tableName = importType === 'tickets' ? 'tasks' : 
+                          importType === 'maintenance' ? 'maintenance_records' : 
+                          importType as 'contacts' | 'companies' | 'deals'
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
@@ -868,12 +956,13 @@ export default function DataImportExport() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                   <SelectContent>
                         <SelectItem value="contacts">Contacts</SelectItem>
                         <SelectItem value="companies">Companies</SelectItem>
                         <SelectItem value="deals">Deals</SelectItem>
                         <SelectItem value="tickets">Support Tickets</SelectItem>
-                  </SelectContent>
+                        <SelectItem value="maintenance">Maintenance Records</SelectItem>
+                   </SelectContent>
                 </Select>
               </div>
 
