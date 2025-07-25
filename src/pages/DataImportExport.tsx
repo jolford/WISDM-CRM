@@ -609,9 +609,19 @@ export default function DataImportExport() {
             if (!cleanRecord.task_type) {
               cleanRecord.task_type = 'other'
             }
-            // Set default status if not provided
-            if (!cleanRecord.status) {
+            // Validate and set status - only allow valid enum values
+            const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled']
+            if (!cleanRecord.status || !validStatuses.includes(cleanRecord.status.toLowerCase())) {
               cleanRecord.status = 'pending'
+            } else {
+              cleanRecord.status = cleanRecord.status.toLowerCase()
+            }
+            // Validate and set task_type - only allow valid enum values  
+            const validTaskTypes = ['call', 'email', 'meeting', 'follow_up', 'other']
+            if (!cleanRecord.task_type || !validTaskTypes.includes(cleanRecord.task_type.toLowerCase())) {
+              cleanRecord.task_type = 'other'
+            } else {
+              cleanRecord.task_type = cleanRecord.task_type.toLowerCase()
             }
           }
           
