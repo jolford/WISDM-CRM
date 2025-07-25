@@ -220,10 +220,10 @@ export default function ReportBuilder({ reportId, onSave, onCancel }: ReportBuil
           name: data.name,
           description: data.description || '',
           dataSources: Array.isArray(data.data_sources) ? data.data_sources : ['deals'],
-          selectedFields: Array.isArray(data.selected_fields) ? data.selected_fields : [],
+          selectedFields: Array.isArray(data.selected_fields) ? data.selected_fields.map(String) : [],
           filters: [], // Load from report_filters table
-          groupBy: Array.isArray(data.group_by_fields) ? data.group_by_fields : [],
-          sortBy: Array.isArray(data.sort_fields) ? data.sort_fields : [],
+          groupBy: Array.isArray(data.group_by_fields) ? data.group_by_fields.map(String) : [],
+          sortBy: [],
           aggregations: Object.entries(data.aggregate_functions || {}).map(([field, func]) => ({
             field,
             function: func as string
