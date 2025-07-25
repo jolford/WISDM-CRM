@@ -316,22 +316,30 @@ export default function ReportBuilder({ reportId, onSave, onCancel }: ReportBuil
   const runPreview = async () => {
     setLoading(true)
     try {
-      // This would typically build and execute the query
-      // For now, we'll simulate with sample data
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setPreviewData([
-        { name: 'Sample Deal 1', value: 10000, stage: 'qualified' },
-        { name: 'Sample Deal 2', value: 25000, stage: 'proposal' },
-        { name: 'Sample Deal 3', value: 15000, stage: 'negotiation' }
-      ])
+      // Build query based on selected data sources and fields
+      if (config.dataSources.length === 0) {
+        throw new Error('Please select at least one data source')
+      }
+
+      // For now, fetch sample data from the first data source
+      const tableName = config.dataSources[0] as 'deals' | 'contacts' | 'companies'
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .limit(10)
+
+      if (error) throw error
+
+      setPreviewData(data || [])
       toast({
         title: "Preview Generated",
-        description: "Report preview has been generated successfully"
+        description: `Showing ${data?.length || 0} sample records from ${tableName}`
       })
     } catch (error) {
+      console.error('Preview error:', error)
       toast({
         title: "Preview Failed",
-        description: "Failed to generate report preview",
+        description: error instanceof Error ? error.message : "Failed to generate report preview",
         variant: "destructive"
       })
     } finally {

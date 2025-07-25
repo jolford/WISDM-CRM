@@ -25,7 +25,8 @@ import {
   Edit,
   Trash2,
   ExternalLink,
-  Phone
+  Phone,
+  ArrowUpDown
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -38,6 +39,8 @@ export default function Companies() {
   const [searchQuery, setSearchQuery] = useState("")
   const [companies, setCompanies] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortField, setSortField] = useState<string>('created_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -127,10 +130,37 @@ export default function Companies() {
       .slice(0, 2)
   }
 
-  const filteredCompanies = companies.filter(company =>
-    company.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.industry?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const filteredAndSortedCompanies = companies
+    .filter(company =>
+      company.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.industry?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aValue = a[sortField]
+      const bValue = b[sortField]
+      
+      if (aValue === null && bValue === null) return 0
+      if (aValue === null) return 1
+      if (bValue === null) return -1
+      
+      let comparison = 0
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue)
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue))
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison
+    })
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -195,7 +225,7 @@ export default function Companies() {
       {/* Companies Table */}
       <Card>
         <CardContent className="p-0">
-          {filteredCompanies.length === 0 ? (
+          {filteredAndSortedCompanies.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No companies found</h3>
@@ -211,19 +241,73 @@ export default function Companies() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[250px]">Company</TableHead>
-                  <TableHead>Industry</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead className="w-[250px]">
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('name')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Company
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('industry')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Industry
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('phone')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Phone
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
                   <TableHead>Website</TableHead>
-                  <TableHead>Revenue</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('revenue')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Revenue
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('size')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Size
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => handleSort('city')}
+                      className="font-semibold p-0 h-auto"
+                    >
+                      Location
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCompanies.map((company) => (
+                {filteredAndSortedCompanies.map((company) => (
                   <TableRow key={company.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center space-x-3">

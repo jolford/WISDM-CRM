@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Edit,
   Trash2,
-  CheckCircle
+  CheckCircle,
+  ArrowUpDown
 } from "lucide-react";
 import {
   Select,
@@ -64,6 +65,8 @@ export default function MaintenanceTracking() {
   const { toast } = useToast();
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState<keyof MaintenanceRecord>('end_date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(null);
   const [formData, setFormData] = useState({
@@ -255,6 +258,35 @@ export default function MaintenanceTracking() {
       currency: 'USD'
     }).format(amount);
   };
+
+  const handleSort = (field: keyof MaintenanceRecord) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const sortedRecords = [...records].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+    
+    if (aValue === null && bValue === null) return 0
+    if (aValue === null) return 1
+    if (bValue === null) return -1
+    
+    let comparison = 0
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      comparison = aValue.localeCompare(bValue)
+    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+      comparison = aValue - bValue
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue))
+    }
+    
+    return sortDirection === 'asc' ? comparison : -comparison
+  })
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
@@ -481,18 +513,81 @@ export default function MaintenanceTracking() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Purchase Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Cost</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('product_name')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Product
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('product_type')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Type
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('vendor_name')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Vendor
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('purchase_date')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Purchase Date
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('end_date')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    End Date
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('cost')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Cost
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('status')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Status
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.map((record) => (
+              {sortedRecords.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
