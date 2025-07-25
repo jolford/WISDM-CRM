@@ -442,6 +442,7 @@ export default function DataImportExport() {
             return {
               'Product Name': 'product_name',
               'Product': 'product_name',
+              'Products': 'product_name', // Add mapping for plural "Products" column
               'Name': 'product_name',
               'Software Name': 'product_name',
               'Hardware Name': 'product_name',
