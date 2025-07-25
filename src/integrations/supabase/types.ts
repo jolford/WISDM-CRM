@@ -383,6 +383,45 @@ export type Database = {
           },
         ]
       }
+      forecasts: {
+        Row: {
+          actual_amount: number | null
+          created_at: string
+          forecast_type: string
+          id: string
+          notes: string | null
+          period: string
+          probability: number | null
+          target_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_amount?: number | null
+          created_at?: string
+          forecast_type?: string
+          id?: string
+          notes?: string | null
+          period: string
+          probability?: number | null
+          target_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_amount?: number | null
+          created_at?: string
+          forecast_type?: string
+          id?: string
+          notes?: string | null
+          period?: string
+          probability?: number | null
+          target_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       import_audit_log: {
         Row: {
           created_at: string
@@ -597,6 +636,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendors: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_name: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          industry: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          state: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

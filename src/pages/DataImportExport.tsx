@@ -133,6 +133,23 @@ export default function DataImportExport() {
       { zoho: "Cost", wisdm: "cost" },
       { zoho: "Status", wisdm: "status" },
       { zoho: "Notes", wisdm: "notes" },
+    ],
+    vendors: [
+      { zoho: "Vendor Name", wisdm: "name" },
+      { zoho: "Contact Name", wisdm: "contact_name" },
+      { zoho: "Email", wisdm: "email" },
+      { zoho: "Phone", wisdm: "phone" },
+      { zoho: "Website", wisdm: "website" },
+      { zoho: "Industry", wisdm: "industry" },
+      { zoho: "Status", wisdm: "status" },
+    ],
+    forecasts: [
+      { zoho: "Period", wisdm: "period" },
+      { zoho: "Forecast Type", wisdm: "forecast_type" },
+      { zoho: "Target Amount", wisdm: "target_amount" },
+      { zoho: "Actual Amount", wisdm: "actual_amount" },
+      { zoho: "Probability", wisdm: "probability" },
+      { zoho: "Notes", wisdm: "notes" },
     ]
   }
 
@@ -426,6 +443,52 @@ export default function DataImportExport() {
               'Renewal Reminder Days': 'renewal_reminder_days',
               'Reminder Days': 'renewal_reminder_days'
             }
+          } else if (importType === 'vendors') {
+            return {
+              'Vendor Name': 'name',
+              'Name': 'name',
+              'Company Name': 'name',
+              'Contact Name': 'contact_name',
+              'Contact': 'contact_name',
+              'Email': 'email',
+              'Phone': 'phone',
+              'Website': 'website',
+              'Address': 'address',
+              'Street': 'address',
+              'City': 'city',
+              'State': 'state',
+              'Country': 'country',
+              'Zip Code': 'zip_code',
+              'Postal Code': 'zip_code',
+              'Industry': 'industry',
+              'Status': 'status',
+              'Notes': 'notes',
+              'Comments': 'notes',
+              'Description': 'notes'
+            }
+          } else if (importType === 'forecasts') {
+            return {
+              'Period': 'period',
+              'Time Period': 'period',
+              'Quarter': 'period',
+              'Month': 'period',
+              'Year': 'period',
+              'Forecast Type': 'forecast_type',
+              'Type': 'forecast_type',
+              'Category': 'forecast_type',
+              'Target Amount': 'target_amount',
+              'Target': 'target_amount',
+              'Goal': 'target_amount',
+              'Actual Amount': 'actual_amount',
+              'Actual': 'actual_amount',
+              'Result': 'actual_amount',
+              'Probability': 'probability',
+              'Confidence': 'probability',
+              'Likelihood': 'probability',
+              'Notes': 'notes',
+              'Comments': 'notes',
+              'Description': 'notes'
+            }
           }
         return {}
       }
@@ -511,6 +574,16 @@ export default function DataImportExport() {
               'license_key', 'purchase_date', 'start_date', 'end_date', 
               'cost', 'status', 'notes', 'renewal_reminder_days', 'user_id'
             ])
+          } else if (importType === 'vendors') {
+            return new Set([
+              'name', 'contact_name', 'email', 'phone', 'website', 'address',
+              'city', 'state', 'zip_code', 'country', 'industry', 'status', 'notes', 'user_id'
+            ])
+          } else if (importType === 'forecasts') {
+            return new Set([
+              'period', 'forecast_type', 'target_amount', 'actual_amount', 
+              'probability', 'notes', 'user_id'
+            ])
           }
           return new Set(['user_id'])
         }
@@ -532,7 +605,7 @@ export default function DataImportExport() {
         // Define numeric columns that need special handling
         const numericColumns = new Set([
           'visitor_score', 'number_of_chats', 'days_visited', 'average_time_spent_minutes',
-          'cost', 'renewal_reminder_days'
+          'cost', 'renewal_reminder_days', 'target_amount', 'actual_amount', 'probability'
         ])
 
         // Define timestamp columns that need special handling
@@ -723,6 +796,27 @@ export default function DataImportExport() {
               cleanRecord.renewal_reminder_days = 30
             }
             console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
+          } else if (importType === 'vendors') {
+            // name is NOT NULL in vendors table
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              cleanRecord.name = 'Unknown Vendor'
+            }
+            // Set default status if not provided
+            if (!cleanRecord.status || cleanRecord.status.trim() === '') {
+              cleanRecord.status = 'active'
+            }
+          } else if (importType === 'forecasts') {
+            // period and forecast_type are NOT NULL in forecasts table
+            if (!cleanRecord.period || cleanRecord.period.trim() === '') {
+              cleanRecord.period = new Date().getFullYear().toString()
+            }
+            if (!cleanRecord.forecast_type || cleanRecord.forecast_type.trim() === '') {
+              cleanRecord.forecast_type = 'revenue'
+            }
+            // Set default probability if not provided
+            if (!cleanRecord.probability) {
+              cleanRecord.probability = 100
+            }
           }
           
           return cleanRecord
@@ -738,6 +832,10 @@ export default function DataImportExport() {
             hasRequiredFields = record.title
           } else if (importType === 'maintenance') {
             hasRequiredFields = record.product_name && record.product_type
+          } else if (importType === 'vendors') {
+            hasRequiredFields = record.name
+          } else if (importType === 'forecasts') {
+            hasRequiredFields = record.period && record.forecast_type
           }
           
           if (!hasRequiredFields) {
@@ -748,7 +846,7 @@ export default function DataImportExport() {
 
         const tableName = importType === 'tickets' ? 'tasks' : 
                           importType === 'maintenance' ? 'maintenance_records' : 
-                          importType as 'contacts' | 'companies' | 'deals'
+                          importType as 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts'
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
@@ -976,6 +1074,8 @@ export default function DataImportExport() {
                         <SelectItem value="contacts">Contacts</SelectItem>
                         <SelectItem value="companies">Companies</SelectItem>
                         <SelectItem value="deals">Deals</SelectItem>
+                        <SelectItem value="vendors">Vendors</SelectItem>
+                        <SelectItem value="forecasts">Forecasts</SelectItem>
                         <SelectItem value="tickets">Support Tickets</SelectItem>
                         <SelectItem value="maintenance">Maintenance Records</SelectItem>
                    </SelectContent>
