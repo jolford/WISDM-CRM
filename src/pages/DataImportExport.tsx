@@ -714,7 +714,9 @@ export default function DataImportExport() {
           if (!value || value.trim() === '') return null
           
           // Check for HTML/CSS content and reject it
-          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || value.includes('font-')) {
+          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || 
+              value.includes('font-') || value.includes('border:') || value.includes('line-height:') ||
+              value.includes('sans-serif') || value.includes('serif') || value.includes('px')) {
             console.warn(`HTML/CSS content detected in timestamp field, setting to null: "${value}"`)
             return null
           }
@@ -740,6 +742,13 @@ export default function DataImportExport() {
           console.log(`🔍 Processing date value: "${value}"`)
           
           // Check for HTML/CSS content and reject it
+          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || 
+              value.includes('font-') || value.includes('border:') || value.includes('line-height:') ||
+              value.includes('sans-serif') || value.includes('serif') || value.includes('px') ||
+              value.includes('inherit') || value.includes('css')) {
+            console.warn(`HTML/CSS content detected in date field, setting to null: "${value}"`)
+            return null
+          }
           if (value.includes('<') || value.includes('style=') || value.includes('margin:') || value.includes('font-')) {
             console.warn(`HTML/CSS content detected in date field, setting to null: "${value}"`)
             return null
