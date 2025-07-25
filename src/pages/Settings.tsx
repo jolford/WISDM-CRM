@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
 import { 
   User, 
   Bell, 
@@ -18,7 +19,9 @@ import {
   EyeOff,
   Download,
   Upload,
-  Import
+  Import,
+  Moon,
+  Sun
 } from "lucide-react"
 import {
   Tabs,
@@ -36,13 +39,70 @@ import {
 import { Separator } from "@/components/ui/separator"
 
 export default function Settings() {
+  const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
+  const [theme, setTheme] = useState("light")
+  const [accentColor, setAccentColor] = useState("blue")
   const [notifications, setNotifications] = useState({
     email: true,
     desktop: false,
     mobile: true,
     marketing: false
   })
+
+  useEffect(() => {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    const savedAccent = localStorage.getItem('accentColor') || 'blue'
+    setTheme(savedTheme)
+    setAccentColor(savedAccent)
+    applyTheme(savedTheme, savedAccent)
+  }, [])
+
+  const applyTheme = (newTheme: string, newAccent: string) => {
+    const root = document.documentElement
+    
+    if (newTheme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+
+    // Apply accent color changes
+    const accentColors = {
+      blue: { primary: '220 100% 55%', primaryGlow: '220 100% 70%' },
+      purple: { primary: '270 95% 60%', primaryGlow: '270 95% 75%' },
+      green: { primary: '142 71% 45%', primaryGlow: '142 71% 60%' },
+      orange: { primary: '24 95% 53%', primaryGlow: '24 95% 68%' },
+      red: { primary: '0 84% 60%', primaryGlow: '0 84% 75%' }
+    }
+
+    const colors = accentColors[newAccent as keyof typeof accentColors]
+    if (colors) {
+      root.style.setProperty('--primary', colors.primary)
+      root.style.setProperty('--primary-glow', colors.primaryGlow)
+    }
+  }
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
+    applyTheme(newTheme, accentColor)
+    toast({
+      title: "Theme Updated",
+      description: `Switched to ${newTheme} theme`,
+    })
+  }
+
+  const handleAccentChange = (newAccent: string) => {
+    setAccentColor(newAccent)
+    localStorage.setItem('accentColor', newAccent)
+    applyTheme(theme, newAccent)
+    toast({
+      title: "Accent Color Updated",
+      description: `Changed accent color to ${newAccent}`,
+    })
+  }
 
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }))
@@ -416,14 +476,64 @@ export default function Settings() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Theme</Label>
-                  <Select defaultValue="system">
+                  <Select value={theme} onValueChange={handleThemeChange}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
+                      <SelectItem value="light">
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4" />
+                          Light
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="dark">
+                        <div className="flex items-center gap-2">
+                          <Moon className="h-4 w-4" />
+                          Dark
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Accent Color</Label>
+                  <Select value={accentColor} onValueChange={handleAccentChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blue">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                          Blue
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="purple">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                          Purple
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="green">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          Green
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="orange">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                          Orange
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="red">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                          Red
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

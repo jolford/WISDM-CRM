@@ -17,6 +17,7 @@ import SalesReporting from "./pages/SalesReporting";
 import ProjectManagement from "./pages/ProjectManagement";
 import DataImportExport from "./pages/DataImportExport";
 import AdminConsole from "./pages/AdminConsole";
+import Maintenance from "./pages/Maintenance";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
+          <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

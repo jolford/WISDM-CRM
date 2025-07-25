@@ -109,6 +109,17 @@ export default function DataImportExport() {
       { zoho: "Stage", wisdm: "stage" },
       { zoho: "Closing Date", wisdm: "closeDate" },
       { zoho: "Probability", wisdm: "probability" },
+    ],
+    tickets: [
+      { zoho: "Ticket Number", wisdm: "title" },
+      { zoho: "Subject", wisdm: "title" },
+      { zoho: "Description", wisdm: "description" },
+      { zoho: "Contact Name", wisdm: "contact" },
+      { zoho: "Account Name", wisdm: "company" },
+      { zoho: "Priority", wisdm: "priority" },
+      { zoho: "Status", wisdm: "status" },
+      { zoho: "Assignee", wisdm: "assignee" },
+      { zoho: "Category", wisdm: "task_type" },
     ]
   }
 
@@ -341,6 +352,26 @@ export default function DataImportExport() {
             'Notes': 'notes',
             'Description': 'notes'
           }
+        } else if (importType === 'tickets') {
+          return {
+            'Ticket Number': 'title',
+            'Subject': 'title',
+            'Title': 'title',
+            'Description': 'description',
+            'Contact Name': 'contact_name',
+            'Contact': 'contact_name',
+            'Account Name': 'company_name',
+            'Company': 'company_name',
+            'Priority': 'priority',
+            'Status': 'status',
+            'Assignee': 'assignee',
+            'Assigned To': 'assignee',
+            'Category': 'task_type',
+            'Type': 'task_type',
+            'Due Date': 'due_date',
+            'Created Date': 'created_at',
+            'Modified Date': 'updated_at'
+          }
         }
         return {}
       }
@@ -434,6 +465,11 @@ export default function DataImportExport() {
             return new Set([
               'name', 'website', 'industry', 'size', 'revenue', 'phone', 'email', 
               'address', 'city', 'state', 'country', 'zip_code', 'notes', 'user_id'
+            ])
+          } else if (importType === 'tickets') {
+            return new Set([
+              'title', 'description', 'contact_name', 'company_name', 'priority', 
+              'status', 'assignee', 'task_type', 'due_date', 'user_id'
             ])
           }
           return new Set(['user_id'])
@@ -565,6 +601,19 @@ export default function DataImportExport() {
             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
               cleanRecord.name = 'Unknown Company'
             }
+          } else if (importType === 'tickets') {
+            // title is NOT NULL in tasks table (using tasks table for tickets)
+            if (!cleanRecord.title || cleanRecord.title.trim() === '') {
+              cleanRecord.title = 'Imported Ticket'
+            }
+            // Set default task_type if not provided
+            if (!cleanRecord.task_type) {
+              cleanRecord.task_type = 'other'
+            }
+            // Set default status if not provided
+            if (!cleanRecord.status) {
+              cleanRecord.status = 'pending'
+            }
           }
           
           return cleanRecord
@@ -576,6 +625,8 @@ export default function DataImportExport() {
             hasRequiredFields = record.first_name && record.last_name
           } else if (importType === 'companies') {
             hasRequiredFields = record.name
+          } else if (importType === 'tickets') {
+            hasRequiredFields = record.title
           }
           
           if (!hasRequiredFields) {
@@ -584,7 +635,7 @@ export default function DataImportExport() {
           return hasRequiredFields
         })
 
-        const tableName = importType as 'contacts' | 'companies' | 'deals'
+        const tableName = importType === 'tickets' ? 'tasks' : importType as 'contacts' | 'companies' | 'deals'
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
@@ -809,9 +860,10 @@ export default function DataImportExport() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="contacts">Contacts</SelectItem>
-                    <SelectItem value="companies">Companies</SelectItem>
-                    <SelectItem value="deals">Deals</SelectItem>
+                        <SelectItem value="contacts">Contacts</SelectItem>
+                        <SelectItem value="companies">Companies</SelectItem>
+                        <SelectItem value="deals">Deals</SelectItem>
+                        <SelectItem value="tickets">Support Tickets</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

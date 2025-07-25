@@ -3,18 +3,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Building2, Target, CheckSquare, BarChart3, Settings, Shield, Database, Monitor } from "lucide-react";
+import { Users, Building2, Target, CheckSquare, BarChart3, Settings, Shield, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MaintenanceTracking from "@/components/MaintenanceTracking";
 
 export default function AdminConsole() {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Check if user has admin access
-  if (profile?.role !== 'admin') {
+  // Check if user is admin
+  const isAdmin = profile?.role === 'admin';
+
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="w-full max-w-md text-center">
@@ -96,90 +95,74 @@ export default function AdminConsole() {
         </Badge>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="maintenance">
-            <Monitor className="w-4 h-4 mr-2" />
-            Maintenance Tracking
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index}>
-                <CardHeader className="pb-2">
-                  <CardDescription>{stat.label}</CardDescription>
-                  <CardTitle className="text-2xl">{stat.value}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">{stat.change}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Admin Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {adminActions.map((action, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={action.action}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <action.icon className="h-6 w-6 text-primary" />
-                    <Badge variant="secondary">{action.badge}</Badge>
-                  </div>
-                  <CardTitle className="text-lg">{action.title}</CardTitle>
-                  <CardDescription>{action.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" className="w-full">
-                    Open
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent System Activity</CardTitle>
-              <CardDescription>Latest administrative actions and system events</CardDescription>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
+          <Card key={index}>
+            <CardHeader className="pb-2">
+              <CardDescription>{stat.label}</CardDescription>
+              <CardTitle className="text-2xl">{stat.value}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">New user registration</p>
-                    <p className="text-sm text-muted-foreground">john.doe@example.com joined the platform</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">2 hours ago</span>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Data import completed</p>
-                    <p className="text-sm text-muted-foreground">250 contacts imported successfully</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">5 hours ago</span>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">System backup completed</p>
-                    <p className="text-sm text-muted-foreground">Automated daily backup finished</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">1 day ago</span>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground">{stat.change}</p>
             </CardContent>
           </Card>
-        </TabsContent>
+        ))}
+      </div>
 
-        <TabsContent value="maintenance">
-          <MaintenanceTracking />
-        </TabsContent>
-      </Tabs>
+      {/* Admin Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {adminActions.map((action, index) => (
+          <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={action.action}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <action.icon className="h-6 w-6 text-primary" />
+                <Badge variant="secondary">{action.badge}</Badge>
+              </div>
+              <CardTitle className="text-lg">{action.title}</CardTitle>
+              <CardDescription>{action.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full">
+                Open
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent System Activity</CardTitle>
+          <CardDescription>Latest administrative actions and system events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="font-medium">New user registration</p>
+                <p className="text-sm text-muted-foreground">john.doe@example.com joined the platform</p>
+              </div>
+              <span className="text-xs text-muted-foreground">2 hours ago</span>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="font-medium">Data import completed</p>
+                <p className="text-sm text-muted-foreground">250 contacts imported successfully</p>
+              </div>
+              <span className="text-xs text-muted-foreground">5 hours ago</span>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="font-medium">System backup completed</p>
+                <p className="text-sm text-muted-foreground">Automated daily backup finished</p>
+              </div>
+              <span className="text-xs text-muted-foreground">1 day ago</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
