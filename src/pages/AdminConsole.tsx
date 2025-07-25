@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,14 +6,61 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Building2, Target, CheckSquare, BarChart3, Settings, Shield, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminConsole() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [stats, setStats] = useState([
+    { label: "Total Users", value: "0", change: "Loading..." },
+    { label: "Active Deals", value: "0", change: "Loading..." },
+    { label: "Total Companies", value: "0", change: "Loading..." },
+    { label: "Pending Tasks", value: "0", change: "Loading..." }
+  ]);
 
   // Check if user is admin
   const isAdmin = profile?.role === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [isAdmin]);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total users
+      const { count: userCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch active deals
+      const { count: dealCount } = await supabase
+        .from('deals')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch total companies
+      const { count: companyCount } = await supabase
+        .from('companies')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch pending tasks
+      const { count: taskCount } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      setStats([
+        { label: "Total Users", value: userCount?.toString() || "0", change: "" },
+        { label: "Active Deals", value: dealCount?.toString() || "0", change: "" },
+        { label: "Total Companies", value: companyCount?.toString() || "0", change: "" },
+        { label: "Pending Tasks", value: taskCount?.toString() || "0", change: "" }
+      ]);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -75,13 +122,6 @@ export default function AdminConsole() {
     }
   ];
 
-  const stats = [
-    { label: "Total Users", value: "12", change: "+2 this week" },
-    { label: "Active Deals", value: "45", change: "+8 this month" },
-    { label: "Total Companies", value: "230", change: "+15 this month" },
-    { label: "Pending Tasks", value: "18", change: "-3 today" }
-  ];
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -133,38 +173,6 @@ export default function AdminConsole() {
         ))}
       </div>
 
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent System Activity</CardTitle>
-          <CardDescription>Latest administrative actions and system events</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">New user registration</p>
-                <p className="text-sm text-muted-foreground">john.doe@example.com joined the platform</p>
-              </div>
-              <span className="text-xs text-muted-foreground">2 hours ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">Data import completed</p>
-                <p className="text-sm text-muted-foreground">250 contacts imported successfully</p>
-              </div>
-              <span className="text-xs text-muted-foreground">5 hours ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">System backup completed</p>
-                <p className="text-sm text-muted-foreground">Automated daily backup finished</p>
-              </div>
-              <span className="text-xs text-muted-foreground">1 day ago</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
