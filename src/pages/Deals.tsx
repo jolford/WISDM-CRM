@@ -16,7 +16,10 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  Loader2
+  Loader2,
+  LayoutGrid,
+  List,
+  ArrowUpDown
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -24,6 +27,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface Deal {
   id: string
@@ -53,6 +64,9 @@ export default function Deals() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
+  const [sortField, setSortField] = useState<keyof Deal>('created_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const { toast } = useToast()
 
   const stages = ["prospect", "qualified", "proposal", "negotiation", "closed"]
@@ -166,6 +180,35 @@ export default function Deals() {
     }
   }
 
+  const handleSort = (field: keyof Deal) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const sortedDeals = [...deals].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+    
+    if (aValue === null && bValue === null) return 0
+    if (aValue === null) return 1
+    if (bValue === null) return -1
+    
+    let comparison = 0
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      comparison = aValue.localeCompare(bValue)
+    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+      comparison = aValue - bValue
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue))
+    }
+    
+    return sortDirection === 'asc' ? comparison : -comparison
+  })
+
   const dealsByStage = stages.map(stage => ({
     stage,
     deals: deals.filter(deal => deal.stage === stage),
@@ -173,6 +216,252 @@ export default function Deals() {
       .filter(deal => deal.stage === stage)
       .reduce((sum, deal) => sum + (deal.value || 0), 0)
   }))
+
+  const renderListView = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>All Deals</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleSort('name')}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Deal Name
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleSort('stage')}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Stage
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleSort('value')}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Value
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleSort('probability')}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Probability
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleSort('close_date')}
+                  className="font-semibold p-0 h-auto"
+                >
+                  Close Date
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedDeals.map((deal) => (
+              <TableRow key={deal.id}>
+                <TableCell className="font-medium">{deal.name}</TableCell>
+                <TableCell>
+                  <Badge className={getStageColor(deal.stage)}>
+                    {getStageDisplayName(deal.stage)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    {getCompanyName(deal.company_id)}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">
+                        {getContactInitials(deal.contact_id)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {getContactName(deal.contact_id)}
+                  </div>
+                </TableCell>
+                <TableCell className="font-semibold text-green-600">
+                  {formatCurrency(deal.value)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Progress value={deal.probability || 0} className="w-16 h-2" />
+                    <span className="text-sm font-medium w-10">{deal.probability || 0}%</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {formatDate(deal.close_date)}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => deleteDeal(deal.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        
+        {deals.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Target className="h-12 w-12 mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No deals found</h3>
+            <p className="text-muted-foreground mb-4">
+              Import some deals or create your first deal to get started
+            </p>
+            <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Deal
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+
+  const renderPipelineView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {dealsByStage.map((column) => (
+        <Card key={column.stage} className="min-h-[600px]">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">{getStageDisplayName(column.stage)}</CardTitle>
+              <Badge variant="secondary">{column.deals.length}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(column.totalValue)}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {column.deals.length > 0 ? (
+              column.deals.map((deal) => (
+                <Card key={deal.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-medium text-sm leading-tight">{deal.name}</h4>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => deleteDeal(deal.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {getCompanyName(deal.company_id)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-4 w-4">
+                          <AvatarFallback className="text-xs">
+                            {getContactInitials(deal.contact_id)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">
+                          {getContactName(deal.contact_id)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-3 w-3 text-green-600" />
+                        <span className="text-sm font-semibold text-green-600">
+                          {formatCurrency(deal.value)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(deal.close_date)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Probability</span>
+                        <span className="text-xs font-medium">{deal.probability || 0}%</span>
+                      </div>
+                      <Progress value={deal.probability || 0} className="h-1" />
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Target className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-sm">No deals in this stage</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
 
   if (loading) {
     return (
@@ -198,111 +487,35 @@ export default function Deals() {
           <h1 className="text-3xl font-bold">Deals Pipeline</h1>
           <p className="text-muted-foreground">Track your sales opportunities from your imported data</p>
         </div>
-        <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Deal
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'pipeline' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('pipeline')}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            Pipeline
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="h-4 w-4 mr-2" />
+            List
+          </Button>
+          <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Deal
+          </Button>
+        </div>
       </div>
 
-      {/* Pipeline Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {dealsByStage.map((column) => (
-          <Card key={column.stage} className="min-h-[600px]">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">{getStageDisplayName(column.stage)}</CardTitle>
-                <Badge variant="secondary">{column.deals.length}</Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {formatCurrency(column.totalValue)}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {column.deals.length > 0 ? (
-                column.deals.map((deal) => (
-                  <Card key={deal.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <h4 className="font-medium text-sm leading-tight">{deal.name}</h4>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <MoreHorizontal className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => deleteDeal(deal.id)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {getCompanyName(deal.company_id)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-4 w-4">
-                            <AvatarFallback className="text-xs">
-                              {getContactInitials(deal.contact_id)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-muted-foreground">
-                            {getContactName(deal.contact_id)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-3 w-3 text-green-600" />
-                          <span className="text-sm font-semibold text-green-600">
-                            {formatCurrency(deal.value)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(deal.close_date)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Probability</span>
-                          <span className="text-xs font-medium">{deal.probability || 0}%</span>
-                        </div>
-                        <Progress value={deal.probability || 0} className="h-1" />
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Target className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">No deals in this stage</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* View Content */}
+      {viewMode === 'pipeline' ? renderPipelineView() : renderListView()}
 
-      {/* No data state */}
-      {deals.length === 0 && (
+      {/* No data state for pipeline view */}
+      {viewMode === 'pipeline' && deals.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
