@@ -249,7 +249,7 @@ export default function DataImportExport() {
       console.log('CSV headers found:', headers)
       console.log(`Processing ${lines.length - 1} records from ${selectedFile.name}`)
       
-      // Create column mapping for contacts to handle CSV headers -> database columns
+      // Create column mapping for contacts and companies to handle CSV headers -> database columns
       const getColumnMapping = (importType: string) => {
         if (importType === 'contacts') {
           return {
@@ -314,6 +314,29 @@ export default function DataImportExport() {
             'Reference Egnyte Link': 'reference_egnyte_link',
             'Reference Services Products & Solutions': 'reference_services_products',
             'Conferences & Organizations Attended': 'conferences_organizations_attended'
+          }
+        } else if (importType === 'companies') {
+          return {
+            'Account Name': 'name',
+            'Company Name': 'name',
+            'Name': 'name',
+            'Website': 'website',
+            'Industry': 'industry',
+            'Size': 'size',
+            'Employees': 'size',
+            'Annual Revenue': 'revenue',
+            'Revenue': 'revenue',
+            'Phone': 'phone',
+            'Email': 'email',
+            'Address': 'address',
+            'Street': 'address',
+            'City': 'city',
+            'State': 'state',
+            'Country': 'country',
+            'Zip Code': 'zip_code',
+            'Postal Code': 'zip_code',
+            'Notes': 'notes',
+            'Description': 'notes'
           }
         }
         return {}
@@ -387,19 +410,31 @@ export default function DataImportExport() {
         if (!user) throw new Error('User not authenticated')
 
         // Add user_id to each record and filter only valid database columns
-        const validDbColumns = new Set([
-          'first_name', 'last_name', 'email', 'phone', 'mobile', 'title', 'department',
-          'lead_source', 'notes', 'contact_owner', 'account_name', 'vendor_name',
-          'contact_name', 'description', 'salutation', 'tag', 'reporting_to',
-          'unsubscribed_mode', 'referrer', 'first_page_visited', 'general_phone',
-          'direct_phone', 'linkedin_connection', 'account_egnyte_link', 'name_pronunciation',
-          'industry_fb_group_memberships', 'role_in_deals', 'street', 'city', 'zip_code',
-          'state', 'country', 'county', 'record_id', 'contact_owner', 'created_by',
-          'modified_by', 'account_name', 'vendor_name', 'email_opt_out', 'locked', 
-          'enrich_status', 'reference_type', 'reference_subject_matter', 'reference_egnyte_link', 
-          'reference_services_products', 'conferences_organizations_attended', 'average_time_spent_minutes', 
-          'visitor_score', 'number_of_chats', 'days_visited', 'user_id'
-        ])
+        const getValidDbColumns = (importType: string) => {
+          if (importType === 'contacts') {
+            return new Set([
+              'first_name', 'last_name', 'email', 'phone', 'mobile', 'title', 'department',
+              'lead_source', 'notes', 'contact_owner', 'account_name', 'vendor_name',
+              'contact_name', 'description', 'salutation', 'tag', 'reporting_to',
+              'unsubscribed_mode', 'referrer', 'first_page_visited', 'general_phone',
+              'direct_phone', 'linkedin_connection', 'account_egnyte_link', 'name_pronunciation',
+              'industry_fb_group_memberships', 'role_in_deals', 'street', 'city', 'zip_code',
+              'state', 'country', 'county', 'record_id', 'contact_owner', 'created_by',
+              'modified_by', 'account_name', 'vendor_name', 'email_opt_out', 'locked', 
+              'enrich_status', 'reference_type', 'reference_subject_matter', 'reference_egnyte_link', 
+              'reference_services_products', 'conferences_organizations_attended', 'average_time_spent_minutes', 
+              'visitor_score', 'number_of_chats', 'days_visited', 'user_id'
+            ])
+          } else if (importType === 'companies') {
+            return new Set([
+              'name', 'website', 'industry', 'size', 'revenue', 'phone', 'email', 
+              'address', 'city', 'state', 'country', 'zip_code', 'notes', 'user_id'
+            ])
+          }
+          return new Set(['user_id'])
+        }
+
+        const validDbColumns = getValidDbColumns(importType)
 
         // UUID columns that should be excluded if they contain non-UUID values
         const uuidColumns = new Set([
@@ -511,22 +546,37 @@ export default function DataImportExport() {
             }
           })
 
-          // Ensure required fields are present - first_name and last_name are NOT NULL in database
-          if (!cleanRecord.first_name || cleanRecord.first_name.trim() === '') {
-            cleanRecord.first_name = 'Unknown'
-          }
-          if (!cleanRecord.last_name || cleanRecord.last_name.trim() === '') {
-            cleanRecord.last_name = 'Contact'
+          // Ensure required fields are present based on import type
+          if (importType === 'contacts') {
+            // first_name and last_name are NOT NULL in contacts table
+            if (!cleanRecord.first_name || cleanRecord.first_name.trim() === '') {
+              cleanRecord.first_name = 'Unknown'
+            }
+            if (!cleanRecord.last_name || cleanRecord.last_name.trim() === '') {
+              cleanRecord.last_name = 'Contact'
+            }
+          } else if (importType === 'companies') {
+            // name is NOT NULL in companies table
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              cleanRecord.name = 'Unknown Company'
+            }
           }
           
           return cleanRecord
         }).filter(record => {
-          // Additional validation: ensure we have at least basic contact info
-          const hasBasicInfo = record.first_name && record.last_name
-          if (!hasBasicInfo) {
+          // Additional validation: ensure we have required fields based on import type
+          let hasRequiredFields = true
+          
+          if (importType === 'contacts') {
+            hasRequiredFields = record.first_name && record.last_name
+          } else if (importType === 'companies') {
+            hasRequiredFields = record.name
+          }
+          
+          if (!hasRequiredFields) {
             console.warn('Skipping record with missing required fields:', record)
           }
-          return hasBasicInfo
+          return hasRequiredFields
         })
 
         const tableName = importType as 'contacts' | 'companies' | 'deals'
