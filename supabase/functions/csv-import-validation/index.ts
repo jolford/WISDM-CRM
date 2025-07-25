@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface ImportRequest {
   csvData: string;
-  dataType: 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts' | 'maintenance';
+  dataType: 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts' | 'reports' | 'maintenance';
 }
 
 serve(async (req) => {
@@ -56,8 +56,8 @@ serve(async (req) => {
       throw new Error('Missing required fields: csvData and dataType');
     }
 
-    if (!['contacts', 'companies', 'deals', 'vendors', 'forecasts', 'maintenance'].includes(dataType)) {
-      throw new Error('Invalid data type. Must be: contacts, companies, deals, vendors, forecasts, or maintenance');
+    if (!['contacts', 'companies', 'deals', 'vendors', 'forecasts', 'reports', 'maintenance'].includes(dataType)) {
+      throw new Error('Invalid data type. Must be: contacts, companies, deals, vendors, forecasts, reports, or maintenance');
     }
 
     // Parse CSV data with better error handling

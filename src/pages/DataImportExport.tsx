@@ -150,6 +150,14 @@ export default function DataImportExport() {
       { zoho: "Actual Amount", wisdm: "actual_amount" },
       { zoho: "Probability", wisdm: "probability" },
       { zoho: "Notes", wisdm: "notes" },
+    ],
+    reports: [
+      { zoho: "Report Name", wisdm: "name" },
+      { zoho: "Report Type", wisdm: "report_type" },
+      { zoho: "Description", wisdm: "description" },
+      { zoho: "Data Source", wisdm: "data_source" },
+      { zoho: "Schedule", wisdm: "schedule" },
+      { zoho: "Format", wisdm: "format" },
     ]
   }
 
@@ -489,6 +497,32 @@ export default function DataImportExport() {
               'Comments': 'notes',
               'Description': 'notes'
             }
+          } else if (importType === 'reports') {
+            return {
+              'Report Name': 'name',
+              'Name': 'name',
+              'Title': 'name',
+              'Report Type': 'report_type',
+              'Type': 'report_type',
+              'Category': 'report_type',
+              'Description': 'description',
+              'Notes': 'description',
+              'Data Source': 'data_source',
+              'Source': 'data_source',
+              'Table': 'data_source',
+              'Schedule': 'schedule',
+              'Frequency': 'schedule',
+              'Timing': 'schedule',
+              'Format': 'format',
+              'Output Format': 'format',
+              'Export Format': 'format',
+              'Recipients': 'recipients',
+              'Email Recipients': 'recipients',
+              'Send To': 'recipients',
+              'Active': 'is_active',
+              'Enabled': 'is_active',
+              'Status': 'is_active'
+            }
           }
         return {}
       }
@@ -584,6 +618,11 @@ export default function DataImportExport() {
               'period', 'forecast_type', 'target_amount', 'actual_amount', 
               'probability', 'notes', 'user_id'
             ])
+          } else if (importType === 'reports') {
+            return new Set([
+              'name', 'report_type', 'description', 'data_source', 'schedule', 
+              'format', 'recipients', 'is_active', 'user_id'
+            ])
           }
           return new Set(['user_id'])
         }
@@ -618,9 +657,9 @@ export default function DataImportExport() {
         const dateColumns = new Set([
           'purchase_date', 'start_date', 'end_date'
         ])
-
+        
         // Define boolean columns
-        const booleanColumns = new Set(['email_opt_out', 'locked'])
+        const booleanColumns = new Set(['email_opt_out', 'locked', 'is_active'])
 
         // Helper function to safely convert to number
         const safeNumberConvert = (value: string, fieldName: string): number | null => {
@@ -817,6 +856,23 @@ export default function DataImportExport() {
             if (!cleanRecord.probability) {
               cleanRecord.probability = 100
             }
+          } else if (importType === 'reports') {
+            // name is NOT NULL in reports table
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              cleanRecord.name = 'Unknown Report'
+            }
+            // Set default report_type if not provided
+            if (!cleanRecord.report_type || cleanRecord.report_type.trim() === '') {
+              cleanRecord.report_type = 'sales'
+            }
+            // Set default format if not provided
+            if (!cleanRecord.format || cleanRecord.format.trim() === '') {
+              cleanRecord.format = 'pdf'
+            }
+            // Set default is_active if not provided
+            if (cleanRecord.is_active === undefined || cleanRecord.is_active === null) {
+              cleanRecord.is_active = true
+            }
           }
           
           return cleanRecord
@@ -836,6 +892,8 @@ export default function DataImportExport() {
             hasRequiredFields = record.name
           } else if (importType === 'forecasts') {
             hasRequiredFields = record.period && record.forecast_type
+          } else if (importType === 'reports') {
+            hasRequiredFields = record.name
           }
           
           if (!hasRequiredFields) {
@@ -846,7 +904,7 @@ export default function DataImportExport() {
 
         const tableName = importType === 'tickets' ? 'tasks' : 
                           importType === 'maintenance' ? 'maintenance_records' : 
-                          importType as 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts'
+                          importType as 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts' | 'reports'
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
@@ -1076,6 +1134,7 @@ export default function DataImportExport() {
                         <SelectItem value="deals">Deals</SelectItem>
                         <SelectItem value="vendors">Vendors</SelectItem>
                         <SelectItem value="forecasts">Forecasts</SelectItem>
+                        <SelectItem value="reports">Reports</SelectItem>
                         <SelectItem value="tickets">Support Tickets</SelectItem>
                         <SelectItem value="maintenance">Maintenance Records</SelectItem>
                    </SelectContent>

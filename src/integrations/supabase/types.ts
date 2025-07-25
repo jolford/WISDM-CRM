@@ -560,6 +560,60 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          data_source: string | null
+          description: string | null
+          format: string | null
+          id: string
+          is_active: boolean | null
+          last_run: string | null
+          name: string
+          next_run: string | null
+          parameters: Json | null
+          recipients: string[] | null
+          report_type: string | null
+          schedule: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_source?: string | null
+          description?: string | null
+          format?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          name: string
+          next_run?: string | null
+          parameters?: Json | null
+          recipients?: string[] | null
+          report_type?: string | null
+          schedule?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_source?: string | null
+          description?: string | null
+          format?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          name?: string
+          next_run?: string | null
+          parameters?: Json | null
+          recipients?: string[] | null
+          report_type?: string | null
+          schedule?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           company_id: string | null
