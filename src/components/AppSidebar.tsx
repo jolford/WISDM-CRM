@@ -45,8 +45,11 @@ const supportItems = [
   { title: "Support Desk", url: "/support", icon: Headphones },
 ]
 
+const maintenanceItems = [
+  { title: "Software and Hardware Maintenance", url: "/maintenance", icon: Wrench },
+]
+
 const systemItems = [
-  { title: "Maintenance", url: "/maintenance", icon: Wrench },
   { title: "Admin", url: "/admin", icon: Shield },
   { title: "Settings", url: "/settings", icon: Settings },
 ]
@@ -127,6 +130,24 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {supportItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls(item.url)}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Maintenance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {maintenanceItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls(item.url)}>
