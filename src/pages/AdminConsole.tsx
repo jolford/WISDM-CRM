@@ -33,7 +33,7 @@ export default function AdminConsole() {
       title: "User Management",
       description: "Manage user accounts, roles, and permissions",
       icon: Users,
-      action: () => toast({ title: "User Management", description: "Opening user management..." }),
+      action: () => window.open('https://supabase.com/dashboard/project/vdrppzblasrdytafgpvp/auth/users', '_blank'),
       badge: "Core"
     },
     {

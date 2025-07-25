@@ -406,15 +406,10 @@ export default function DataImportExport() {
               'Contact': 'description',
               'Account Name': 'description', // Append to description since tasks table doesn't have company_name
               'Company': 'description',
-              'Priority': 'priority',
               'Status': 'status',
-              'Assignee': 'assignee',
-              'Assigned To': 'assignee',
               'Category': 'task_type',
               'Type': 'task_type',
-              'Due Date': 'due_date',
-              'Created Date': 'created_at',
-              'Modified Date': 'updated_at'
+              'Due Date': 'due_date'
             }
           } else if (importType === 'deals') {
             return {
