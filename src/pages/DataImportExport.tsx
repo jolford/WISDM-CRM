@@ -706,6 +706,12 @@ export default function DataImportExport() {
         const safeTimestampConvert = (value: string): string | null => {
           if (!value || value.trim() === '') return null
           
+          // Check for HTML/CSS content and reject it
+          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || value.includes('font-')) {
+            console.warn(`HTML/CSS content detected in timestamp field, setting to null: "${value}"`)
+            return null
+          }
+          
           try {
             // Try to parse the date
             const date = new Date(value)
@@ -723,6 +729,18 @@ export default function DataImportExport() {
         // Helper function to safely convert to date (YYYY-MM-DD format)
         const safeDateConvert = (value: string): string | null => {
           if (!value || value.trim() === '') return null
+          
+          // Check for HTML/CSS content and reject it
+          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || value.includes('font-')) {
+            console.warn(`HTML/CSS content detected in date field, setting to null: "${value}"`)
+            return null
+          }
+          
+          // Check for email addresses (common mistake in date fields)
+          if (value.includes('@')) {
+            console.warn(`Email detected in date field, setting to null: "${value}"`)
+            return null
+          }
           
           try {
             // Try to parse the date
@@ -791,8 +809,22 @@ export default function DataImportExport() {
                 return
               }
 
+              // Clean text content - remove HTML/CSS and other unwanted content
+              let cleanValue = record[key]
+              
+              // Remove HTML tags and CSS styling
+              if (typeof cleanValue === 'string') {
+                cleanValue = cleanValue
+                  .replace(/<[^>]*>/g, '') // Remove HTML tags
+                  .replace(/style\s*=\s*[^>]*?>/g, '') // Remove style attributes
+                  .replace(/margin:\s*[^;]*;?/g, '') // Remove margin styles
+                  .replace(/padding:\s*[^;]*;?/g, '') // Remove padding styles
+                  .replace(/font-[^;]*;?/g, '') // Remove font styles
+                  .trim()
+              }
+
               // Handle regular text columns
-              cleanRecord[key] = record[key]
+              cleanRecord[key] = cleanValue
             }
           })
 
