@@ -59,11 +59,17 @@ interface MaintenanceRecord {
   renewal_reminder_days: number;
   created_at: string;
   updated_at: string;
+  company_id: string | null;
+  companies?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export default function MaintenanceTracking() {
   const { toast } = useToast();
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
+  const [companies, setCompanies] = useState<{id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<keyof MaintenanceRecord>('end_date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -76,6 +82,7 @@ export default function MaintenanceTracking() {
     start_date: '',
     end_date: '',
     vendor_name: '',
+    company_id: '',
     license_key: '',
     serial_number: '',
     cost: '',
@@ -86,13 +93,20 @@ export default function MaintenanceTracking() {
 
   useEffect(() => {
     fetchRecords();
+    fetchCompanies();
   }, []);
 
   const fetchRecords = async () => {
     try {
       const { data, error } = await supabase
         .from('maintenance_records')
-        .select('*')
+        .select(`
+          *,
+          companies (
+            id,
+            name
+          )
+        `)
         .order('end_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
@@ -106,6 +120,20 @@ export default function MaintenanceTracking() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
     }
   };
 
@@ -124,6 +152,7 @@ export default function MaintenanceTracking() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         vendor_name: formData.vendor_name || null,
+        company_id: formData.company_id || null,
         license_key: formData.license_key || null,
         serial_number: formData.serial_number || null,
         notes: formData.notes || null,
@@ -177,6 +206,7 @@ export default function MaintenanceTracking() {
       start_date: record.start_date || '',
       end_date: record.end_date || '',
       vendor_name: record.vendor_name || '',
+      company_id: record.company_id || '',
       license_key: record.license_key || '',
       serial_number: record.serial_number || '',
       cost: record.cost?.toString() || '',
@@ -222,6 +252,7 @@ export default function MaintenanceTracking() {
       start_date: '',
       end_date: '',
       vendor_name: '',
+      company_id: '',
       license_key: '',
       serial_number: '',
       cost: '',
@@ -349,13 +380,36 @@ export default function MaintenanceTracking() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="vendor_name">Vendor</Label>
+                  <Label htmlFor="vendor_name">Vendor/Supplier</Label>
                   <Input
                     id="vendor_name"
                     value={formData.vendor_name}
                     onChange={(e) => setFormData({...formData, vendor_name: e.target.value})}
+                    placeholder="e.g., Microsoft, Dell, Adobe"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="company_id">Customer/Company</Label>
+                  <Select 
+                    value={formData.company_id} 
+                    onValueChange={(value) => setFormData({...formData, company_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select customer..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">No customer selected</SelectItem>
+                      {companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="cost">Cost</Label>
                   <Input
@@ -364,7 +418,24 @@ export default function MaintenanceTracking() {
                     step="0.01"
                     value={formData.cost}
                     onChange={(e) => setFormData({...formData, cost: e.target.value})}
+                    placeholder="0.00"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value: 'active' | 'expired' | 'cancelled') => setFormData({...formData, status: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -408,23 +479,8 @@ export default function MaintenanceTracking() {
                       ...formData, 
                       [formData.product_type === 'software' ? 'license_key' : 'serial_number']: e.target.value
                     })}
+                    placeholder={formData.product_type === 'software' ? 'License key...' : 'Serial number...'}
                   />
-                </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(value: 'active' | 'expired' | 'cancelled') => setFormData({...formData, status: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
@@ -543,6 +599,7 @@ export default function MaintenanceTracking() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead>Customer</TableHead>
                 <TableHead>
                   <Button 
                     variant="ghost" 
@@ -601,6 +658,7 @@ export default function MaintenanceTracking() {
                   </TableCell>
                   <TableCell>{record.product_type}</TableCell>
                   <TableCell>{record.vendor_name || 'N/A'}</TableCell>
+                  <TableCell>{record.companies?.name || 'N/A'}</TableCell>
                   <TableCell>{formatDate(record.purchase_date)}</TableCell>
                   <TableCell>{formatDate(record.end_date)}</TableCell>
                   <TableCell>{formatCurrency(record.cost)}</TableCell>

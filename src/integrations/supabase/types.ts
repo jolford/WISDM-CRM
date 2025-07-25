@@ -522,6 +522,7 @@ export type Database = {
       }
       maintenance_records: {
         Row: {
+          company_id: string | null
           cost: number | null
           created_at: string
           end_date: string | null
@@ -540,6 +541,7 @@ export type Database = {
           vendor_name: string | null
         }
         Insert: {
+          company_id?: string | null
           cost?: number | null
           created_at?: string
           end_date?: string | null
@@ -558,6 +560,7 @@ export type Database = {
           vendor_name?: string | null
         }
         Update: {
+          company_id?: string | null
           cost?: number | null
           created_at?: string
           end_date?: string | null
@@ -575,7 +578,15 @@ export type Database = {
           user_id?: string
           vendor_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
