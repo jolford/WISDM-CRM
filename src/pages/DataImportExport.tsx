@@ -1045,7 +1045,13 @@ export default function DataImportExport() {
               cleanRecord.probability = 100
             }
            } else if (importType === 'reports') {
-             // name is NOT NULL in reports table
+             // If report_type contains descriptive text and name is empty, use report_type as name
+             if ((!cleanRecord.name || cleanRecord.name.trim() === '') && 
+                 cleanRecord.report_type && cleanRecord.report_type.trim() !== '') {
+               cleanRecord.name = cleanRecord.report_type
+               cleanRecord.report_type = 'custom'
+             }
+             // Set default name if still empty
              if (!cleanRecord.name || cleanRecord.name.trim() === '') {
                cleanRecord.name = 'Unknown Report'
              }
