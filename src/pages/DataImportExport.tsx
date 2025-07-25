@@ -1044,23 +1044,19 @@ export default function DataImportExport() {
             if (!cleanRecord.probability) {
               cleanRecord.probability = 100
             }
-          } else if (importType === 'reports') {
-            // name is NOT NULL in reports table
-            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
-              cleanRecord.name = 'Unknown Report'
-            }
-            // Set default report_type if not provided
-            if (!cleanRecord.report_type || cleanRecord.report_type.trim() === '') {
-              cleanRecord.report_type = 'sales'
-            }
-            // Set default format if not provided
-            if (!cleanRecord.format || cleanRecord.format.trim() === '') {
-              cleanRecord.format = 'pdf'
-            }
-            // Set default is_active if not provided
-            if (cleanRecord.is_active === undefined || cleanRecord.is_active === null) {
-              cleanRecord.is_active = true
-            }
+           } else if (importType === 'reports') {
+             // name is NOT NULL in reports table
+             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+               cleanRecord.name = 'Unknown Report'
+             }
+             // Set default report_type if not provided
+             if (!cleanRecord.report_type || cleanRecord.report_type.trim() === '') {
+               cleanRecord.report_type = 'custom'
+             }
+             // Set default is_active if not provided
+             if (cleanRecord.is_active === undefined || cleanRecord.is_active === null) {
+               cleanRecord.is_active = true
+             }
           }
           
           return cleanRecord
