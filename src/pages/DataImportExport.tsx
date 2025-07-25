@@ -713,10 +713,16 @@ export default function DataImportExport() {
         const safeTimestampConvert = (value: string): string | null => {
           if (!value || value.trim() === '') return null
           
-          // Check for HTML/CSS content and reject it
-          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || 
-              value.includes('font-') || value.includes('border:') || value.includes('line-height:') ||
-              value.includes('sans-serif') || value.includes('serif') || value.includes('px')) {
+          // Comprehensive check for HTML/CSS content and reject it
+          const cssKeywords = [
+            '<', 'style=', 'margin:', 'font-', 'border:', 'line-height:', 'sans-serif', 
+            'serif', 'px', 'inherit', 'css', 'color:', 'background:', 'width:', 'height:', 
+            'padding:', 'text-', 'display:', 'position:', 'float:', 'overflow:', 'opacity:',
+            'rgba(', 'rgb(', 'url(', '@', 'class=', 'id=', 'div', 'span', 'html', 'body'
+          ]
+          
+          const lowerValue = value.toLowerCase()
+          if (cssKeywords.some(keyword => lowerValue.includes(keyword))) {
             console.warn(`HTML/CSS content detected in timestamp field, setting to null: "${value}"`)
             return null
           }
@@ -741,11 +747,16 @@ export default function DataImportExport() {
           
           console.log(`🔍 Processing date value: "${value}"`)
           
-          // Check for HTML/CSS content and reject it
-          if (value.includes('<') || value.includes('style=') || value.includes('margin:') || 
-              value.includes('font-') || value.includes('border:') || value.includes('line-height:') ||
-              value.includes('sans-serif') || value.includes('serif') || value.includes('px') ||
-              value.includes('inherit') || value.includes('css')) {
+          // Comprehensive check for HTML/CSS content and reject it
+          const cssKeywords = [
+            '<', 'style=', 'margin:', 'font-', 'border:', 'line-height:', 'sans-serif', 
+            'serif', 'px', 'inherit', 'css', 'color:', 'background:', 'width:', 'height:', 
+            'padding:', 'text-', 'display:', 'position:', 'float:', 'overflow:', 'opacity:',
+            'rgba(', 'rgb(', 'url(', '@', 'class=', 'id=', 'div', 'span', 'html', 'body'
+          ]
+          
+          const lowerValue = value.toLowerCase()
+          if (cssKeywords.some(keyword => lowerValue.includes(keyword))) {
             console.warn(`HTML/CSS content detected in date field, setting to null: "${value}"`)
             return null
           }
@@ -843,6 +854,17 @@ export default function DataImportExport() {
           // Only include columns that exist in the database
           Object.keys(record).forEach(key => {
             if (validDbColumns.has(key) && record[key] !== '') {
+              // Early filter for CSS/HTML content
+              const value = record[key]
+              const cssKeywords = [
+                'sans-serif', 'border:', 'line-height:', 'font-', 'margin:', 'padding:', 
+                'inherit', 'px', 'rgba(', 'rgb(', 'style=', 'css', '<', '>'
+              ]
+              
+              if (typeof value === 'string' && cssKeywords.some(keyword => value.toLowerCase().includes(keyword))) {
+                console.warn(`🚫 Skipping CSS/HTML content in field "${key}": "${value}"`)
+                return
+              }
               // Skip UUID columns that don't contain valid UUIDs
               if (uuidColumns.has(key) && !isValidUUID(record[key])) {
                 console.warn(`Skipping invalid UUID for ${key}: ${record[key]}`)
