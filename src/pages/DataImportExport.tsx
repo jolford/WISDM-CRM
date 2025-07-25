@@ -589,12 +589,12 @@ export default function DataImportExport() {
         throw new Error('No valid records found in the file')
       }
       
-      console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
-      
-      // Store directly in database instead of localStorage
-      console.log('💾 Storing data directly in database')
-      
-      setImportProgress(50)
+        console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
+        
+        // Store directly in database instead of localStorage
+        console.log('💾 Storing data directly in database')
+        
+        setImportProgress(50)
       
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -730,6 +730,8 @@ export default function DataImportExport() {
         const safeDateConvert = (value: string): string | null => {
           if (!value || value.trim() === '') return null
           
+          console.log(`🔍 Processing date value: "${value}"`)
+          
           // Check for HTML/CSS content and reject it
           if (value.includes('<') || value.includes('style=') || value.includes('margin:') || value.includes('font-')) {
             console.warn(`HTML/CSS content detected in date field, setting to null: "${value}"`)
@@ -742,6 +744,28 @@ export default function DataImportExport() {
             return null
           }
           
+          // Check for numeric-only values that might be misinterpreted
+          if (/^\d+$/.test(value.trim())) {
+            console.warn(`Numeric-only value detected in date field, setting to null: "${value}"`)
+            return null
+          }
+          
+          // Check for obviously invalid date patterns
+          if (value.includes('100697') || value.includes('+') || /^\d{6,}/.test(value)) {
+            console.warn(`Invalid date pattern detected, setting to null: "${value}"`)
+            return null
+          }
+          
+          // Validate year range to prevent extreme dates
+          const yearMatch = value.match(/\b(\d{4})\b/)
+          if (yearMatch) {
+            const year = parseInt(yearMatch[1])
+            if (year < 1900 || year > 2100) {
+              console.warn(`Year ${year} out of valid range (1900-2100), setting to null: "${value}"`)
+              return null
+            }
+          }
+          
           try {
             // Try to parse the date
             const date = new Date(value)
@@ -749,8 +773,17 @@ export default function DataImportExport() {
               console.warn(`Invalid date "${value}", setting to null`)
               return null
             }
-            // Return date in YYYY-MM-DD format
-            return date.toISOString().split('T')[0]
+            
+            // Additional validation on the parsed date
+            const year = date.getFullYear()
+            if (year < 1900 || year > 2100) {
+              console.warn(`Parsed year ${year} out of valid range, setting to null: "${value}"`)
+              return null
+            }
+            
+            const isoString = date.toISOString().split('T')[0]
+            console.log(`✅ Successfully converted "${value}" to "${isoString}"`)
+            return isoString
           } catch (error) {
             console.warn(`Error parsing date "${value}":`, error)
             return null
@@ -796,9 +829,13 @@ export default function DataImportExport() {
 
               // Handle date columns (for maintenance records)
               if (dateColumns.has(key)) {
+                console.log(`🗓️ Processing date column "${key}" with value: "${record[key]}"`)
                 const dateValue = safeDateConvert(record[key])
                 if (dateValue !== null) {
                   cleanRecord[key] = dateValue
+                  console.log(`📅 Added date field "${key}": "${dateValue}"`)
+                } else {
+                  console.log(`❌ Skipped invalid date for "${key}": "${record[key]}"`)
                 }
                 return
               }
@@ -960,6 +997,23 @@ export default function DataImportExport() {
             console.warn('Skipping record with missing required fields:', record)
           }
           return hasRequiredFields
+        })
+
+        console.log(`📊 Final clean records being sent to database (first 3):`, recordsWithUserId.slice(0, 3))
+        console.log(`🔢 Total records to import: ${recordsWithUserId.length}`)
+        
+        // Log any records with date fields for debugging
+        recordsWithUserId.forEach((record, index) => {
+          const dateFields = ['purchase_date', 'start_date', 'end_date', 'due_date', 'created_at', 'updated_at']
+          const hasDateFields = dateFields.some(field => record[field])
+          if (hasDateFields && index < 5) {
+            console.log(`📋 Record ${index + 1} date fields:`, 
+              dateFields.reduce((acc, field) => {
+                if (record[field]) acc[field] = record[field]
+                return acc
+              }, {})
+            )
+          }
         })
 
         const tableName = importType === 'tickets' ? 'tasks' : 
