@@ -46,6 +46,12 @@ interface Deal {
   created_at: string
   company_id: string | null
   contact_id: string | null
+  user_id: string | null
+  profiles?: {
+    first_name: string | null
+    last_name: string | null
+    email: string
+  } | null
 }
 
 interface Company {
@@ -81,7 +87,10 @@ export default function Deals() {
       
       // Fetch all data in parallel
       const [dealsResult, companiesResult, contactsResult] = await Promise.all([
-        supabase.from('deals').select('*').order('created_at', { ascending: false }),
+        supabase.from('deals').select(`
+          *,
+          profiles:user_id (first_name, last_name, email)
+        `).order('created_at', { ascending: false }),
         supabase.from('companies').select('id, name'),
         supabase.from('contacts').select('id, first_name, last_name')
       ])
@@ -90,7 +99,7 @@ export default function Deals() {
       if (companiesResult.error) throw companiesResult.error
       if (contactsResult.error) throw contactsResult.error
 
-      setDeals(dealsResult.data || [])
+      setDeals((dealsResult.data || []) as unknown as Deal[])
       setCompanies(companiesResult.data || [])
       setContacts(contactsResult.data || [])
     } catch (error) {
@@ -154,6 +163,18 @@ export default function Deals() {
     const contact = contacts.find(c => c.id === contactId)
     if (!contact) return "UK"
     return `${contact.first_name?.[0] || ''}${contact.last_name?.[0] || ''}`.toUpperCase()
+  }
+
+  const getDealOwnerName = (deal: Deal) => {
+    if (!deal.profiles || typeof deal.profiles !== 'object' || Array.isArray(deal.profiles)) return "Unassigned"
+    const { first_name, last_name, email } = deal.profiles
+    return `${first_name || ''} ${last_name || ''}`.trim() || email
+  }
+
+  const getDealOwnerInitials = (deal: Deal) => {
+    if (!deal.profiles || typeof deal.profiles !== 'object' || Array.isArray(deal.profiles)) return "UA"
+    const { first_name, last_name } = deal.profiles
+    return `${first_name?.[0] || ''}${last_name?.[0] || ''}`.toUpperCase() || "UA"
   }
 
   const deleteDeal = async (dealId: string) => {
@@ -248,6 +269,7 @@ export default function Deals() {
               </TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Contact</TableHead>
+              <TableHead>Deal Owner</TableHead>
               <TableHead>
                 <Button 
                   variant="ghost" 
@@ -304,6 +326,16 @@ export default function Deals() {
                       </AvatarFallback>
                     </Avatar>
                     {getContactName(deal.contact_id)}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                        {getDealOwnerInitials(deal)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {getDealOwnerName(deal)}
                   </div>
                 </TableCell>
                 <TableCell className="font-semibold text-green-600">
@@ -407,31 +439,42 @@ export default function Deals() {
                       </DropdownMenu>
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {getCompanyName(deal.company_id)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-4 w-4">
-                          <AvatarFallback className="text-xs">
-                            {getContactInitials(deal.contact_id)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                          {getContactName(deal.contact_id)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-3 w-3 text-green-600" />
-                        <span className="text-sm font-semibold text-green-600">
-                          {formatCurrency(deal.value)}
-                        </span>
-                      </div>
+                     <div className="space-y-2">
+                       <div className="flex items-center gap-2">
+                         <Building2 className="h-3 w-3 text-muted-foreground" />
+                         <span className="text-xs text-muted-foreground">
+                           {getCompanyName(deal.company_id)}
+                         </span>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         <Avatar className="h-4 w-4">
+                           <AvatarFallback className="text-xs">
+                             {getContactInitials(deal.contact_id)}
+                           </AvatarFallback>
+                         </Avatar>
+                         <span className="text-xs text-muted-foreground">
+                           {getContactName(deal.contact_id)}
+                         </span>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         <Avatar className="h-4 w-4">
+                           <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                             {getDealOwnerInitials(deal)}
+                           </AvatarFallback>
+                         </Avatar>
+                         <span className="text-xs text-muted-foreground">
+                           {getDealOwnerName(deal)}
+                         </span>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         <DollarSign className="h-3 w-3 text-green-600" />
+                         <span className="text-sm font-semibold text-green-600">
+                           {formatCurrency(deal.value)}
+                         </span>
+                       </div>
                       
                       <div className="flex items-center gap-2">
                         <Calendar className="h-3 w-3 text-muted-foreground" />

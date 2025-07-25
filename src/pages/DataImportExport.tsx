@@ -621,13 +621,18 @@ export default function DataImportExport() {
               'name', 'website', 'industry', 'size', 'revenue', 'phone', 'email', 
               'address', 'city', 'state', 'country', 'zip_code', 'notes', 'user_id'
             ])
-          } else if (importType === 'tickets') {
-            return new Set([
-              'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
-            ])
-          } else if (importType === 'maintenance') {
-            return new Set([
-              'product_name', 'product_type', 'vendor_name', 'serial_number', 
+           } else if (importType === 'deals') {
+             return new Set([
+               'name', 'value', 'stage', 'probability', 'close_date', 'description', 
+               'notes', 'company_id', 'contact_id', 'user_id'
+             ])
+           } else if (importType === 'tickets') {
+             return new Set([
+               'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
+             ])
+           } else if (importType === 'maintenance') {
+             return new Set([
+               'product_name', 'product_type', 'vendor_name', 'serial_number',
               'license_key', 'purchase_date', 'start_date', 'end_date', 
               'cost', 'status', 'notes', 'renewal_reminder_days', 'user_id'
             ])
@@ -927,11 +932,26 @@ export default function DataImportExport() {
               cleanRecord.renewal_reminder_days = 30
             }
             console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
-          } else if (importType === 'deals') {
-            // name is NOT NULL in deals table
-            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
-              cleanRecord.name = 'Imported Deal'
-            }
+           } else if (importType === 'deals') {
+             // name is NOT NULL in deals table
+             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+               console.warn('⚠️ Deal name is missing, setting default. Original record:', record)
+               cleanRecord.name = 'Imported Deal'
+             }
+             // Set default stage if not provided or invalid
+             const validStages = ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']
+             if (!cleanRecord.stage || !validStages.includes(cleanRecord.stage.toLowerCase())) {
+               cleanRecord.stage = 'prospect'
+             } else {
+               cleanRecord.stage = cleanRecord.stage.toLowerCase()
+             }
+             // Ensure numeric fields are properly handled
+             if (cleanRecord.value && typeof cleanRecord.value === 'string') {
+               cleanRecord.value = parseFloat(cleanRecord.value) || 0
+             }
+             if (cleanRecord.probability && typeof cleanRecord.probability === 'string') {
+               cleanRecord.probability = parseInt(cleanRecord.probability) || 0
+             }
           } else if (importType === 'vendors') {
             // name is NOT NULL in vendors table
             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
