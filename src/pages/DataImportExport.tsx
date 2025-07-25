@@ -357,11 +357,13 @@ export default function DataImportExport() {
           const record: any = {}
           
           headers.forEach((header, index) => {
-            const value = values[index] || ''
+            let value = values[index] || ''
             
             // Security: Sanitize and validate individual values
-            if (value.length > 1000) { // Max field length
-              throw new Error(`Field value too long in row ${i}`)
+            // Increased field length limit for longer descriptions/notes
+            if (value.length > 5000) { // Increased from 1000 to 5000 characters
+              console.warn(`Field value too long in row ${i}, truncating to 5000 characters`)
+              value = value.substring(0, 5000) + '...[truncated]'
             }
             
             // Security: Check for script injection in values
