@@ -413,6 +413,63 @@ export default function DataImportExport() {
           return uuidRegex.test(str)
         }
 
+        // Define numeric columns that need special handling
+        const numericColumns = new Set([
+          'visitor_score', 'number_of_chats', 'days_visited', 'average_time_spent_minutes'
+        ])
+
+        // Define timestamp columns that need special handling
+        const timestampColumns = new Set([
+          'created_time', 'modified_time', 'last_activity_time', 'unsubscribed_time', 
+          'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time'
+        ])
+
+        // Define boolean columns
+        const booleanColumns = new Set(['email_opt_out', 'locked'])
+
+        // Helper function to safely convert to number
+        const safeNumberConvert = (value: string, fieldName: string): number | null => {
+          if (!value || value.trim() === '') return null
+          
+          // Check if it looks like a timestamp (contains / or :)
+          if (value.includes('/') || value.includes(':') || value.includes('-')) {
+            console.warn(`Skipping timestamp-like value "${value}" for numeric field ${fieldName}`)
+            return null
+          }
+          
+          const num = parseFloat(value)
+          if (isNaN(num)) {
+            console.warn(`Invalid number "${value}" for field ${fieldName}, setting to null`)
+            return null
+          }
+          return num
+        }
+
+        // Helper function to safely convert to timestamp
+        const safeTimestampConvert = (value: string): string | null => {
+          if (!value || value.trim() === '') return null
+          
+          try {
+            // Try to parse the date
+            const date = new Date(value)
+            if (isNaN(date.getTime())) {
+              console.warn(`Invalid timestamp "${value}", setting to null`)
+              return null
+            }
+            return date.toISOString()
+          } catch (error) {
+            console.warn(`Error parsing timestamp "${value}":`, error)
+            return null
+          }
+        }
+
+        // Helper function to safely convert to boolean
+        const safeBooleanConvert = (value: string): boolean => {
+          if (!value || value.trim() === '') return false
+          const lowerValue = value.toLowerCase()
+          return lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes'
+        }
+
         const recordsWithUserId = validatedRecords.map(record => {
           const cleanRecord: any = { user_id: user.id }
           
@@ -424,6 +481,32 @@ export default function DataImportExport() {
                 console.warn(`Skipping invalid UUID for ${key}: ${record[key]}`)
                 return
               }
+
+              // Handle numeric columns
+              if (numericColumns.has(key)) {
+                const numValue = safeNumberConvert(record[key], key)
+                if (numValue !== null) {
+                  cleanRecord[key] = numValue
+                }
+                return
+              }
+
+              // Handle timestamp columns
+              if (timestampColumns.has(key)) {
+                const timestampValue = safeTimestampConvert(record[key])
+                if (timestampValue !== null) {
+                  cleanRecord[key] = timestampValue
+                }
+                return
+              }
+
+              // Handle boolean columns
+              if (booleanColumns.has(key)) {
+                cleanRecord[key] = safeBooleanConvert(record[key])
+                return
+              }
+
+              // Handle regular text columns
               cleanRecord[key] = record[key]
             }
           })
