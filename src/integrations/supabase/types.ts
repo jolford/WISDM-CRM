@@ -428,6 +428,63 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_records: {
+        Row: {
+          cost: number | null
+          created_at: string
+          end_date: string | null
+          id: string
+          license_key: string | null
+          notes: string | null
+          product_name: string
+          product_type: string
+          purchase_date: string | null
+          renewal_reminder_days: number | null
+          serial_number: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          vendor_name: string | null
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          license_key?: string | null
+          notes?: string | null
+          product_name: string
+          product_type: string
+          purchase_date?: string | null
+          renewal_reminder_days?: number | null
+          serial_number?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          vendor_name?: string | null
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          license_key?: string | null
+          notes?: string | null
+          product_name?: string
+          product_type?: string
+          purchase_date?: string | null
+          renewal_reminder_days?: number | null
+          serial_number?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          vendor_name?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
