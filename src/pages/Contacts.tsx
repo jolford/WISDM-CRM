@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 import { 
   Plus, 
   Search, 
@@ -16,7 +18,8 @@ import {
   Trash2,
   User,
   Users,
-  Smartphone
+  Smartphone,
+  Loader2
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -25,166 +28,138 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  mobile: string | null;
+  account_name: string | null;
+  vendor_name: string | null;
+  title: string | null;
+  department: string | null;
+  contact_owner: string | null;
+  lead_source: string | null;
+  created_at: string;
+}
+
 export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [allContacts, setAllContacts] = useState<any[]>([])
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
-  // Default sample contacts with comprehensive fields
-  const defaultContacts = [
-    {
-      id: 1,
-      firstName: "Sarah",
-      lastName: "Johnson",
-      email: "sarah.johnson@acmecorp.com",
-      phone: "+1 (555) 123-4567",
-      mobile: "+1 (555) 123-4568",
-      accountName: "Acme Corp",
-      vendorName: "",
-      title: "VP of Sales",
-      department: "Sales",
-      contactOwner: "John Smith",
-      leadSource: "Website",
-      status: "Active",
-      initials: "SJ",
-      source: "default"
-    },
-    {
-      id: 2,
-      firstName: "Michael",
-      lastName: "Chen",
-      email: "m.chen@techstart.io", 
-      phone: "+1 (555) 234-5678",
-      mobile: "+1 (555) 234-5679",
-      accountName: "TechStart Inc",
-      vendorName: "",
-      title: "CTO",
-      department: "Technology",
-      contactOwner: "Emma Wilson",
-      leadSource: "Referral",
-      status: "Lead",
-      initials: "MC",
-      source: "default"
-    },
-    {
-      id: 3,
-      firstName: "Emma",
-      lastName: "Davis",
-      email: "emma.davis@globalsol.com",
-      phone: "+1 (555) 345-6789",
-      mobile: "+1 (555) 345-6790",
-      accountName: "Global Solutions",
-      vendorName: "",
-      title: "Marketing Director",
-      department: "Marketing",
-      contactOwner: "David Brown",
-      leadSource: "Cold Call",
-      status: "Active",
-      initials: "ED",
-      source: "default"
-    },
-    {
-      id: 4,
-      firstName: "Robert",
-      lastName: "Kim",
-      email: "robert.kim@innovlabs.com",
-      phone: "+1 (555) 456-7890",
-      mobile: "+1 (555) 456-7891",
-      accountName: "Innovation Labs",
-      vendorName: "Tech Vendor Co",
-      title: "CEO",
-      department: "Executive",
-      contactOwner: "Lisa Anderson",
-      leadSource: "Trade Show",
-      status: "Prospect",
-      initials: "RK",
-      source: "default"
-    },
-    {
-      id: 5,
-      firstName: "Lisa",
-      lastName: "Anderson",
-      email: "l.anderson@futuretech.com",
-      phone: "+1 (555) 567-8901",
-      mobile: "+1 (555) 567-8902",
-      accountName: "FutureTech",
-      vendorName: "",
-      title: "Product Manager",
-      department: "Product",
-      contactOwner: "Sarah Johnson",
-      leadSource: "Email Campaign",
-      status: "Active",
-      initials: "LA",
-      source: "default"
-    }
-  ]
-
-  // Load imported contacts from localStorage
   useEffect(() => {
-    console.log('🔄 Contacts page loading - checking for imported data')
-    const importedData = localStorage.getItem('wisdm_contacts')
-    console.log('📦 Raw localStorage data:', importedData)
-    let importedContacts = []
-    
-    if (importedData) {
-      try {
-        const rawContacts = JSON.parse(importedData)
-        console.log('✅ Found imported contacts:', rawContacts.length, rawContacts)
-        
-        // Transform imported data to match our comprehensive contact format
-        importedContacts = rawContacts.map((contact: any, index: number) => {
-          const firstName = contact['First Name'] || contact['firstName'] || ''
-          const lastName = contact['Last Name'] || contact['lastName'] || ''
-          const fullName = `${firstName} ${lastName}`.trim() || contact['Full Name'] || contact['name'] || `Contact ${index + 1}`
-          
-          return {
-            id: `imported-${index}`,
-            firstName: firstName,
-            lastName: lastName,
-            fullName: fullName,
-            email: contact['Email'] || contact['email'] || '',
-            phone: contact['Phone'] || contact['phone'] || '',
-            mobile: contact['Mobile'] || contact['mobile'] || contact['Mobile Phone'] || '',
-            accountName: contact['Account Name'] || contact['accountName'] || contact['Company'] || '',
-            vendorName: contact['Vendor Name'] || contact['vendorName'] || '',
-            title: contact['Title'] || contact['title'] || contact['Job Title'] || '',
-            department: contact['Department'] || contact['department'] || '',
-            contactOwner: contact['Contact Owner'] || contact['contactOwner'] || contact['Owner'] || 'Imported User',
-            leadSource: contact['Lead Source'] || contact['leadSource'] || 'Import',
-            status: "Imported",
-            initials: fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'IC',
-            source: "imported"
-          }
-        })
-        
-        console.log('Transformed imported contacts:', importedContacts.slice(0, 3))
-      } catch (error) {
-        console.error('Error parsing imported contacts:', error)
-      }
-    }
-    
-    // Combine default and imported contacts
-    setAllContacts([...defaultContacts, ...importedContacts])
+    fetchContacts()
   }, [])
 
-  const filteredContacts = allContacts.filter(contact => {
-    const fullName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim()
+  const fetchContacts = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('contacts')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          mobile,
+          account_name,
+          vendor_name,
+          title,
+          department,
+          contact_owner,
+          lead_source,
+          created_at
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching contacts:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load contacts. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      setContacts(data || [])
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteContact = async (contactId: string) => {
+    if (!confirm('Are you sure you want to delete this contact?')) return
+
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', contactId)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Contact deleted successfully",
+      })
+      
+      // Remove from local state
+      setContacts(contacts.filter(contact => contact.id !== contactId))
+    } catch (error) {
+      console.error('Error deleting contact:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete contact",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Filter contacts based on search query
+  const filteredContacts = contacts.filter(contact => {
     const searchLower = searchQuery.toLowerCase()
-    
-    return fullName.toLowerCase().includes(searchLower) ||
-           contact.email.toLowerCase().includes(searchLower) ||
-           contact.accountName.toLowerCase().includes(searchLower) ||
-           contact.title.toLowerCase().includes(searchLower) ||
-           contact.department.toLowerCase().includes(searchLower)
+    return (
+      contact.first_name?.toLowerCase().includes(searchLower) ||
+      contact.last_name?.toLowerCase().includes(searchLower) ||
+      contact.email?.toLowerCase().includes(searchLower) ||
+      contact.phone?.includes(searchQuery) ||
+      contact.account_name?.toLowerCase().includes(searchLower) ||
+      contact.title?.toLowerCase().includes(searchLower)
+    )
   })
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active": return "bg-green-100 text-green-800"
-      case "Lead": return "bg-blue-100 text-blue-800"
-      case "Prospect": return "bg-yellow-100 text-yellow-800"
-      case "Imported": return "bg-purple-100 text-purple-800"
-      default: return "bg-gray-100 text-gray-800"
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-green-100 text-green-800'
+      case 'inactive': return 'bg-gray-100 text-gray-800'
+      case 'prospect': return 'bg-blue-100 text-blue-800'
+      case 'customer': return 'bg-purple-100 text-purple-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase()
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -222,102 +197,126 @@ export default function Contacts() {
         </CardContent>
       </Card>
 
+      {/* Results Count */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filteredContacts.length} of {contacts.length} contacts
+        </p>
+        {searchQuery && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setSearchQuery("")}
+          >
+            Clear search
+          </Button>
+        )}
+      </div>
+
       {/* Contacts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredContacts.map((contact) => {
-          const displayName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim()
-          return (
-            <Card key={contact.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredContacts.map((contact) => (
+            <Card key={contact.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {contact.initials}
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {getInitials(contact.first_name, contact.last_name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-lg">{displayName}</CardTitle>
+                      <h3 className="font-semibold text-lg">
+                        {contact.first_name} {contact.last_name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">{contact.title}</p>
-                      {contact.department && (
-                        <p className="text-xs text-muted-foreground">{contact.department} Department</p>
-                      )}
+                      <p className="text-sm text-muted-foreground">{contact.account_name}</p>
                     </div>
                   </div>
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="sm">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDeleteContact(contact.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{contact.accountName}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{contact.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{contact.phone}</span>
-                </div>
-                {contact.mobile && (
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{contact.mobile}</span>
-                  </div>
-                )}
                 
-                {/* Additional contact details */}
-                <div className="pt-2 border-t space-y-2">
-                  <div className="flex items-center gap-2 text-xs">
-                    <User className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">Owner: {contact.contactOwner}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <Users className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">Source: {contact.leadSource}</span>
-                  </div>
-                  {contact.vendorName && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <Building2 className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">Vendor: {contact.vendorName}</span>
+                <div className="mt-4 space-y-2">
+                  {contact.email && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span>{contact.email}</span>
+                    </div>
+                  )}
+                  {contact.phone && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{contact.phone}</span>
+                    </div>
+                  )}
+                  {contact.mobile && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Smartphone className="h-4 w-4 text-muted-foreground" />
+                      <span>{contact.mobile}</span>
+                    </div>
+                  )}
+                  {contact.department && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span>{contact.department}</span>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <Badge className={getStatusColor(contact.status)}>
-                    {contact.status}
+                <div className="mt-4 flex items-center justify-between">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    Active
                   </Badge>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon">
-                      <Mail className="h-4 w-4" />
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="outline">
+                      <Mail className="h-4 w-4 mr-1" />
+                      Email
                     </Button>
-                    <Button variant="ghost" size="icon">
-                      <Phone className="h-4 w-4" />
+                    <Button size="sm" variant="outline">
+                      <Phone className="h-4 w-4 mr-1" />
+                      Call
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          )
-        })}
+          ))}
+        </div>
+        
+        {filteredContacts.length === 0 && (
+          <div className="text-center py-12">
+            <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery ? 'Try adjusting your search terms' : 'Get started by adding your first contact'}
+            </p>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Contact
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
