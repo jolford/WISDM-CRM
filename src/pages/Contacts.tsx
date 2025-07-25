@@ -6,6 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { 
   Plus, 
   Search, 
@@ -212,111 +220,175 @@ export default function Contacts() {
         )}
       </div>
 
-      {/* Contacts Grid */}
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredContacts.map((contact) => (
-            <Card key={contact.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {getInitials(contact.first_name, contact.last_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {contact.first_name} {contact.last_name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{contact.title}</p>
-                      <p className="text-sm text-muted-foreground">{contact.account_name}</p>
-                    </div>
-                  </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDeleteContact(contact.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                
-                <div className="mt-4 space-y-2">
-                  {contact.email && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{contact.email}</span>
-                    </div>
-                  )}
-                  {contact.phone && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{contact.phone}</span>
-                    </div>
-                  )}
-                  {contact.mobile && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Smartphone className="h-4 w-4 text-muted-foreground" />
-                      <span>{contact.mobile}</span>
-                    </div>
-                  )}
-                  {contact.department && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span>{contact.department}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mt-4 flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Active
-                  </Badge>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
-                      <Mail className="h-4 w-4 mr-1" />
-                      Email
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Phone className="h-4 w-4 mr-1" />
-                      Call
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        {filteredContacts.length === 0 && (
-          <div className="text-center py-12">
-            <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery ? 'Try adjusting your search terms' : 'Get started by adding your first contact'}
-            </p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Contact
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Contacts Table */}
+      <Card>
+        <CardContent className="p-0">
+          {filteredContacts.length === 0 ? (
+            <div className="text-center py-12">
+              <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? 'Try adjusting your search terms' : 'Get started by adding your first contact'}
+              </p>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Contact
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Contact</TableHead>
+                  <TableHead>Title & Company</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Lead Source</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredContacts.map((contact) => (
+                  <TableRow key={contact.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {getInitials(contact.first_name, contact.last_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">
+                            {contact.first_name} {contact.last_name}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {contact.contact_owner && `Owner: ${contact.contact_owner}`}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        {contact.title && (
+                          <div className="font-medium text-sm">{contact.title}</div>
+                        )}
+                        {contact.account_name && (
+                          <div className="text-sm text-muted-foreground">{contact.account_name}</div>
+                        )}
+                        {contact.vendor_name && (
+                          <div className="text-xs text-muted-foreground">Vendor: {contact.vendor_name}</div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {contact.email ? (
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <a 
+                            href={`mailto:${contact.email}`}
+                            className="text-sm hover:underline"
+                          >
+                            {contact.email}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.phone ? (
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <a 
+                            href={`tel:${contact.phone}`}
+                            className="text-sm hover:underline"
+                          >
+                            {contact.phone}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.mobile ? (
+                        <div className="flex items-center space-x-2">
+                          <Smartphone className="h-4 w-4 text-muted-foreground" />
+                          <a 
+                            href={`tel:${contact.mobile}`}
+                            className="text-sm hover:underline"
+                          >
+                            {contact.mobile}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.department ? (
+                        <div className="flex items-center space-x-2">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{contact.department}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.lead_source ? (
+                        <Badge variant="outline" className="text-xs">
+                          {contact.lead_source}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        Active
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Phone className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleDeleteContact(contact.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

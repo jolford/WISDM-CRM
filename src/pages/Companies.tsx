@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react"
-import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { 
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+ import { 
   Plus, 
   Search, 
   Filter, 
@@ -16,7 +24,8 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Phone
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -138,95 +147,166 @@ export default function Companies() {
         </CardContent>
       </Card>
 
-      {/* Companies Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredCompanies.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              {searchQuery ? "No companies found matching your search." : "No companies yet. Import some companies or add them manually."}
-            </p>
-          </div>
-        ) : (
-          filteredCompanies.map((company) => (
-            <Card key={company.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                        {getInitials(company.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-xl">{company.name}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        {company.industry && (
-                          <>
-                            <p className="text-sm text-muted-foreground">{company.industry}</p>
-                            {company.size && <span className="text-muted-foreground">•</span>}
-                          </>
-                        )}
-                        {company.size && (
-                          <p className="text-sm text-muted-foreground">{company.size} employees</p>
+      {/* Companies Table */}
+      <Card>
+        <CardContent className="p-0">
+          {filteredCompanies.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No companies found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? "No companies found matching your search." : "No companies yet. Import some companies or add them manually."}
+              </p>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Company
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Company</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Website</TableHead>
+                  <TableHead>Revenue</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCompanies.map((company) => (
+                  <TableRow key={company.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(company.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{company.name}</div>
+                          {company.email && (
+                            <div className="text-sm text-muted-foreground">{company.email}</div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {company.industry ? (
+                        <Badge variant="outline" className="text-xs">
+                          {company.industry}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {company.phone ? (
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <a 
+                            href={`tel:${company.phone}`}
+                            className="text-sm hover:underline"
+                          >
+                            {company.phone}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {company.website ? (
+                        <div className="flex items-center space-x-2">
+                          <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                          <a 
+                            href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline"
+                          >
+                            {company.website.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {company.revenue ? (
+                        <span className="text-sm font-medium text-green-600">
+                          {company.revenue}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {company.size ? (
+                        <div className="flex items-center space-x-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{company.size}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {company.city && company.state ? (
+                          `${company.city}, ${company.state}`
+                        ) : company.city ? (
+                          company.city
+                        ) : company.state ? (
+                          company.state
+                        ) : company.country ? (
+                          company.country
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </div>
-                    </div>
-                  </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Visit Website
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Badge className={getStatusColor(company.status)}>
-                    {company.status || 'Unknown'}
-                  </Badge>
-                  {company.revenue && (
-                    <span className="text-sm font-medium text-green-600">{company.revenue}</span>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  {company.phone && (
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-medium">{company.phone}</p>
-                      <p className="text-xs text-muted-foreground">Phone</p>
-                    </div>
-                  )}
-                  {company.website && (
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{company.website}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(company.status)}>
+                        {company.status || 'Unknown'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          {company.website && (
+                            <DropdownMenuItem>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Visit Website
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
