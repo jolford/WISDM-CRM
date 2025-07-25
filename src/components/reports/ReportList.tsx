@@ -294,48 +294,56 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
           {filteredReports.map((report) => {
             const IconComponent = getReportIcon(report)
             return (
-              <Card key={report.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
+              <Card key={report.id} className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
+                <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                        <IconComponent className="h-5 w-5 text-primary" />
+                      </div>
                       <div className="flex items-center gap-2">
                         {report.is_public ? (
-                          <Globe className="h-4 w-4 text-green-600" />
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-full">
+                            <Globe className="h-3 w-3 text-green-600" />
+                            <span className="text-xs text-green-700 font-medium">Public</span>
+                          </div>
                         ) : (
-                          <Lock className="h-4 w-4 text-muted-foreground" />
+                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-full">
+                            <Lock className="h-3 w-3 text-gray-600" />
+                            <span className="text-xs text-gray-700 font-medium">Private</span>
+                          </div>
                         )}
                       </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onViewReport(report.id)}>
+                      <DropdownMenuContent align="end" className="bg-background border shadow-md">
+                        <DropdownMenuItem onClick={() => onViewReport(report.id)} className="cursor-pointer">
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEditReport(report.id)}>
+                        <DropdownMenuItem onClick={() => onEditReport(report.id)} className="cursor-pointer">
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => duplicateReport(report)}>
+                        <DropdownMenuItem onClick={() => duplicateReport(report)} className="cursor-pointer">
                           <Copy className="h-4 w-4 mr-2" />
                           Duplicate
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
                           <Share className="h-4 w-4 mr-2" />
                           Share
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
                           <Download className="h-4 w-4 mr-2" />
                           Export
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
                           <Calendar className="h-4 w-4 mr-2" />
                           Schedule
                         </DropdownMenuItem>
@@ -343,7 +351,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
+                              className="text-destructive focus:text-destructive cursor-pointer"
                               onSelect={(e) => e.preventDefault()}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
@@ -372,38 +380,53 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <CardTitle className="text-lg">{report.name}</CardTitle>
-                  {report.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {report.description}
-                    </p>
-                  )}
+                  <div className="space-y-2">
+                    <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
+                      {report.name}
+                    </CardTitle>
+                    {report.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {report.description}
+                      </p>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-1">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-1.5">
                       {Array.isArray(report.data_sources) && report.data_sources.map(source => (
-                        <Badge key={source} variant="secondary" className="text-xs">
+                        <Badge key={source} variant="secondary" className="text-xs font-medium px-2 py-1">
                           {source}
                         </Badge>
                       ))}
                       {report.is_dashboard && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs font-medium px-2 py-1 border-primary/20 text-primary">
                           Dashboard
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div>Created: {formatDate(report.created_at)}</div>
-                      <div>Updated: {formatDate(report.updated_at)}</div>
-                      {report.last_run && (
-                        <div>Last run: {formatDate(report.last_run)}</div>
-                      )}
+                    <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div className="flex justify-between">
+                          <span>Created:</span>
+                          <span className="font-medium">{formatDate(report.created_at)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Updated:</span>
+                          <span className="font-medium">{formatDate(report.updated_at)}</span>
+                        </div>
+                        {report.last_run && (
+                          <div className="flex justify-between">
+                            <span>Last run:</span>
+                            <span className="font-medium">{formatDate(report.last_run)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2 pt-2">
                       <Button 
                         size="sm" 
-                        className="flex-1"
+                        className="flex-1 font-medium"
                         onClick={() => onViewReport(report.id)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
@@ -412,7 +435,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="flex-1"
+                        className="flex-1 font-medium hover:bg-primary hover:text-primary-foreground"
                         onClick={() => onEditReport(report.id)}
                       >
                         <Edit className="h-4 w-4 mr-2" />
