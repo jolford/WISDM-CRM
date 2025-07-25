@@ -971,12 +971,26 @@ export default function DataImportExport() {
              } else {
                cleanRecord.stage = cleanRecord.stage.toLowerCase()
              }
-             // Ensure numeric fields are properly handled
+             // Ensure numeric fields are properly handled and constrained
              if (cleanRecord.value && typeof cleanRecord.value === 'string') {
-               cleanRecord.value = parseFloat(cleanRecord.value) || 0
+               const valueNum = parseFloat(cleanRecord.value) || 0
+               cleanRecord.value = Math.max(0, valueNum) // Ensure non-negative
              }
              if (cleanRecord.probability && typeof cleanRecord.probability === 'string') {
-               cleanRecord.probability = parseInt(cleanRecord.probability) || 0
+               let probNum = parseInt(cleanRecord.probability) || 0
+               // Ensure probability is between 0 and 100
+               probNum = Math.max(0, Math.min(100, probNum))
+               cleanRecord.probability = probNum
+               console.log(`📊 Adjusted probability from "${cleanRecord.probability}" to ${probNum}`)
+             } else if (typeof cleanRecord.probability === 'number') {
+               // Also constrain if it's already a number
+               let probNum = cleanRecord.probability
+               probNum = Math.max(0, Math.min(100, probNum))
+               cleanRecord.probability = probNum
+             }
+             // Set default probability if not provided
+             if (!cleanRecord.probability && cleanRecord.probability !== 0) {
+               cleanRecord.probability = 0
              }
           } else if (importType === 'vendors') {
             // name is NOT NULL in vendors table
