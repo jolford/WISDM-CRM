@@ -416,6 +416,7 @@ export default function DataImportExport() {
               'Deal Name': 'name',
               'Name': 'name',
               'Title': 'name',
+              'Deal Owner': 'notes', // Store in notes since deals don't have owner field
               'Account Name': 'company_id', // Note: This might need lookup
               'Company': 'company_id',
               'Amount': 'value',
@@ -428,6 +429,7 @@ export default function DataImportExport() {
               'Closing Date': 'close_date',
               'Expected Close': 'close_date',
               'Probability': 'probability',
+              'Probability (%)': 'probability',
               'Win Probability': 'probability',
               'Description': 'description',
               'Notes': 'notes',
@@ -681,9 +683,9 @@ export default function DataImportExport() {
           'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time'
         ])
 
-        // Define date columns for maintenance records
+        // Define date columns for maintenance records and deals
         const dateColumns = new Set([
-          'purchase_date', 'start_date', 'end_date'
+          'purchase_date', 'start_date', 'end_date', 'close_date'
         ])
         
         // Define boolean columns
@@ -746,6 +748,30 @@ export default function DataImportExport() {
           // Check for email addresses (common mistake in date fields)
           if (value.includes('@')) {
             console.warn(`Email detected in date field, setting to null: "${value}"`)
+            return null
+          }
+          
+          // Check for obvious non-date strings that contain company names, text, etc.
+          const nonDatePatterns = [
+            /WISDM/i,
+            /upgrade/i,
+            /tangent/i,
+            /kofax/i,
+            /school/i,
+            /university/i,
+            /scanning/i,
+            /humanities/i,
+            /sciences/i,
+            /faculty/i,
+            /files/i,
+            /department/i,
+            /services/i,
+            /\w{10,}/,  // Any single word longer than 10 characters (likely not a date)
+            /^[a-zA-Z\s&-]{8,}$/  // Text with spaces, ampersands, hyphens longer than 8 chars
+          ]
+          
+          if (nonDatePatterns.some(pattern => pattern.test(value))) {
+            console.warn(`Non-date pattern detected in date field, setting to null: "${value}"`)
             return null
           }
           
