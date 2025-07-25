@@ -261,7 +261,8 @@ export default function DataImportExport() {
         throw new Error(`File contains too many records. Maximum allowed: ${maxRecords}`)
       }
       
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+        console.log('📋 CSV Headers found:', headers)
       
       // Security: Validate headers (allow common CSV characters including special chars, quotes, etc.)
       const allowedHeaderPattern = /^[a-zA-Z0-9\s_.,&():/'"#@%$*+=\[\]{}|\\~`!?-]+$/
@@ -430,6 +431,7 @@ export default function DataImportExport() {
       }
       
       const columnMapping = getColumnMapping(importType)
+      console.log('🔍 Available column mapping for', importType, ':', columnMapping)
       
       const records = []
       const validatedRecords = []
@@ -438,44 +440,24 @@ export default function DataImportExport() {
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim()) {
           const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
-          const record: any = {}
+          
+          const mappedRecord: Record<string, any> = {}
+          console.log('🔄 Processing row:', i + 1, 'Raw values:', values)
           
           headers.forEach((header, index) => {
-            let value = values[index] || ''
-            
-            // Security: Sanitize and validate individual values
-            // Increased field length limit for longer descriptions/notes
-            if (value.length > 5000) { // Increased from 1000 to 5000 characters
-              console.warn(`Field value too long in row ${i}, truncating to 5000 characters`)
-              value = value.substring(0, 5000) + '...[truncated]'
+            const value = values[index] || ''
+            if (columnMapping[header]) {
+              mappedRecord[columnMapping[header]] = value
+              console.log(`   📌 Mapped "${header}" → "${columnMapping[header]}" = "${value}"`)
+            } else {
+              console.log(`   ❌ No mapping found for header: "${header}"`)
             }
-            
-            // Security: Check for script injection in values
-            if (maliciousPatterns.some(pattern => pattern.test(value))) {
-              throw new Error(`Potentially malicious content detected in row ${i}`)
-            }
-            
-            // Map CSV header to database column name
-            const dbColumnName = columnMapping[header] || header.toLowerCase().replace(/\s+/g, '_')
-            record[dbColumnName] = value
           })
           
-          // Additional validation based on import type
-          try {
-            if (importType === 'contacts' && record.email) {
-              const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-              if (!emailPattern.test(record.email)) {
-                console.warn(`Invalid email in row ${i}: ${record.email}`)
-                record.email = '' // Clear invalid email instead of failing
-              }
-            }
-            
-            records.push(record)
-            validatedRecords.push(record)
-          } catch (validationError) {
-            console.warn(`Validation error in row ${i}:`, validationError)
-            // Skip invalid records but continue processing
-          }
+          console.log('🎯 Final mapped record for row', i + 1, ':', mappedRecord)
+          
+          records.push(mappedRecord)
+          validatedRecords.push(mappedRecord)
         }
         
         // Update progress
@@ -719,9 +701,11 @@ export default function DataImportExport() {
           } else if (importType === 'maintenance') {
             // product_name and product_type are NOT NULL in maintenance_records table
             if (!cleanRecord.product_name || cleanRecord.product_name.trim() === '') {
+              console.log('⚠️ Setting default product_name because value was:', cleanRecord.product_name)
               cleanRecord.product_name = 'Unknown Product'
             }
             if (!cleanRecord.product_type || cleanRecord.product_type.trim() === '') {
+              console.log('⚠️ Setting default product_type because value was:', cleanRecord.product_type)
               cleanRecord.product_type = 'software'  // lowercase to match constraint
             } else {
               // Normalize product_type to lowercase to match constraint
@@ -738,6 +722,7 @@ export default function DataImportExport() {
             if (!cleanRecord.renewal_reminder_days) {
               cleanRecord.renewal_reminder_days = 30
             }
+            console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
           }
           
           return cleanRecord
