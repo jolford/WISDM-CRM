@@ -416,6 +416,28 @@ export default function DataImportExport() {
               'Created Date': 'created_at',
               'Modified Date': 'updated_at'
             }
+          } else if (importType === 'deals') {
+            return {
+              'Deal Name': 'name',
+              'Name': 'name',
+              'Title': 'name',
+              'Account Name': 'company_id', // Note: This might need lookup
+              'Company': 'company_id',
+              'Amount': 'value',
+              'Value': 'value',
+              'Deal Value': 'value',
+              'Stage': 'stage',
+              'Deal Stage': 'stage',
+              'Status': 'stage',
+              'Close Date': 'close_date',
+              'Closing Date': 'close_date',
+              'Expected Close': 'close_date',
+              'Probability': 'probability',
+              'Win Probability': 'probability',
+              'Description': 'description',
+              'Notes': 'notes',
+              'Comments': 'notes'
+            }
           } else if (importType === 'maintenance') {
             return {
               'Product Name': 'product_name',
@@ -840,6 +862,11 @@ export default function DataImportExport() {
               cleanRecord.renewal_reminder_days = 30
             }
             console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
+          } else if (importType === 'deals') {
+            // name is NOT NULL in deals table
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              cleanRecord.name = 'Imported Deal'
+            }
           } else if (importType === 'vendors') {
             // name is NOT NULL in vendors table
             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
