@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminConsole() {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Check if user is admin
   const isAdmin = profile?.role === 'admin';
@@ -33,7 +35,7 @@ export default function AdminConsole() {
       title: "User Management",
       description: "Manage user accounts, roles, and permissions",
       icon: Users,
-      action: () => window.open('https://supabase.com/dashboard/project/vdrppzblasrdytafgpvp/auth/users', '_blank'),
+      action: () => navigate('/admin/users'),
       badge: "Core"
     },
     {

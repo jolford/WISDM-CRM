@@ -23,7 +23,9 @@ import {
   LineChart,
   Table,
   Globe,
-  Lock
+  Lock,
+  Grid3X3,
+  List
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -43,6 +45,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Table as TableComponent,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 interface Report {
   id: string
@@ -68,6 +79,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
 
@@ -221,30 +233,41 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search reports..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      {/* Filters and View Toggle */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search reports..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-40">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Reports</SelectItem>
+              <SelectItem value="reports">Reports Only</SelectItem>
+              <SelectItem value="dashboards">Dashboards Only</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-40">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Reports</SelectItem>
-            <SelectItem value="reports">Reports Only</SelectItem>
-            <SelectItem value="dashboards">Dashboards Only</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
-          </SelectContent>
-        </Select>
+        
+        <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'list')}>
+          <ToggleGroupItem value="grid" aria-label="Grid view">
+            <Grid3X3 className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       {/* Reports Grid */}
@@ -266,7 +289,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
             )}
           </CardContent>
         </Card>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReports.map((report) => {
             const IconComponent = getReportIcon(report)
@@ -402,6 +425,158 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
             )
           })}
         </div>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <TableComponent>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Data Sources</TableHead>
+                  <TableHead>Visibility</TableHead>
+                  <TableHead>Last Updated</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReports.map((report) => {
+                  const IconComponent = getReportIcon(report)
+                  return (
+                    <TableRow key={report.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <IconComponent className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="font-medium">{report.name}</div>
+                            {report.description && (
+                              <div className="text-sm text-muted-foreground line-clamp-1">
+                                {report.description}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {report.is_dashboard && (
+                            <Badge variant="outline" className="text-xs">
+                              Dashboard
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {report.report_type}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.isArray(report.data_sources) && report.data_sources.map(source => (
+                            <Badge key={source} variant="outline" className="text-xs">
+                              {source}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {report.is_public ? (
+                            <>
+                              <Globe className="h-4 w-4 text-green-600" />
+                              <span className="text-sm text-green-600">Public</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">Private</span>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDate(report.updated_at)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => onViewReport(report.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => onEditReport(report.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => duplicateReport(report)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <Share className="h-4 w-4 mr-2" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Download className="h-4 w-4 mr-2" />
+                                Export
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Schedule
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Report</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{report.name}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteReport(report.id)}
+                                      disabled={deletingId === report.id}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      {deletingId === report.id ? 'Deleting...' : 'Delete'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </TableComponent>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

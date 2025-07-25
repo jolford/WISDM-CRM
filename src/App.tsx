@@ -14,9 +14,11 @@ import Tasks from "./pages/Tasks";
 import SupportDesk from "./pages/SupportDesk";
 import Settings from "./pages/Settings";
 import SalesReporting from "./pages/SalesReporting";
+import ReportsDashboard from "./pages/ReportsDashboard";
 import ProjectManagement from "./pages/ProjectManagement";
 import DataImportExport from "./pages/DataImportExport";
 import AdminConsole from "./pages/AdminConsole";
+import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
 
 const queryClient = new QueryClient();
@@ -36,10 +38,11 @@ const App = () => (
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
-          <Route path="/reports" element={<Layout><SalesReporting /></Layout>} />
+          <Route path="/reports" element={<Layout><ReportsDashboard /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
+          <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
           <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
