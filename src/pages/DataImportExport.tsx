@@ -358,10 +358,10 @@ export default function DataImportExport() {
             'Subject': 'title',
             'Title': 'title',
             'Description': 'description',
-            'Contact Name': 'contact_name',
-            'Contact': 'contact_name',
-            'Account Name': 'company_name',
-            'Company': 'company_name',
+            'Contact Name': 'description', // Append to description since tasks table doesn't have contact_name
+            'Contact': 'description',
+            'Account Name': 'description', // Append to description since tasks table doesn't have company_name
+            'Company': 'description',
             'Priority': 'priority',
             'Status': 'status',
             'Assignee': 'assignee',
@@ -468,8 +468,7 @@ export default function DataImportExport() {
             ])
           } else if (importType === 'tickets') {
             return new Set([
-              'title', 'description', 'contact_name', 'company_name', 'priority', 
-              'status', 'assignee', 'task_type', 'due_date', 'user_id'
+              'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
             ])
           }
           return new Set(['user_id'])
