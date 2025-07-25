@@ -48,7 +48,11 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => toast({ title: "Notifications", description: "No new notifications" })}
+                  >
                     <Bell className="h-4 w-4" />
                   </Button>
                   <div className="flex items-center gap-2 text-sm">
@@ -63,7 +67,11 @@ export default function Layout({ children }: LayoutProps) {
                       {profile?.role?.replace('_', ' ').toUpperCase()}
                     </span>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => window.location.href = '/settings'}
+                  >
                     <User className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={handleSignOut}>

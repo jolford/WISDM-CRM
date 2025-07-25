@@ -8,7 +8,8 @@ import {
   Plus,
   Headphones,
   BarChart3,
-  FolderKanban
+  FolderKanban,
+  Shield
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -34,6 +35,7 @@ const items = [
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Reports", url: "/reports", icon: BarChart3 },
   { title: "Support", url: "/support", icon: Headphones },
+  { title: "Admin", url: "/admin", icon: Shield },
   { title: "Settings", url: "/settings", icon: Settings },
 ]
 
@@ -92,7 +94,10 @@ export function AppSidebar() {
 
         {open && (
           <div className="px-4 py-4 mt-auto">
-            <Button className="w-full">
+            <Button 
+              className="w-full"
+              onClick={() => alert("Quick Add menu - Choose what to add")}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Quick Add
             </Button>

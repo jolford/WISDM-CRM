@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import SalesReporting from "./pages/SalesReporting";
 import ProjectManagement from "./pages/ProjectManagement";
 import DataImportExport from "./pages/DataImportExport";
+import AdminConsole from "./pages/AdminConsole";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/reports" element={<Layout><SalesReporting /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
+          <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
