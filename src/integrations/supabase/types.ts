@@ -372,6 +372,7 @@ export type Database = {
           company_id: string | null
           contact_id: string | null
           created_at: string
+          deal_owner_name: string | null
           description: string | null
           id: string
           name: string
@@ -387,6 +388,7 @@ export type Database = {
           company_id?: string | null
           contact_id?: string | null
           created_at?: string
+          deal_owner_name?: string | null
           description?: string | null
           id?: string
           name: string
@@ -402,6 +404,7 @@ export type Database = {
           company_id?: string | null
           contact_id?: string | null
           created_at?: string
+          deal_owner_name?: string | null
           description?: string | null
           id?: string
           name?: string
