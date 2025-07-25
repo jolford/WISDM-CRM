@@ -87,10 +87,7 @@ export default function Deals() {
       
       // Fetch all data in parallel
       const [dealsResult, companiesResult, contactsResult] = await Promise.all([
-        supabase.from('deals').select(`
-          *,
-          profiles:user_id (first_name, last_name, email)
-        `).order('created_at', { ascending: false }),
+        supabase.from('deals').select('*').order('created_at', { ascending: false }),
         supabase.from('companies').select('id, name'),
         supabase.from('contacts').select('id, first_name, last_name')
       ])
