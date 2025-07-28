@@ -606,8 +606,75 @@ export default function DataImportExport() {
             if (columnMapping[header] !== undefined) {
               // Only map if the mapping is not null (null means ignore the field)
               if (columnMapping[header] !== null) {
-                mappedRecord[columnMapping[header]] = value
-                console.log(`   📌 Mapped "${header}" → "${columnMapping[header]}" = "${value}"`)
+                // Enhanced validation to prevent HTML/CSS content from being mapped to wrong fields
+                const mappedField = columnMapping[header]
+                
+                // Check if this is a timestamp/date field that shouldn't contain HTML/CSS
+                const timestampFields = ['due_date', 'created_time', 'modified_time', 'start_date', 'end_date', 'purchase_date', 'close_date']
+                
+                if (timestampFields.includes(mappedField)) {
+                  // Skip HTML/CSS content and email addresses for timestamp fields
+                  const htmlCssPatterns = [
+                    /<[^>]*>/,  // HTML tags
+                    /style\s*=/,  // CSS styles
+                    /font-/,  // Font styles
+                    /margin:/,  // Margin styles
+                    /padding:/,  // Padding styles
+                    /@[^@]*\.[a-zA-Z]{2,}/,  // Email addresses
+                    /rgba?\(/,  // Color functions
+                    /px|em|rem|%/g,  // CSS units
+                    /sans-serif|serif/g,  // Font families
+                    /inherit|initial|auto/g,  // CSS keywords
+                    /\d+\.\d+\.\d+\.\d+/g,  // IP addresses
+                    /^[a-zA-Z0-9]+$/g  // IDs that are just alphanumeric
+                  ]
+                  
+                  if (htmlCssPatterns.some(pattern => pattern.test(value))) {
+                    console.log(`🚫 Skipping invalid timestamp content for "${header}": "${value}"`)
+                    return // Skip this field
+                  }
+                  
+                  // Additional validation for timestamp format
+                  if (value && !value.includes('-') && !value.includes('/') && !value.includes(':')) {
+                    console.log(`🚫 Skipping non-timestamp value for "${header}": "${value}"`)
+                    return // Skip this field
+                  }
+                }
+                
+                // Check if this is a status field that needs enum validation
+                if (mappedField === 'status' && importType === 'tickets') {
+                  const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled']
+                  if (!validStatuses.includes(value.toLowerCase())) {
+                    console.log(`🚫 Invalid status value "${value}", using default "pending"`)
+                    mappedRecord[mappedField] = 'pending'
+                  } else {
+                    mappedRecord[mappedField] = value.toLowerCase()
+                  }
+                } else if (mappedField === 'task_type' && importType === 'tickets') {
+                  const validTaskTypes = ['call', 'email', 'meeting', 'follow_up', 'other']
+                  if (!validTaskTypes.includes(value.toLowerCase())) {
+                    console.log(`🚫 Invalid task_type value "${value}", using default "other"`)
+                    mappedRecord[mappedField] = 'other'
+                  } else {
+                    mappedRecord[mappedField] = value.toLowerCase()
+                  }
+                } else {
+                  // For other fields, just clean HTML/CSS content
+                  let cleanValue = value
+                  if (typeof cleanValue === 'string') {
+                    cleanValue = cleanValue
+                      .replace(/<[^>]*>/g, '') // Remove HTML tags
+                      .replace(/style\s*=\s*[^>]*?>/g, '') // Remove style attributes
+                      .replace(/margin:\s*[^;]*;?/g, '') // Remove margin styles
+                      .replace(/padding:\s*[^;]*;?/g, '') // Remove padding styles
+                      .replace(/font-[^;]*;?/g, '') // Remove font styles
+                      .trim()
+                  }
+                  
+                  mappedRecord[mappedField] = cleanValue
+                }
+                
+                console.log(`   📌 Mapped "${header}" → "${mappedField}" = "${mappedRecord[mappedField] || 'CLEANED'}"`)
               } else {
                 console.log(`   🚫 Ignoring field "${header}" (explicitly mapped to null)`)
               }
