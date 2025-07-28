@@ -44,7 +44,7 @@ interface Deal {
   probability: number | null
   close_date: string | null
   created_at: string
-  company_id: string | null
+  account_id: string | null
   contact_id: string | null
   user_id: string | null
   deal_owner_name?: string | null
@@ -57,7 +57,7 @@ interface Deal {
   } | null
 }
 
-interface Company {
+interface Account {
   id: string
   name: string
 }
@@ -70,7 +70,7 @@ interface Contact {
 
 export default function Deals() {
   const [deals, setDeals] = useState<Deal[]>([])
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [accounts, setAccounts] = useState<Account[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
@@ -89,18 +89,18 @@ export default function Deals() {
       setLoading(true)
       
       // Fetch all data in parallel
-      const [dealsResult, companiesResult, contactsResult] = await Promise.all([
+      const [dealsResult, accountsResult, contactsResult] = await Promise.all([
         supabase.from('deals').select('*').order('created_at', { ascending: false }),
-        supabase.from('companies').select('id, name'),
+        supabase.from('accounts').select('id, name'),
         supabase.from('contacts').select('id, first_name, last_name')
       ])
 
       if (dealsResult.error) throw dealsResult.error
-      if (companiesResult.error) throw companiesResult.error
+      if (accountsResult.error) throw accountsResult.error
       if (contactsResult.error) throw contactsResult.error
 
       setDeals((dealsResult.data || []) as unknown as Deal[])
-      setCompanies(companiesResult.data || [])
+      setAccounts(accountsResult.data || [])
       setContacts(contactsResult.data || [])
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -150,10 +150,10 @@ export default function Deals() {
     // First check if we have imported company_name
     if (deal.company_name) return deal.company_name
     
-    // Then check by company_id lookup
-    if (!deal.company_id) return "No company"
-    const company = companies.find(c => c.id === deal.company_id)
-    return company?.name || "Unknown company"
+    // Then check by account_id lookup
+    if (!deal.account_id) return "No account"
+    const account = accounts.find(c => c.id === deal.account_id)
+    return account?.name || "Unknown account"
   }
 
   const getContactName = (deal: Deal) => {

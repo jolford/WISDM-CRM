@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import Contacts from "./pages/Contacts";
-import Companies from "./pages/Companies";
+import Accounts from "./pages/Accounts";
 import Deals from "./pages/Deals";
 import Tasks from "./pages/Tasks";
 import SupportDesk from "./pages/SupportDesk";
@@ -33,7 +33,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
-          <Route path="/companies" element={<Layout><Companies /></Layout>} />
+          <Route path="/accounts" element={<Layout><Accounts /></Layout>} />
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />

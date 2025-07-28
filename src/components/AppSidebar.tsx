@@ -31,7 +31,7 @@ import { QuickAddDialog } from "./QuickAddDialog"
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Contacts", url: "/contacts", icon: Users },
-  { title: "Companies", url: "/companies", icon: Building2 },
+  { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Deals", url: "/deals", icon: Target },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Reports", url: "/reports", icon: BarChart3 },

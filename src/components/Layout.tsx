@@ -41,7 +41,7 @@ export default function Layout({ children }: LayoutProps) {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input 
-                      placeholder="Search contacts, companies, deals..." 
+                      placeholder="Search contacts, accounts, deals..." 
                       className="pl-10 w-80"
                     />
                   </div>

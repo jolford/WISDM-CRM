@@ -107,12 +107,12 @@ const dataSources: DataSource[] = [
     ]
   },
   {
-    name: 'companies',
-    label: 'Companies',
+    name: 'accounts',
+    label: 'Accounts',
     fields: [
-      { name: 'name', label: 'Company Name', type: 'text' },
+      { name: 'name', label: 'Account Name', type: 'text' },
       { name: 'industry', label: 'Industry', type: 'text' },
-      { name: 'size', label: 'Company Size', type: 'text' },
+      { name: 'size', label: 'Account Size', type: 'text' },
       { name: 'revenue', label: 'Annual Revenue', type: 'text' },
       { name: 'website', label: 'Website', type: 'text' },
       { name: 'phone', label: 'Phone', type: 'text' },
@@ -322,7 +322,7 @@ export default function ReportBuilder({ reportId, onSave, onCancel }: ReportBuil
       }
 
       // For now, fetch sample data from the first data source
-      const tableName = config.dataSources[0] as 'deals' | 'contacts' | 'companies'
+      const tableName = config.dataSources[0] as 'deals' | 'contacts' | 'accounts'
       const { data, error } = await supabase
         .from(tableName)
         .select('*')

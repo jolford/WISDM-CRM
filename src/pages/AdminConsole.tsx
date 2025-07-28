@@ -15,7 +15,7 @@ export default function AdminConsole() {
   const [stats, setStats] = useState([
     { label: "Total Users", value: "0", change: "Loading..." },
     { label: "Active Deals", value: "0", change: "Loading..." },
-    { label: "Total Companies", value: "0", change: "Loading..." },
+    { label: "Total Accounts", value: "0", change: "Loading..." },
     { label: "Pending Tasks", value: "0", change: "Loading..." }
   ]);
 
@@ -40,9 +40,9 @@ export default function AdminConsole() {
         .from('deals')
         .select('*', { count: 'exact', head: true });
 
-      // Fetch total companies
-      const { count: companyCount } = await supabase
-        .from('companies')
+      // Fetch total accounts
+      const { count: accountCount } = await supabase
+        .from('accounts')
         .select('*', { count: 'exact', head: true });
 
       // Fetch pending tasks
@@ -54,7 +54,7 @@ export default function AdminConsole() {
       setStats([
         { label: "Total Users", value: userCount?.toString() || "0", change: "" },
         { label: "Active Deals", value: dealCount?.toString() || "0", change: "" },
-        { label: "Total Companies", value: companyCount?.toString() || "0", change: "" },
+        { label: "Total Accounts", value: accountCount?.toString() || "0", change: "" },
         { label: "Pending Tasks", value: taskCount?.toString() || "0", change: "" }
       ]);
     } catch (error) {

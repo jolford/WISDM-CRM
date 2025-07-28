@@ -35,40 +35,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-export default function Companies() {
+export default function Accounts() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [companies, setCompanies] = useState<any[]>([])
+  const [accounts, setAccounts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [sortField, setSortField] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchCompanies()
+    fetchAccounts()
   }, [])
 
-  const fetchCompanies = async () => {
+  const fetchAccounts = async () => {
     try {
       const { data, error } = await supabase
-        .from('companies')
+        .from('accounts')
         .select('*')
         .order('created_at', { ascending: false })
 
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to fetch companies",
+          description: "Failed to fetch accounts",
           variant: "destructive"
         })
         return
       }
 
-      setCompanies(data || [])
+      setAccounts(data || [])
     } catch (error) {
-      console.error('Error fetching companies:', error)
+      console.error('Error fetching accounts:', error)
       toast({
         title: "Error",
-        description: "Failed to fetch companies",
+        description: "Failed to fetch accounts",
         variant: "destructive"
       })
     } finally {
@@ -76,29 +76,29 @@ export default function Companies() {
     }
   }
 
-  const handleEdit = (company: any) => {
-    // TODO: Open edit modal/form with company data
+  const handleEdit = (account: any) => {
+    // TODO: Open edit modal/form with account data
     toast({
-      title: "Edit Company",
-      description: `Edit functionality for ${company.name} will be implemented here`,
+      title: "Edit Account",
+      description: `Edit functionality for ${account.name} will be implemented here`,
     })
   }
 
-  const handleDelete = async (companyId: string) => {
-    if (!confirm('Are you sure you want to delete this company?')) {
+  const handleDelete = async (accountId: string) => {
+    if (!confirm('Are you sure you want to delete this account?')) {
       return
     }
 
     try {
       const { error } = await supabase
-        .from('companies')
+        .from('accounts')
         .delete()
-        .eq('id', companyId)
+        .eq('id', accountId)
 
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to delete company",
+          description: "Failed to delete account",
           variant: "destructive"
         })
         return
@@ -106,16 +106,16 @@ export default function Companies() {
 
       toast({
         title: "Success",
-        description: "Company deleted successfully"
+        description: "Account deleted successfully"
       })
       
-      // Refresh the companies list
-      fetchCompanies()
+      // Refresh the accounts list
+      fetchAccounts()
     } catch (error) {
-      console.error('Error deleting company:', error)
+      console.error('Error deleting account:', error)
       toast({
         title: "Error",
-        description: "Failed to delete company",
+        description: "Failed to delete account",
         variant: "destructive"
       })
     }
@@ -139,10 +139,10 @@ export default function Companies() {
     }
   }
 
-  const filteredAndSortedCompanies = companies
-    .filter(company =>
-      company.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.industry?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAndSortedAccounts = accounts
+    .filter(account =>
+      account.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      account.industry?.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
       const aValue = a[sortField]
@@ -176,12 +176,12 @@ export default function Companies() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Companies</h1>
+            <h1 className="text-3xl font-bold">Accounts</h1>
             <p className="text-muted-foreground">Manage your business accounts</p>
           </div>
         </div>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading companies...</p>
+          <p className="text-muted-foreground">Loading accounts...</p>
         </div>
       </div>
     )
@@ -192,12 +192,12 @@ export default function Companies() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Companies</h1>
+          <h1 className="text-3xl font-bold">Accounts</h1>
           <p className="text-muted-foreground">Manage your business accounts</p>
         </div>
-        <Button onClick={() => alert('Create Company functionality would open a modal/form here')}>
+        <Button onClick={() => alert('Create Account functionality would open a modal/form here')}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Company
+          Add Account
         </Button>
       </div>
 
@@ -208,7 +208,7 @@ export default function Companies() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
-                placeholder="Search companies..." 
+                placeholder="Search accounts..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -222,19 +222,19 @@ export default function Companies() {
         </CardContent>
       </Card>
 
-      {/* Companies Table */}
+      {/* Accounts Table */}
       <Card>
         <CardContent className="p-0">
-          {filteredAndSortedCompanies.length === 0 ? (
+          {filteredAndSortedAccounts.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No companies found</h3>
+              <h3 className="text-lg font-semibold mb-2">No accounts found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery ? "No companies found matching your search." : "No companies yet. Import some companies or add them manually."}
+                {searchQuery ? "No accounts found matching your search." : "No accounts yet. Import some accounts or add them manually."}
               </p>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Company
+                Add Account
               </Button>
             </div>
           ) : (
@@ -247,7 +247,7 @@ export default function Companies() {
                       onClick={() => handleSort('name')}
                       className="font-semibold p-0 h-auto"
                     >
-                      Company
+                      Account
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
@@ -307,41 +307,41 @@ export default function Companies() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedCompanies.map((company) => (
-                  <TableRow key={company.id} className="hover:bg-muted/50">
+                {filteredAndSortedAccounts.map((account) => (
+                  <TableRow key={account.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getInitials(company.name)}
+                            {getInitials(account.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{company.name}</div>
-                          {company.email && (
-                            <div className="text-sm text-muted-foreground">{company.email}</div>
+                          <div className="font-medium">{account.name}</div>
+                          {account.email && (
+                            <div className="text-sm text-muted-foreground">{account.email}</div>
                           )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {company.industry ? (
+                      {account.industry ? (
                         <Badge variant="outline" className="text-xs">
-                          {company.industry}
+                          {account.industry}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      {company.phone ? (
+                      {account.phone ? (
                         <div className="flex items-center space-x-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />
                           <a 
-                            href={`tel:${company.phone}`}
+                            href={`tel:${account.phone}`}
                             className="text-sm hover:underline"
                           >
-                            {company.phone}
+                            {account.phone}
                           </a>
                         </div>
                       ) : (
@@ -349,16 +349,16 @@ export default function Companies() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {company.website ? (
+                      {account.website ? (
                         <div className="flex items-center space-x-2">
                           <ExternalLink className="h-4 w-4 text-muted-foreground" />
                           <a 
-                            href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                            href={account.website.startsWith('http') ? account.website : `https://${account.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm hover:underline"
                           >
-                            {company.website.replace(/^https?:\/\//, '')}
+                            {account.website.replace(/^https?:\/\//, '')}
                           </a>
                         </div>
                       ) : (
@@ -366,19 +366,19 @@ export default function Companies() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {company.revenue ? (
+                      {account.revenue ? (
                         <span className="text-sm font-medium text-green-600">
-                          {company.revenue}
+                          {account.revenue}
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      {company.size ? (
+                      {account.size ? (
                         <div className="flex items-center space-x-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{company.size}</span>
+                          <span className="text-sm">{account.size}</span>
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
@@ -386,22 +386,22 @@ export default function Companies() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {company.city && company.state ? (
-                          `${company.city}, ${company.state}`
-                        ) : company.city ? (
-                          company.city
-                        ) : company.state ? (
-                          company.state
-                        ) : company.country ? (
-                          company.country
+                        {account.city && account.state ? (
+                          `${account.city}, ${account.state}`
+                        ) : account.city ? (
+                          account.city
+                        ) : account.state ? (
+                          account.state
+                        ) : account.country ? (
+                          account.country
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(company.status)}>
-                        {company.status || 'Unknown'}
+                      <Badge className={getStatusColor(account.status)}>
+                        {account.status || 'Unknown'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -412,19 +412,19 @@ export default function Companies() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(company)}>
+                          <DropdownMenuItem onClick={() => handleEdit(account)}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          {company.website && (
-                            <DropdownMenuItem onClick={() => window.open(company.website.startsWith('http') ? company.website : `https://${company.website}`, '_blank')}>
+                          {account.website && (
+                            <DropdownMenuItem onClick={() => window.open(account.website.startsWith('http') ? account.website : `https://${account.website}`, '_blank')}>
                               <ExternalLink className="h-4 w-4 mr-2" />
                               Visit Website
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem 
                             className="text-destructive"
-                            onClick={() => handleDelete(company.id)}
+                            onClick={() => handleDelete(account.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete

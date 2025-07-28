@@ -39,10 +39,10 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
     last_name: "",
     email: "",
     phone: "",
-    company: ""
+    account: ""
   })
 
-  const [companyForm, setCompanyForm] = useState({
+  const [accountForm, setAccountForm] = useState({
     name: "",
     industry: "",
     website: "",
@@ -65,8 +65,8 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
   })
 
   const resetForms = () => {
-    setContactForm({ first_name: "", last_name: "", email: "", phone: "", company: "" })
-    setCompanyForm({ name: "", industry: "", website: "", phone: "", email: "" })
+    setContactForm({ first_name: "", last_name: "", email: "", phone: "", account: "" })
+    setAccountForm({ name: "", industry: "", website: "", phone: "", email: "" })
     setDealForm({ name: "", value: "", stage: "", probability: "" })
     setTaskForm({ title: "", description: "", task_type: "", due_date: "" })
   }
@@ -87,9 +87,9 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
             user_id: user.id
           }])
           break
-        case 'company':
-          result = await supabase.from('companies').insert([{
-            ...companyForm,
+        case 'account':
+          result = await supabase.from('accounts').insert([{
+            ...accountForm,
             user_id: user.id
           }])
           break
@@ -147,7 +147,7 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
             Quick Add
           </DialogTitle>
           <DialogDescription>
-            Quickly add new contacts, companies, deals, or tasks.
+            Quickly add new contacts, accounts, deals, or tasks.
           </DialogDescription>
         </DialogHeader>
 
@@ -157,9 +157,9 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
               <Users className="h-3 w-3 mr-1" />
               Contact
             </TabsTrigger>
-            <TabsTrigger value="company" className="text-xs">
+            <TabsTrigger value="account" className="text-xs">
               <Building2 className="h-3 w-3 mr-1" />
-              Company
+              Account
             </TabsTrigger>
             <TabsTrigger value="deal" className="text-xs">
               <Target className="h-3 w-3 mr-1" />
@@ -220,13 +220,13 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
             </Button>
           </TabsContent>
 
-          <TabsContent value="company" className="space-y-4">
+          <TabsContent value="account" className="space-y-4">
             <div>
-              <Label htmlFor="company_name">Company Name</Label>
+              <Label htmlFor="account_name">Account Name</Label>
               <Input
-                id="company_name"
-                value={companyForm.name}
-                onChange={(e) => setCompanyForm(prev => ({ ...prev, name: e.target.value }))}
+                id="account_name"
+                value={accountForm.name}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Acme Corp"
               />
             </div>
@@ -234,8 +234,8 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
               <Label htmlFor="industry">Industry</Label>
               <Input
                 id="industry"
-                value={companyForm.industry}
-                onChange={(e) => setCompanyForm(prev => ({ ...prev, industry: e.target.value }))}
+                value={accountForm.industry}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, industry: e.target.value }))}
                 placeholder="Technology"
               />
             </div>
@@ -243,17 +243,17 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
-                value={companyForm.website}
-                onChange={(e) => setCompanyForm(prev => ({ ...prev, website: e.target.value }))}
+                value={accountForm.website}
+                onChange={(e) => setAccountForm(prev => ({ ...prev, website: e.target.value }))}
                 placeholder="https://acme.com"
               />
             </div>
             <Button 
-              onClick={() => handleSubmit('company')} 
-              disabled={loading || !companyForm.name}
+              onClick={() => handleSubmit('account')} 
+              disabled={loading || !accountForm.name}
               className="w-full"
             >
-              {loading ? "Creating..." : "Create Company"}
+              {loading ? "Creating..." : "Create Account"}
             </Button>
           </TabsContent>
 

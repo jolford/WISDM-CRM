@@ -59,8 +59,8 @@ interface MaintenanceRecord {
   renewal_reminder_days: number;
   created_at: string;
   updated_at: string;
-  company_id: string | null;
-  companies?: {
+  account_id: string | null;
+  accounts?: {
     id: string;
     name: string;
   } | null;
@@ -69,7 +69,7 @@ interface MaintenanceRecord {
 export default function MaintenanceTracking() {
   const { toast } = useToast();
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
-  const [companies, setCompanies] = useState<{id: string, name: string}[]>([]);
+  const [accounts, setAccounts] = useState<{id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<keyof MaintenanceRecord>('end_date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -82,7 +82,7 @@ export default function MaintenanceTracking() {
     start_date: '',
     end_date: '',
     vendor_name: '',
-    company_id: '',
+    account_id: '',
     license_key: '',
     serial_number: '',
     cost: '',
@@ -93,7 +93,7 @@ export default function MaintenanceTracking() {
 
   useEffect(() => {
     fetchRecords();
-    fetchCompanies();
+    fetchAccounts();
   }, []);
 
   const fetchRecords = async () => {
@@ -102,7 +102,7 @@ export default function MaintenanceTracking() {
         .from('maintenance_records')
         .select(`
           *,
-          companies (
+          accounts (
             id,
             name
           )
@@ -123,17 +123,17 @@ export default function MaintenanceTracking() {
     }
   };
 
-  const fetchCompanies = async () => {
+  const fetchAccounts = async () => {
     try {
       const { data, error } = await supabase
-        .from('companies')
+        .from('accounts')
         .select('id, name')
         .order('name');
 
       if (error) throw error;
-      setCompanies(data || []);
+      setAccounts(data || []);
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error('Error fetching accounts:', error);
     }
   };
 
@@ -152,7 +152,7 @@ export default function MaintenanceTracking() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         vendor_name: formData.vendor_name || null,
-        company_id: formData.company_id || null,
+        account_id: formData.account_id || null,
         license_key: formData.license_key || null,
         serial_number: formData.serial_number || null,
         notes: formData.notes || null,
@@ -206,7 +206,7 @@ export default function MaintenanceTracking() {
       start_date: record.start_date || '',
       end_date: record.end_date || '',
       vendor_name: record.vendor_name || '',
-      company_id: record.company_id || '',
+      account_id: record.account_id || '',
       license_key: record.license_key || '',
       serial_number: record.serial_number || '',
       cost: record.cost?.toString() || '',
@@ -252,7 +252,7 @@ export default function MaintenanceTracking() {
       start_date: '',
       end_date: '',
       vendor_name: '',
-      company_id: '',
+      account_id: '',
       license_key: '',
       serial_number: '',
       cost: '',
@@ -389,19 +389,19 @@ export default function MaintenanceTracking() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="company_id">Customer/Company</Label>
+                  <Label htmlFor="account_id">Customer/Account</Label>
                   <Select 
-                    value={formData.company_id} 
-                    onValueChange={(value) => setFormData({...formData, company_id: value})}
+                    value={formData.account_id} 
+                    onValueChange={(value) => setFormData({...formData, account_id: value})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer..." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">No customer selected</SelectItem>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
+                      {accounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -658,7 +658,7 @@ export default function MaintenanceTracking() {
                   </TableCell>
                   <TableCell>{record.product_type}</TableCell>
                   <TableCell>{record.vendor_name || 'N/A'}</TableCell>
-                  <TableCell>{record.companies?.name || 'N/A'}</TableCell>
+                  <TableCell>{record.accounts?.name || 'N/A'}</TableCell>
                   <TableCell>{formatDate(record.purchase_date)}</TableCell>
                   <TableCell>{formatDate(record.end_date)}</TableCell>
                   <TableCell>{formatCurrency(record.cost)}</TableCell>
