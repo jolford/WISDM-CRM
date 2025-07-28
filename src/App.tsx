@@ -14,6 +14,7 @@ import Accounts from "./pages/Accounts";
 import Deals from "./pages/Deals";
 import Tasks from "./pages/Tasks";
 import SupportDesk from "./pages/SupportDesk";
+import SupportTicketDetail from "./pages/SupportTicketDetail"; // ✅ NEW IMPORT
 import Settings from "./pages/Settings";
 import SalesReporting from "./pages/SalesReporting";
 import ReportsDashboard from "./pages/ReportsDashboard";
@@ -22,7 +23,7 @@ import DataImportExport from "./pages/DataImportExport";
 import AdminConsole from "./pages/AdminConsole";
 import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
-import DealsReport from "./pages/DealsReport"; // ✅ make sure this import exists
+import DealsReport from "./pages/DealsReport";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
+          <Route path="/support/ticket/:id" element={<Layout><SupportTicketDetail /></Layout>} /> {/* ✅ NEW ROUTE */}
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
           <Route path="/reports" element={<Layout><ReportsDashboard /></Layout>} />
           <Route path="/reports/deals" element={<Layout><DealsReport /></Layout>} />
