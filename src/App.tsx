@@ -1,8 +1,10 @@
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -20,6 +22,7 @@ import DataImportExport from "./pages/DataImportExport";
 import AdminConsole from "./pages/AdminConsole";
 import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
+import DealsReport from "./pages/DealsReport"; // ✅ make sure this import exists
 
 const queryClient = new QueryClient();
 
@@ -39,12 +42,12 @@ const App = () => (
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
           <Route path="/reports" element={<Layout><ReportsDashboard /></Layout>} />
+          <Route path="/reports/deals" element={<Layout><DealsReport /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
           <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
           <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
