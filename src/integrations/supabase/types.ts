@@ -741,14 +741,17 @@ export type Database = {
           aggregate_functions: Json | null
           chart_config: Json | null
           created_at: string
+          created_by_name: string | null
           dashboard_layout: Json | null
           data_sources: string[] | null
           description: string | null
+          folder_name: string | null
           group_by_fields: string[] | null
           id: string
           is_active: boolean | null
           is_dashboard: boolean | null
           is_public: boolean | null
+          last_accessed_at: string | null
           last_run: string | null
           name: string
           next_run: string | null
@@ -763,14 +766,17 @@ export type Database = {
           aggregate_functions?: Json | null
           chart_config?: Json | null
           created_at?: string
+          created_by_name?: string | null
           dashboard_layout?: Json | null
           data_sources?: string[] | null
           description?: string | null
+          folder_name?: string | null
           group_by_fields?: string[] | null
           id?: string
           is_active?: boolean | null
           is_dashboard?: boolean | null
           is_public?: boolean | null
+          last_accessed_at?: string | null
           last_run?: string | null
           name: string
           next_run?: string | null
@@ -785,14 +791,17 @@ export type Database = {
           aggregate_functions?: Json | null
           chart_config?: Json | null
           created_at?: string
+          created_by_name?: string | null
           dashboard_layout?: Json | null
           data_sources?: string[] | null
           description?: string | null
+          folder_name?: string | null
           group_by_fields?: string[] | null
           id?: string
           is_active?: boolean | null
           is_dashboard?: boolean | null
           is_public?: boolean | null
+          last_accessed_at?: string | null
           last_run?: string | null
           name?: string
           next_run?: string | null
