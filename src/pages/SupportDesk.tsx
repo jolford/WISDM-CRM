@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,92 +31,116 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SupportDesk() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
-  const tickets = [
-    {
-      id: "TKT-001",
-      title: "Login authentication issues",
-      description: "Customer unable to access their dashboard after password reset",
-      customer: "Sarah Johnson",
-      company: "Acme Corp",
-      email: "sarah.johnson@acmecorp.com",
-      priority: "high",
-      status: "open",
-      assignee: "John Smith",
-      createdAt: "2024-01-24T10:30:00",
-      updatedAt: "2024-01-25T14:20:00",
-      responses: 3,
-      customerInitials: "SJ",
-      assigneeInitials: "JS"
-    },
-    {
-      id: "TKT-002", 
-      title: "Feature request: Bulk data export",
-      description: "Request to add bulk export functionality for contact lists",
-      customer: "Michael Chen",
-      company: "TechStart Inc",
-      email: "m.chen@techstart.io",
-      priority: "medium",
-      status: "in-progress",
-      assignee: "Emma Wilson",
-      createdAt: "2024-01-23T09:15:00",
-      updatedAt: "2024-01-25T11:45:00",
-      responses: 5,
-      customerInitials: "MC",
-      assigneeInitials: "EW"
-    },
-    {
-      id: "TKT-003",
-      title: "Integration setup assistance",
-      description: "Need help configuring API integration with existing CRM system",
-      customer: "Emma Davis",
-      company: "Global Solutions",
-      email: "emma.davis@globalsol.com",
-      priority: "medium",
-      status: "resolved",
-      assignee: "David Brown",
-      createdAt: "2024-01-22T16:00:00",
-      updatedAt: "2024-01-24T13:30:00",
-      responses: 8,
-      customerInitials: "ED",
-      assigneeInitials: "DB"
-    },
-    {
-      id: "TKT-004",
-      title: "Performance issues with dashboard",
-      description: "Dashboard loading slowly, particularly the analytics section",
-      customer: "Robert Kim",
-      company: "Innovation Labs",
-      email: "robert.kim@innovlabs.com",
-      priority: "critical",
-      status: "open",
-      assignee: "Sarah Tech",
-      createdAt: "2024-01-25T08:45:00",
-      updatedAt: "2024-01-25T15:10:00",
-      responses: 1,
-      customerInitials: "RK",
-      assigneeInitials: "ST"
-    },
-    {
-      id: "TKT-005",
-      title: "Training session request",
-      description: "Request for team training on advanced CRM features",
-      customer: "Lisa Anderson",
-      company: "FutureTech",
-      email: "l.anderson@futuretech.com",
-      priority: "low",
-      status: "closed",
-      assignee: "Mike Johnson",
-      createdAt: "2024-01-20T14:20:00",
-      updatedAt: "2024-01-23T16:45:00",
-      responses: 12,
-      customerInitials: "LA",
-      assigneeInitials: "MJ"
+  useEffect(() => {
+    fetchTickets()
+  }, [])
+
+  const fetchTickets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // Transform tasks to tickets format
+      const transformedTickets = data.map((task) => ({
+        id: `TKT-${task.id.slice(-8)}`,
+        title: task.title || 'No Title',
+        description: task.description || 'No Description',
+        customer: extractCustomerName(task.description),
+        company: extractCompanyName(task.description), 
+        email: extractEmail(task.description),
+        priority: getPriorityFromTaskType(task.task_type),
+        status: mapTaskStatusToTicketStatus(task.status),
+        assignee: "Support Team",
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+        responses: 0,
+        customerInitials: getInitials(extractCustomerName(task.description)),
+        assigneeInitials: "ST"
+      }))
+
+      setTickets(transformedTickets)
+    } catch (error) {
+      console.error('Error fetching tickets:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load support tickets",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const extractCustomerName = (description) => {
+    if (!description) return "Unknown Customer"
+    // Try to extract name patterns from description
+    const lines = description.split('\n')
+    for (const line of lines) {
+      if (line.includes('Contact Name') || line.includes('Customer')) {
+        const parts = line.split(':')
+        if (parts.length > 1) return parts[1].trim()
+      }
+    }
+    return "Unknown Customer"
+  }
+
+  const extractCompanyName = (description) => {
+    if (!description) return "Unknown Company"
+    const lines = description.split('\n')
+    for (const line of lines) {
+      if (line.includes('Company') || line.includes('Account')) {
+        const parts = line.split(':')
+        if (parts.length > 1) return parts[1].trim()
+      }
+    }
+    return "Unknown Company"
+  }
+
+  const extractEmail = (description) => {
+    if (!description) return ""
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+    const match = description.match(emailRegex)
+    return match ? match[0] : ""
+  }
+
+  const getInitials = (name) => {
+    if (!name || name === "Unknown Customer") return "UC"
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+
+  const getPriorityFromTaskType = (taskType) => {
+    const priorityMap = {
+      'call': 'high',
+      'email': 'medium', 
+      'meeting': 'high',
+      'follow_up': 'medium',
+      'other': 'low'
+    }
+    return priorityMap[taskType] || 'medium'
+  }
+
+  const mapTaskStatusToTicketStatus = (status) => {
+    const statusMap = {
+      'pending': 'open',
+      'in_progress': 'in-progress', 
+      'completed': 'resolved',
+      'cancelled': 'closed'
+    }
+    return statusMap[status] || 'open'
+  }
 
   const filteredTickets = tickets.filter(ticket =>
     ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -174,6 +198,17 @@ export default function SupportDesk() {
   const activeTickets = getTicketsByStatus("active")
   const resolvedTickets = getTicketsByStatus("resolved")
   const closedTickets = getTicketsByStatus("closed")
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading support tickets...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
