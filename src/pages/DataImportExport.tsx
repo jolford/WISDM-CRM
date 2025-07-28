@@ -1218,7 +1218,7 @@ export default function DataImportExport() {
 
         const tableName = importType === 'tickets' ? 'tasks' : 
                           importType === 'maintenance' ? 'maintenance_records' : 
-                          importType as 'contacts' | 'companies' | 'deals' | 'vendors' | 'forecasts' | 'reports'
+                          importType as 'contacts' | 'accounts' | 'deals' | 'vendors' | 'forecasts' | 'reports'
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
