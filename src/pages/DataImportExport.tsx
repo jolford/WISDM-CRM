@@ -409,7 +409,42 @@ export default function DataImportExport() {
               'Status': 'status',
               'Category': 'task_type',
               'Type': 'task_type',
-              'Due Date': 'due_date'
+              'Due Date': 'due_date',
+              // Add missing mappings to prevent unmapped fields from causing issues
+              'To Address': null, // Ignore email fields that don't map to tasks table
+              'Email': null,
+              'Contact Id': null,
+              'Account Id': null,
+              'Product Name': null,
+              'Product Id': null,
+              'Ticket Owner': null,
+              'Ticket Owner Id': null,
+              'Created By': null,
+              'Created By Id': null,
+              'Modified By': null,
+              'Modified By Id': null,
+              'Created Time': null,
+              'Modified Time': null,
+              'Resolution': null,
+              'Priority': null,
+              'Mode': null,
+              'Sub Category': null,
+              'Ticket Closed Time': null,
+              'Is Overdue': null,
+              'Is Escalated': null,
+              'Classification': null,
+              'Time to Respond': null,
+              'Team': null,
+              'Team Id': null,
+              'Tags': null,
+              'Ticket On Hold Time': null,
+              'Language': null,
+              'Vendor Ticket Number': null,
+              'Child Ticket Count': null,
+              'Department': null,
+              'Department Id': null,
+              'Ticket Id': null,
+              'Ticket Reference Id': null
             }
           } else if (importType === 'deals') {
             return {
@@ -568,9 +603,14 @@ export default function DataImportExport() {
           
           headers.forEach((header, index) => {
             const value = values[index] || ''
-            if (columnMapping[header]) {
-              mappedRecord[columnMapping[header]] = value
-              console.log(`   📌 Mapped "${header}" → "${columnMapping[header]}" = "${value}"`)
+            if (columnMapping[header] !== undefined) {
+              // Only map if the mapping is not null (null means ignore the field)
+              if (columnMapping[header] !== null) {
+                mappedRecord[columnMapping[header]] = value
+                console.log(`   📌 Mapped "${header}" → "${columnMapping[header]}" = "${value}"`)
+              } else {
+                console.log(`   🚫 Ignoring field "${header}" (explicitly mapped to null)`)
+              }
             } else {
               console.log(`   ❌ No mapping found for header: "${header}"`)
             }
