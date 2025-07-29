@@ -64,4 +64,19 @@ const CRMReportTable: React.FC<Props> = ({ data }) => {
                 <td className="px-4 py-2 border">{deal["Deal Name"]}</td>
                 <td className="px-4 py-2 border">{deal.Stage}</td>
                 <td className="px-4 py-2 border">${deal.Amount?.toLocaleString()}</td>
-                <td className="px-4 py-2 border">{deal["Probabili]()
+                <td className="px-4 py-2 border">{deal["Probability (%)"] || 0}%</td>
+                <td className="px-4 py-2 border">
+                  ${((deal.Amount || 0) * ((deal["Probability (%)"] || 0) / 100)).toLocaleString()}
+                </td>
+                <td className="px-4 py-2 border">{deal["Closing Date"]}</td>
+                <td className="px-4 py-2 border">{deal["Lead Source"] || "N/A"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default CRMReportTable;
