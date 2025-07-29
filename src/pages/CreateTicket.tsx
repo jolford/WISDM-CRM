@@ -1,198 +1,30 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue
-} from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
-export default function CreateTicket() {
-  const [form, setForm] = useState({
-    title: "",
-    email: "",
-    company: "",
-    description: "",
-    priority: "medium",
-    product: "",
-    attachment: null as File | null,
-  });
-
-  const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, files } = e.target as any;
-    if (name === "attachment") {
-      setForm((prev) => ({ ...prev, attachment: files?.[0] || null }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!form.product) {
-      toast({ title: "Missing Product", description: "Please select a product.", variant: "destructive" });
-      return;
-    }
-
-    setSubmitting(true);
-    let fileUrl = "";
-
-    try {
-      if (form.attachment) {
-        const { data, error: uploadError } = await supabase.storage
-          .from("attachments")
-          .upload(`tickets/${Date.now()}_${form.attachment.name}`, form.attachment);
-
-        if (uploadError) throw new Error("File upload failed");
-
-        const { data: publicUrl } = supabase.storage.from("attachments").getPublicUrl(data.path);
-        fileUrl = publicUrl.publicUrl;
-      }
-
-      const { data: inserted, error: insertError } = await supabase.from("tickets").insert([
-        {
-          subject: form.title,
-          email: form.email,
-          customer_name: form.email?.split("@")?.[0] || "Customer",
-          company: form.company,
-          description: form.description,
-          priority: form.priority,
-          product: form.product,
-          attachment_url: fileUrl,
-          status: "open",
-        },
-      ]).select("*");
-
-      if (insertError || !inserted || inserted.length === 0) throw insertError;
-
-      const newTicket = inserted[0];
-
-      // 🔄 Run automation rules
-      const { data: rules } = await supabase.from("rules").select("*").eq("trigger", "ticket_created");
-
-      for (const rule of rules || []) {
-        if (evaluateConditions(JSON.stringify(rule.conditions), newTicket)) {
-          await executeActions(JSON.stringify(rule.actions), newTicket);
-        }
-      }
-
-      toast({ title: "✅ Ticket Created", description: "Your ticket has been logged successfully." });
-      navigate("/support");
-    } catch (err) {
-      console.error("Submit error:", err);
-      toast({ title: "Error", description: "Failed to create ticket. Please try again.", variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const evaluateConditions = (conditionsJson: string, ticket: any) => {
-    try {
-      const conditions = JSON.parse(conditionsJson);
-      return conditions.every((cond: any) => {
-        const fieldValue = ticket[cond.field];
-        switch (cond.operator) {
-          case "equals": return fieldValue === cond.value;
-          case "contains": return fieldValue?.includes?.(cond.value);
-          case "not_equals": return fieldValue !== cond.value;
-          default: return false;
-        }
-      });
-    } catch {
-      return false;
-    }
-  };
-
-  const executeActions = async (actionsJson: string, ticket: any) => {
-    try {
-      const actions = JSON.parse(actionsJson);
-      for (const action of actions) {
-        if (action.type === "assign") {
-          await supabase.from("tickets").update({ user_id: action.userId }).eq("id", ticket.id);
-        } else if (action.type === "email") {
-          // optional: call a Supabase Edge Function to send notification
-          await fetch("/api/send-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: ticket.email,
-              subject: action.subject,
-              message: action.message,
-            })
-          });
-        }
-      }
-    } catch (err) {
-      console.warn("Action execution failed", err);
-    }
-  };
-
+const CreateTicket: React.FC = () => {
   return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>🎫 Create New Ticket</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input name="title" placeholder="Ticket subject" value={form.title} onChange={handleChange} />
-          <Input name="email" placeholder="Customer email" value={form.email} onChange={handleChange} />
-          <Input name="company" placeholder="Customer company" value={form.company} onChange={handleChange} />
-
-          <Label>Priority</Label>
-          <Select value={form.priority} onValueChange={(value) => setForm((prev) => ({ ...prev, priority: value }))}>
-            <SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Label>Product</Label>
-          <Select value={form.product} onValueChange={(value) => setForm((prev) => ({ ...prev, product: value }))}>
-            <SelectTrigger><SelectValue placeholder="Select product" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PSIGEN">PSIGEN</SelectItem>
-              <SelectItem value="FileBound">FileBound</SelectItem>
-              <SelectItem value="Parascript">Parascript</SelectItem>
-              <SelectItem value="WISDM">WISDM</SelectItem>
-              <SelectItem value="Importer Professional">Importer Professional</SelectItem>
-              <SelectItem value="ABBYY FlexiCapture">ABBYY FlexiCapture</SelectItem>
-              <SelectItem value="ABBYY Vantage">ABBYY Vantage</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Textarea
-            name="description"
-            placeholder="Describe the issue"
-            value={form.description}
-            onChange={handleChange}
-          />
-
-          <Input
-            type="file"
-            name="attachment"
-            accept=".txt,.log,.png,.jpg,.jpeg,.pdf"
-            onChange={handleChange}
-          />
-
-          <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Submitting..." : "Submit Ticket"}
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-2xl mx-auto">
+        <Alert className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Security Review in Progress</strong><br />
+            The ticket creation system has been temporarily disabled while we implement critical security fixes. 
+            Please contact your administrator for assistance.
+          </AlertDescription>
+        </Alert>
+        
+        <div className="bg-card p-6 rounded-lg border">
+          <h1 className="text-2xl font-bold mb-4">Create Support Ticket</h1>
+          <p className="text-muted-foreground">
+            This feature is temporarily unavailable due to ongoing security improvements.
+            We apologize for any inconvenience.
+          </p>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default CreateTicket;
