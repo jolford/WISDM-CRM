@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,61 +22,66 @@ interface TicketMessage {
   timestamp: string;
 }
 
-const SupportTicketDetail: React.FC = () => {
+export default function SupportTicketDetail() {
   const { id } = useParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
-  const [replyText, setReplyText] = useState("");
+  const [newReply, setNewReply] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      fetchTicketData(id);
+      fetchTicketAndMessages(id);
     }
   }, [id]);
 
-  const fetchTicketData = async (ticketId: string) => {
+  const fetchTicketAndMessages = async (ticketId: string) => {
     setLoading(true);
-
-    const { data: ticketData } = await supabase
+    const { data: ticket } = await supabase
       .from("tickets")
       .select("*")
       .eq("id", ticketId)
       .single();
 
-    const { data: messageData } = await supabase
+    const { data: messages } = await supabase
       .from("ticket_messages")
       .select("*")
       .eq("ticket_id", ticketId)
       .order("timestamp", { ascending: true });
 
-    setTicket(ticketData);
-    setMessages(messageData || []);
+    setTicket(ticket);
+    setMessages(messages ?? []);
     setLoading(false);
   };
 
   const handleSendReply = async () => {
-    if (!replyText.trim() || !ticket) return;
+    if (!newReply.trim() || !ticket) return;
 
-    const newMessage: Omit<TicketMessage, "id"> = {
+    const { error } = await supabase.from("ticket_messages").insert({
       ticket_id: ticket.id,
       sender: "Agent",
-      sender_name: "Support Team", // Optional: dynamically pull user name
-      message: replyText.trim(),
-      timestamp: new Date().toISOString()
-    };
+      sender_name: "Support Team",
+      message: newReply.trim(),
+      timestamp: new Date().toISOString(),
+    });
 
-    const { error } = await supabase.from("ticket_messages").insert([newMessage]);
-
-    if (!error) {
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), ...newMessage }
-      ]);
-      setReplyText("");
-    } else {
-      console.error("Error sending reply:", error);
+    if (error) {
+      console.error("Reply failed:", error.message);
+      return;
     }
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        ticket_id: ticket.id,
+        sender: "Agent",
+        sender_name: "Support Team",
+        message: newReply.trim(),
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setNewReply("");
   };
 
   if (loading || !ticket) {
@@ -85,17 +90,17 @@ const SupportTicketDetail: React.FC = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto bg-white rounded-lg shadow-md">
-      {/* Ticket Info */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{ticket.subject}</h1>
-        <div className="text-sm text-gray-500 mt-1">
-          <span className="font-medium">From:</span> {ticket.customer_name} ({ticket.email})<br />
-          <span className="font-medium">Status:</span> {ticket.status} | <span className="font-medium">Priority:</span> {ticket.priority}
-        </div>
+        <h1 className="text-2xl font-bold">{ticket.subject}</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          <strong>From:</strong> {ticket.customer_name} ({ticket.email}) <br />
+          <strong>Status:</strong> {ticket.status} |{" "}
+          <strong>Priority:</strong> {ticket.priority}
+        </p>
       </div>
 
       {/* Message Thread */}
-      <div className="space-y-4 max-h-[500px] overflow-y-auto border rounded p-4 bg-gray-50">
+      <div className="space-y-4 max-h-[500px] overflow-y-auto border rounded p-4 bg-gray-50 mb-6">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -109,7 +114,8 @@ const SupportTicketDetail: React.FC = () => {
               }`}
             >
               <div className="font-semibold text-xs text-gray-500 mb-1">
-                {msg.sender_name} · {new Date(msg.timestamp).toLocaleString()}
+                {msg.sender_name} ·{" "}
+                {new Date(msg.timestamp).toLocaleString()}
               </div>
               <div className="whitespace-pre-wrap">{msg.message}</div>
             </div>
@@ -117,15 +123,15 @@ const SupportTicketDetail: React.FC = () => {
         ))}
       </div>
 
-      {/* Reply Form */}
-      <div className="mt-6 bg-white border rounded p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Reply to Ticket</h3>
+      {/* Reply Input */}
+      <div className="bg-white border rounded p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Reply</h3>
         <textarea
-          className="w-full p-2 border rounded text-sm focus:outline-none focus:ring"
+          value={newReply}
+          onChange={(e) => setNewReply(e.target.value)}
           rows={4}
-          placeholder="Type your message here..."
-          value={replyText}
-          onChange={(e) => setReplyText(e.target.value)}
+          className="w-full p-2 border rounded text-sm focus:outline-none focus:ring"
+          placeholder="Type your reply..."
         />
         <div className="flex justify-end mt-2">
           <button
@@ -138,6 +144,4 @@ const SupportTicketDetail: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default SupportTicketDetail;
+}

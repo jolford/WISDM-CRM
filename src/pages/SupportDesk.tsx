@@ -163,11 +163,7 @@ export default function SupportDesk() {
             Manage customer support tickets and inquiries
           </p>
         </div>
-        <Button
-          onClick={() =>
-            alert("Create Ticket functionality would open a modal/form here")
-          }
-        >
+        <Button onClick={() => navigate("/support/new")}>
           <Plus className="h-4 w-4 mr-2" />
           New Ticket
         </Button>

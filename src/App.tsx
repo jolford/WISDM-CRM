@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import CreateTicket from "./pages/CreateTicket";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -24,6 +24,7 @@ import AdminConsole from "./pages/AdminConsole";
 import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
 import DealsReport from "./pages/DealsReport";
+import ManagerDashboard from "./pages/ManagerDashboard"; // ✅ at the top
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
+	  <Route path="/support/new" element={<Layout><CreateTicket /></Layout>} />	
           <Route path="/accounts" element={<Layout><Accounts /></Layout>} />
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
@@ -50,6 +52,7 @@ const App = () => (
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
           <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
           <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />
+	  <Route path="/dashboard" element={<Layout><ManagerDashboard /></Layout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
