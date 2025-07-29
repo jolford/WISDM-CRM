@@ -74,6 +74,129 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_actions: {
+        Row: {
+          action_type: string
+          config: Json | null
+          id: string
+          rule_id: string | null
+        }
+        Insert: {
+          action_type: string
+          config?: Json | null
+          id?: string
+          rule_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          config?: Json | null
+          id?: string
+          rule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_actions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_conditions: {
+        Row: {
+          field: string
+          id: string
+          operator: string
+          rule_id: string | null
+          value: string
+        }
+        Insert: {
+          field: string
+          id?: string
+          operator: string
+          rule_id?: string | null
+          value: string
+        }
+        Update: {
+          field?: string
+          id?: string
+          operator?: string
+          rule_id?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_conditions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_logs: {
+        Row: {
+          id: string
+          message: string | null
+          rule_id: string | null
+          status: string | null
+          triggered_at: string | null
+        }
+        Insert: {
+          id?: string
+          message?: string | null
+          rule_id?: string | null
+          status?: string | null
+          triggered_at?: string | null
+        }
+        Update: {
+          id?: string
+          message?: string | null
+          rule_id?: string | null
+          status?: string | null
+          triggered_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_rules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           account_egnyte_link: string | null
@@ -597,6 +720,24 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          id: number
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -814,6 +955,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          trigger: string
+        }
+        Insert: {
+          actions: Json
+          conditions: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          trigger: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
       scheduled_reports: {
         Row: {
           created_at: string
@@ -943,6 +1114,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ticket_messages: {
+        Row: {
+          created_at: string | null
+          id: number
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      tickets: {
+        Row: {
+          attachment_url: string | null
+          company: string | null
+          created_at: string | null
+          customer_name: string | null
+          description: string | null
+          email: string | null
+          id: string
+          priority: string | null
+          product: string | null
+          status: string | null
+          subject: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          priority?: string | null
+          product?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          priority?: string | null
+          product?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       vendors: {
         Row: {
@@ -1177,6 +1417,12 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      handle_new_ticket_message: {
+        Args:
+          | { p_ticket_id: number; p_message_text: string; p_sender_id: string }
+          | { ticket_id: string; message_text: string }
+        Returns: undefined
       }
       validate_csv_data: {
         Args: { data_type: string; row_data: Json }
