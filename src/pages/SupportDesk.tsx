@@ -197,9 +197,9 @@ export default function SupportDesk() {
         </TabsList>
 
         {[["active", activeTickets], ["resolved", resolvedTickets], ["closed", closedTickets]].map(
-          ([status, tickets]) => (
-            <TabsContent key={status} value={status} className="space-y-4">
-              {(tickets as typeof tickets).map((ticket) => (
+          ([status, ticketList]) => (
+            <TabsContent key={status as string} value={status as string} className="space-y-4">
+              {(ticketList as any[]).map((ticket) => (
                 <Card
                   key={ticket.id}
                   onClick={() => navigate(`/support/ticket/${ticket.id}`)}

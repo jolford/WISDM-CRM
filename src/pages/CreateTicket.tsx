@@ -82,8 +82,8 @@ export default function CreateTicket() {
       const { data: rules } = await supabase.from("rules").select("*").eq("trigger", "ticket_created");
 
       for (const rule of rules || []) {
-        if (evaluateConditions(rule.conditions, newTicket)) {
-          await executeActions(rule.actions, newTicket);
+        if (evaluateConditions(JSON.stringify(rule.conditions), newTicket)) {
+          await executeActions(JSON.stringify(rule.actions), newTicket);
         }
       }
 
