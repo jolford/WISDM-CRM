@@ -157,12 +157,23 @@ export default function UserManagement() {
           description: "User updated successfully",
         });
       } else {
-        // Create new user - this would typically be done via Supabase Auth Admin API
-        // For now, we'll show a message about manual user creation
+        // Create new user using secure edge function
+        const { data, error } = await supabase.functions.invoke('create-user', {
+          body: {
+            email: formData.email,
+            firstName: formData.first_name,
+            lastName: formData.last_name,
+            role: formData.role,
+            sendEmail: true
+          }
+        });
+
+        if (error) throw error;
+        if (!data.success) throw new Error(data.error);
+        
         toast({
-          title: "User Creation",
-          description: "New users must be created through Supabase Auth. Please use the Supabase dashboard to create new users, then assign roles here.",
-          variant: "default",
+          title: "Success",
+          description: `User created successfully. Welcome email sent to ${formData.email}`,
         });
       }
 
@@ -194,6 +205,7 @@ export default function UserManagement() {
 
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
+      // Only admins can change user status, enforced by the database trigger
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: !currentStatus })
@@ -211,7 +223,35 @@ export default function UserManagement() {
       console.error('Error toggling user status:', error);
       toast({
         title: "Error",
-        description: "Failed to update user status",
+        description: "Failed to update user status. You may not have permission to perform this action.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: {
+          userId,
+          reason: `User deleted via User Management interface`
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+      
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     }
@@ -349,15 +389,17 @@ export default function UserManagement() {
 
               {!editingUser && (
                 <div>
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required={!editingUser}
-                    placeholder="Minimum 6 characters"
+                    placeholder="Leave blank to auto-generate secure password"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A secure password will be generated automatically and sent via email
+                  </p>
                 </div>
               )}
 
@@ -555,6 +597,34 @@ export default function UserManagement() {
                           <Check className="h-4 w-4 text-green-600" />
                         )}
                       </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user account for {user.email} and remove all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteUser(user.id, user.email)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>
