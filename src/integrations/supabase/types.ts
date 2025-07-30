@@ -1402,12 +1402,14 @@ export type Database = {
     }
     Functions: {
       assign_user_role: {
-        Args: {
-          target_user_id: string
-          new_role: string
-          reason?: string
-          expires_at?: string
-        }
+        Args:
+          | { target_user_id: string; new_role: string; reason?: string }
+          | {
+              target_user_id: string
+              new_role: string
+              reason?: string
+              expires_at?: string
+            }
         Returns: boolean
       }
       check_import_rate_limit: {

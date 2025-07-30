@@ -130,17 +130,27 @@ export default function UserManagement() {
     
     try {
       if (editingUser) {
-        // Update existing user
-        const { error } = await supabase
+        // Update basic user info (non-sensitive fields)
+        const { error: profileError } = await supabase
           .from('profiles')
           .update({
             first_name: formData.first_name || null,
             last_name: formData.last_name || null,
-            role: formData.role,
           })
           .eq('id', editingUser.id);
         
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Update role using secure function if role changed
+        if (editingUser.role !== formData.role) {
+          const { error: roleError } = await supabase.rpc('assign_user_role', {
+            target_user_id: editingUser.id,
+            new_role: formData.role,
+            reason: `Role changed by admin via User Management interface`
+          });
+
+          if (roleError) throw roleError;
+        }
         
         toast({
           title: "Success",
