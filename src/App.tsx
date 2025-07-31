@@ -38,12 +38,12 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
-	  <Route path="/support/new" element={<Layout><CreateTicket /></Layout>} />	
           <Route path="/accounts" element={<Layout><Accounts /></Layout>} />
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
-          <Route path="/support/ticket/:id" element={<Layout><SupportTicketDetail /></Layout>} /> {/* ✅ NEW ROUTE */}
+          <Route path="/support/create" element={<Layout><CreateTicket /></Layout>} />
+          <Route path="/support/ticket/:id" element={<Layout><SupportTicketDetail /></Layout>} />
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
           <Route path="/reports" element={<Layout><ReportsDashboard /></Layout>} />
           <Route path="/reports/deals" element={<Layout><DealsReport /></Layout>} />
