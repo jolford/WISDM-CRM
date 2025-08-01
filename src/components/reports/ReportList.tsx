@@ -219,9 +219,9 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                  <div className="h-8 bg-muted rounded w-full"></div>
                 </div>
               </CardContent>
             </Card>
@@ -238,7 +238,8 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
         <div>
           <h1 className="text-3xl font-bold">All Reports</h1>
         </div>
-        <Button onClick={onCreateNew} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={onCreateNew}>
+          <Plus className="h-4 w-4 mr-2" />
           Create Report
         </Button>
       </div>
@@ -291,43 +292,43 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
           <CardContent className="p-0">
             <TableComponent>
               <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-medium text-gray-700">Report Name</TableHead>
-                  <TableHead className="font-medium text-gray-700">Description</TableHead>
-                  <TableHead className="font-medium text-gray-700">Folder</TableHead>
-                  <TableHead className="font-medium text-gray-700">Last Accessed Date</TableHead>
-                  <TableHead className="font-medium text-gray-700">Created By</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-medium">Report Name</TableHead>
+                  <TableHead className="font-medium">Description</TableHead>
+                  <TableHead className="font-medium">Folder</TableHead>
+                  <TableHead className="font-medium">Last Accessed Date</TableHead>
+                  <TableHead className="font-medium">Created By</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
                   <TableRow 
                     key={report.id} 
-                    className="hover:bg-gray-50 cursor-pointer border-b"
+                    className="hover:bg-muted/50 cursor-pointer transition-colors"
                     onClick={() => handleViewReport(report.id)}
                   >
                     <TableCell className="py-4">
                       <div className="flex items-center gap-3">
                         <input 
                           type="checkbox" 
-                          className="rounded border-gray-300"
+                          className="rounded border-border"
                           onClick={(e) => e.stopPropagation()}
                         />
-                        <div className="text-blue-600 hover:text-blue-800 font-medium">
+                        <div className="text-primary hover:text-primary/80 font-medium transition-colors">
                           {report.name}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600">
+                    <TableCell className="py-4 text-muted-foreground">
                       {report.description || '-'}
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600">
+                    <TableCell className="py-4 text-muted-foreground">
                       {report.folder_name}
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600">
+                    <TableCell className="py-4 text-muted-foreground">
                       {formatDate(report.last_accessed_at)}
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600">
+                    <TableCell className="py-4 text-muted-foreground">
                       {report.created_by_name}
                     </TableCell>
                   </TableRow>
