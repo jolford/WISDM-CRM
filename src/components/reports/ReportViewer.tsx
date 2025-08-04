@@ -411,7 +411,9 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
                 <TableHeader>
                   <TableRow>
                     {Object.keys(tableData[0]).map((key) => (
-                      <TableHead key={key}>{key}</TableHead>
+                      <TableHead key={key} className="cursor-pointer hover:bg-muted/50 select-none">
+                        {key}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
