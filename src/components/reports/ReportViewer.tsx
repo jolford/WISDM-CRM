@@ -81,8 +81,11 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
   const [report, setReport] = useState<ReportData | null>(null)
   const [charts, setCharts] = useState<ChartData[]>([])
   const [tableData, setTableData] = useState<any[]>([])
+  const [sortedData, setSortedData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [sortField, setSortField] = useState<string>('')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -152,6 +155,7 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
         })) || []
 
         setTableData(processedData)
+        setSortedData(processedData)
       }
 
     } catch (error) {
@@ -184,6 +188,40 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
       title: "Link Copied",
       description: "Report link copied to clipboard"
     })
+  }
+
+  const handleSort = (field: string) => {
+    let newDirection: 'asc' | 'desc' = 'asc'
+    
+    if (sortField === field && sortDirection === 'asc') {
+      newDirection = 'desc'
+    }
+    
+    setSortField(field)
+    setSortDirection(newDirection)
+    
+    const sorted = [...tableData].sort((a, b) => {
+      let aValue = a[field]
+      let bValue = b[field]
+      
+      // Handle null/undefined values
+      if (!aValue && !bValue) return 0
+      if (!aValue) return newDirection === 'asc' ? -1 : 1
+      if (!bValue) return newDirection === 'asc' ? 1 : -1
+      
+      // Handle numeric values
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return newDirection === 'asc' ? aValue - bValue : bValue - aValue
+      }
+      
+      // Handle string comparison
+      const aStr = String(aValue).toLowerCase()
+      const bStr = String(bValue).toLowerCase()
+      const result = aStr.localeCompare(bStr)
+      return newDirection === 'asc' ? result : -result
+    })
+    
+    setSortedData(sorted)
   }
 
   const renderChart = (chart: ChartData, data: any[]) => {
@@ -389,7 +427,7 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {renderChart(chart, tableData)}
+                {renderChart(chart, sortedData)}
               </CardContent>
             </Card>
           ))}
@@ -411,14 +449,18 @@ export default function ReportViewer({ reportId, onBack, onEdit }: ReportViewerP
                 <TableHeader>
                   <TableRow>
                     {Object.keys(tableData[0]).map((key) => (
-                      <TableHead key={key} className="cursor-pointer hover:bg-muted/50 select-none">
-                        {key}
+                      <TableHead 
+                        key={key} 
+                        className="cursor-pointer hover:bg-muted/50 select-none"
+                        onClick={() => handleSort(key)}
+                      >
+                        {key} {sortField === key && (sortDirection === 'asc' ? '↑' : '↓')}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tableData.map((row, index) => (
+                  {sortedData.map((row, index) => (
                     <TableRow key={index}>
                       {Object.values(row).map((value, cellIndex) => (
                         <TableCell key={cellIndex}>

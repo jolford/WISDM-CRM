@@ -83,6 +83,8 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   const [searchTerm, setSearchTerm] = useState('')
   const [filterFolder, setFilterFolder] = useState('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [sortField, setSortField] = useState<string>('last_accessed_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -183,6 +185,15 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
     }
   }
 
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
   const filteredReports = reports.filter(report => {
     const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          report.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -190,6 +201,21 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
     const matchesFolder = filterFolder === 'all' || report.folder_name === filterFolder
 
     return matchesSearch && matchesFolder
+  }).sort((a, b) => {
+    let aValue = a[sortField as keyof Report]
+    let bValue = b[sortField as keyof Report]
+    
+    // Handle null/undefined values
+    if (!aValue && !bValue) return 0
+    if (!aValue) return sortDirection === 'asc' ? -1 : 1
+    if (!bValue) return sortDirection === 'asc' ? 1 : -1
+    
+    // Convert to string for comparison
+    const aStr = String(aValue).toLowerCase()
+    const bStr = String(bValue).toLowerCase()
+    
+    const result = aStr.localeCompare(bStr)
+    return sortDirection === 'asc' ? result : -result
   })
 
   const uniqueFolders = Array.from(new Set(reports.map(r => r.folder_name))).sort()
@@ -293,11 +319,36 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
             <TableComponent>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-medium">Report Name</TableHead>
-                  <TableHead className="font-medium">Description</TableHead>
-                  <TableHead className="font-medium">Folder</TableHead>
-                  <TableHead className="font-medium">Last Accessed Date</TableHead>
-                  <TableHead className="font-medium">Created By</TableHead>
+                  <TableHead 
+                    className="font-medium cursor-pointer hover:bg-muted/70 select-none"
+                    onClick={() => handleSort('name')}
+                  >
+                    Report Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
+                  <TableHead 
+                    className="font-medium cursor-pointer hover:bg-muted/70 select-none"
+                    onClick={() => handleSort('description')}
+                  >
+                    Description {sortField === 'description' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
+                  <TableHead 
+                    className="font-medium cursor-pointer hover:bg-muted/70 select-none"
+                    onClick={() => handleSort('folder_name')}
+                  >
+                    Folder {sortField === 'folder_name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
+                  <TableHead 
+                    className="font-medium cursor-pointer hover:bg-muted/70 select-none"
+                    onClick={() => handleSort('last_accessed_at')}
+                  >
+                    Last Accessed Date {sortField === 'last_accessed_at' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
+                  <TableHead 
+                    className="font-medium cursor-pointer hover:bg-muted/70 select-none"
+                    onClick={() => handleSort('created_by_name')}
+                  >
+                    Created By {sortField === 'created_by_name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </TableHead>
                   <TableHead className="font-medium w-12">Actions</TableHead>
                 </TableRow>
               </TableHeader>
