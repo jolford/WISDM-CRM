@@ -94,13 +94,39 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   const loadReports = async () => {
     try {
       setLoading(true)
+      console.log('Loading reports...')
+      
       const { data, error } = await supabase
         .from('reports')
         .select('*')
         .order('last_accessed_at', { ascending: false })
 
-      if (error) throw error
-      setReports(data || [])
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      console.log('Raw reports data:', data)
+      
+      // If no reports exist, create some sample reports
+      if (!data || data.length === 0) {
+        console.log('No reports found, creating sample reports...')
+        await createSampleReports()
+        return
+      }
+
+      // Process the reports to ensure they have names
+      const processedReports = data.map(report => ({
+        ...report,
+        name: report.name || `Report ${report.id.substring(0, 8)}`,
+        description: report.description || 'No description available',
+        folder_name: report.folder_name || 'General Reports',
+        created_by_name: report.created_by_name || 'System User',
+        data_sources: report.data_sources || ['deals']
+      }))
+      
+      console.log('Processed reports:', processedReports)
+      setReports(processedReports)
     } catch (error) {
       console.error('Error loading reports:', error)
       toast({
@@ -110,6 +136,66 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const createSampleReports = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData.user?.id
+      
+      if (!userId) {
+        console.error('No user found')
+        return
+      }
+
+      const sampleReports = [
+        {
+          name: 'Sales Pipeline Report',
+          description: 'Overview of all deals in the sales pipeline',
+          report_type: 'custom',
+          folder_name: 'Sales Reports',
+          created_by_name: 'System User',
+          data_sources: ['deals'],
+          user_id: userId
+        },
+        {
+          name: 'Contact Activity Report',
+          description: 'Recent contact interactions and activities',
+          report_type: 'custom',
+          folder_name: 'Contact Reports',
+          created_by_name: 'System User',
+          data_sources: ['contacts'],
+          user_id: userId
+        },
+        {
+          name: 'Account Summary Report',
+          description: 'Summary of all account activities and revenue',
+          report_type: 'custom',
+          folder_name: 'Account Reports',
+          created_by_name: 'System User',
+          data_sources: ['accounts'],
+          user_id: userId
+        }
+      ]
+
+      const { data: insertedReports, error } = await supabase
+        .from('reports')
+        .insert(sampleReports)
+        .select()
+
+      if (error) {
+        console.error('Error creating sample reports:', error)
+        throw error
+      }
+
+      console.log('Created sample reports:', insertedReports)
+      
+      // Reload reports after creating samples
+      loadReports()
+      
+    } catch (error) {
+      console.error('Error creating sample reports:', error)
     }
   }
 
@@ -186,6 +272,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   }
 
   const handleSort = (field: string) => {
+    console.log('Sorting by:', field)
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
@@ -195,8 +282,8 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   }
 
   const filteredReports = reports.filter(report => {
-    const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (report.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (report.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesFolder = filterFolder === 'all' || report.folder_name === filterFolder
 
@@ -367,7 +454,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
                           onClick={(e) => e.stopPropagation()}
                         />
                         <div className="text-primary hover:text-primary/80 font-medium transition-colors">
-                          {report.name}
+                          {report.name || 'Unnamed Report'}
                         </div>
                       </div>
                     </TableCell>
@@ -375,13 +462,13 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
                       {report.description || '-'}
                     </TableCell>
                     <TableCell className="py-4 text-muted-foreground">
-                      {report.folder_name}
+                      {report.folder_name || 'General Reports'}
                     </TableCell>
                     <TableCell className="py-4 text-muted-foreground">
                       {formatDate(report.last_accessed_at)}
                     </TableCell>
                      <TableCell className="py-4 text-muted-foreground">
-                      {report.created_by_name}
+                      {report.created_by_name || 'System User'}
                     </TableCell>
                     <TableCell className="py-4">
                       <DropdownMenu>
