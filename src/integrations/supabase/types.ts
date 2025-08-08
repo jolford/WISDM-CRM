@@ -489,6 +489,66 @@ export type Database = {
           },
         ]
       }
+      deal_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          deal_id: string
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          paid_amount: number
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          deal_id: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          deal_id?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_invoices_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deal_collections_summary"
+            referencedColumns: ["deal_id"]
+          },
+          {
+            foreignKeyName: "deal_invoices_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           account_id: string | null
@@ -1110,6 +1170,13 @@ export type Database = {
             foreignKeyName: "tasks_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
+            referencedRelation: "deal_collections_summary"
+            referencedColumns: ["deal_id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
           },
@@ -1396,6 +1463,23 @@ export type Database = {
           user_id?: string | null
           "Vendor Name"?: string | null
           "Zip Code"?: string | null
+        }
+        Relationships: []
+      }
+      deal_collections_summary: {
+        Row: {
+          close_date: string | null
+          deal_id: string | null
+          deal_name: string | null
+          deal_value: number | null
+          has_overdue: boolean | null
+          invoiced_total: number | null
+          next_due_date: string | null
+          paid_total: number | null
+          pending_total: number | null
+          probability: number | null
+          stage: Database["public"]["Enums"]["deal_stage"] | null
+          user_id: string | null
         }
         Relationships: []
       }

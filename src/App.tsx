@@ -25,6 +25,8 @@ import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
 import DealsReport from "./pages/DealsReport";
 import ManagerDashboard from "./pages/ManagerDashboard"; // ✅ at the top
+import WonDealsCollections from "./pages/WonDealsCollections";
+import PipelineForecast from "./pages/PipelineForecast";
 
 const queryClient = new QueryClient();
 
@@ -47,12 +49,14 @@ const App = () => (
           <Route path="/projects" element={<Layout><ProjectManagement /></Layout>} />
           <Route path="/reports" element={<Layout><ReportsDashboard /></Layout>} />
           <Route path="/reports/deals" element={<Layout><DealsReport /></Layout>} />
+          <Route path="/reports/won-deals-collections" element={<Layout><WonDealsCollections /></Layout>} />
+          <Route path="/reports/pipeline-forecast" element={<Layout><PipelineForecast /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
           <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
           <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />
-	  <Route path="/dashboard" element={<Layout><ManagerDashboard /></Layout>} />
+ 	  <Route path="/dashboard" element={<Layout><ManagerDashboard /></Layout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
