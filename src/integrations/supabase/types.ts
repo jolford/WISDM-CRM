@@ -1392,7 +1392,6 @@ export type Database = {
           "Reference Subject Matter, Use Case & Department": string | null
           "Reference Type": string | null
           Referrer: string | null
-          "Reporting To": string | null
           "Role in deals": string | null
           Salutation: string | null
           State: string | null
@@ -1442,7 +1441,6 @@ export type Database = {
           "Reference Subject Matter, Use Case & Department"?: string | null
           "Reference Type"?: string | null
           Referrer?: string | null
-          "Reporting To"?: string | null
           "Role in deals"?: string | null
           Salutation?: string | null
           State?: string | null
@@ -1492,7 +1490,6 @@ export type Database = {
           "Reference Subject Matter, Use Case & Department"?: string | null
           "Reference Type"?: string | null
           Referrer?: string | null
-          "Reporting To"?: string | null
           "Role in deals"?: string | null
           Salutation?: string | null
           State?: string | null
