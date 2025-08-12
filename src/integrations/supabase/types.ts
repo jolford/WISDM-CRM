@@ -1045,6 +1045,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sales: {
+        Row: {
+          amount: number | null
+          closed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_name: string
+          id: string
+          product: string | null
+          region: string | null
+          rep_name: string
+          stage: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          closed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name: string
+          id?: string
+          product?: string | null
+          region?: string | null
+          rep_name: string
+          stage?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number | null
+          closed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name?: string
+          id?: string
+          product?: string | null
+          region?: string | null
+          rep_name?: string
+          stage?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       scheduled_reports: {
         Row: {
           created_at: string
@@ -1468,18 +1510,14 @@ export type Database = {
       }
       deal_collections_summary: {
         Row: {
-          close_date: string | null
+          account_name: string | null
+          contact_name: string | null
           deal_id: string | null
           deal_name: string | null
-          deal_value: number | null
-          has_overdue: boolean | null
-          invoiced_total: number | null
-          next_due_date: string | null
-          paid_total: number | null
-          pending_total: number | null
-          probability: number | null
+          deal_owner_name: string | null
+          expected_value: number | null
           stage: Database["public"]["Enums"]["deal_stage"] | null
-          user_id: string | null
+          total_sales: number | null
         }
         Relationships: []
       }
@@ -1506,6 +1544,7 @@ export type Database = {
       }
       handle_new_ticket_message: {
         Args:
+          | Record<PropertyKey, never>
           | { p_ticket_id: number; p_message_text: string; p_sender_id: string }
           | { ticket_id: string; message_text: string }
         Returns: undefined
