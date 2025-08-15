@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1522,13 +1522,13 @@ export type Database = {
     Functions: {
       assign_user_role: {
         Args:
-          | { target_user_id: string; new_role: string; reason?: string }
           | {
-              target_user_id: string
+              expires_at?: string
               new_role: string
               reason?: string
-              expires_at?: string
+              target_user_id: string
             }
+          | { new_role: string; reason?: string; target_user_id: string }
         Returns: boolean
       }
       check_import_rate_limit: {
@@ -1542,8 +1542,8 @@ export type Database = {
       handle_new_ticket_message: {
         Args:
           | Record<PropertyKey, never>
-          | { p_ticket_id: number; p_message_text: string; p_sender_id: string }
-          | { ticket_id: string; message_text: string }
+          | { message_text: string; ticket_id: string }
+          | { p_message_text: string; p_sender_id: string; p_ticket_id: number }
         Returns: undefined
       }
       validate_csv_data: {
