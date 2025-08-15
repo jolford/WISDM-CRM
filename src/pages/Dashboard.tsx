@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { TrendingUp, Users, DollarSign, Target, Calendar, ArrowUpRight, CheckSquare } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [totalDeals, setTotalDeals] = useState(0)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchDashboardData()
@@ -108,7 +110,7 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 mr-2" />
             This Week
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate('/sales-reporting')}>
             <TrendingUp className="h-4 w-4 mr-2" />
             View Report
           </Button>
@@ -211,13 +213,17 @@ export default function Dashboard() {
                 <CardTitle className="text-xl">Recent Deals</CardTitle>
                 <CardDescription>Latest deals from your pipeline</CardDescription>
               </div>
-              <Button variant="ghost" size="sm">View All</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/deals')}>View All</Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {deals.length > 0 ? deals.map((deal, index) => (
-                <div key={deal.id || index} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border-l-4 border-primary hover:bg-accent/70 transition-colors">
+                <div 
+                  key={deal.id || index} 
+                  className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border-l-4 border-primary hover:bg-accent/70 transition-colors cursor-pointer"
+                  onClick={() => navigate('/deals')}
+                >
                   <div className="flex-1">
                     <p className="font-semibold text-lg">{deal.name || 'Unnamed Deal'}</p>
                     <div className="flex items-center gap-3 mt-2">
@@ -240,7 +246,7 @@ export default function Dashboard() {
                   <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground font-medium">No deals found</p>
                   <p className="text-sm text-muted-foreground mt-1">Create or import deals to see them here</p>
-                  <Button size="sm" className="mt-3">Add First Deal</Button>
+                  <Button size="sm" className="mt-3" onClick={() => navigate('/deals')}>Add First Deal</Button>
                 </div>
               )}
             </div>
@@ -254,7 +260,7 @@ export default function Dashboard() {
                 <CardTitle className="text-xl">Today's Tasks</CardTitle>
                 <CardDescription>Upcoming tasks and follow-ups</CardDescription>
               </div>
-              <Button variant="ghost" size="sm">View All</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/tasks')}>View All</Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -262,9 +268,13 @@ export default function Dashboard() {
               {tasks.length > 0 ? tasks.map((task, index) => {
                 const isOverdue = new Date(task.due_date) < new Date();
                 return (
-                  <div key={task.id || index} className={`flex items-center justify-between p-4 rounded-lg border-l-4 transition-colors ${
-                    isOverdue ? 'bg-red-50 border-red-400 dark:bg-red-950/20' : 'bg-accent/50 border-blue-400 hover:bg-accent/70'
-                  }`}>
+                  <div 
+                    key={task.id || index} 
+                    className={`flex items-center justify-between p-4 rounded-lg border-l-4 transition-colors cursor-pointer ${
+                      isOverdue ? 'bg-red-50 border-red-400 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30' : 'bg-accent/50 border-blue-400 hover:bg-accent/70'
+                    }`}
+                    onClick={() => navigate('/tasks')}
+                  >
                     <div className="flex-1">
                       <p className="font-semibold">{task.title}</p>
                       <div className="flex items-center gap-3 mt-2">
@@ -286,7 +296,7 @@ export default function Dashboard() {
                   <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground font-medium">No pending tasks</p>
                   <p className="text-sm text-muted-foreground mt-1">Create or import tasks to see them here</p>
-                  <Button size="sm" className="mt-3">Add First Task</Button>
+                  <Button size="sm" className="mt-3" onClick={() => navigate('/tasks')}>Add First Task</Button>
                 </div>
               )}
             </div>
