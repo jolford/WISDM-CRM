@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
+import { usePasswordChange } from "@/hooks/usePasswordChange"
 import { supabase } from "@/integrations/supabase/client"
 import { 
   User, 
@@ -23,7 +24,8 @@ import {
   Upload,
   Import,
   Moon,
-  Sun
+  Sun,
+  Key
 } from "lucide-react"
 import {
   Tabs,
@@ -43,11 +45,17 @@ import { Separator } from "@/components/ui/separator"
 export default function Settings() {
   const { toast } = useToast()
   const { user, profile } = useAuth()
+  const { changePassword, loading: passwordLoading } = usePasswordChange()
   const [showPassword, setShowPassword] = useState(false)
   const [theme, setTheme] = useState("light")
   const [accentColor, setAccentColor] = useState("blue")
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   const [profileData, setProfileData] = useState({
     first_name: '',
     last_name: '',
@@ -60,6 +68,17 @@ export default function Settings() {
     mobile: true,
     marketing: false
   })
+
+  const handlePasswordUpdate = async () => {
+    const success = await changePassword(passwordData)
+    if (success) {
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+    }
+  }
 
   useEffect(() => {
     // Load saved theme
@@ -448,37 +467,57 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <div className="relative">
-                    <Input 
-                      id="currentPassword" 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Enter current password"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-1/2 -translate-y-1/2"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input id="newPassword" type="password" placeholder="Enter new password" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input id="confirmPassword" type="password" placeholder="Confirm new password" />
-                </div>
-                
-                <Button>Update Password</Button>
+                 <div className="space-y-2">
+                   <Label htmlFor="currentPassword">Current Password</Label>
+                   <div className="relative">
+                     <Input 
+                       id="currentPassword" 
+                       type={showPassword ? "text" : "password"} 
+                       placeholder="Enter current password"
+                       value={passwordData.currentPassword}
+                       onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                     />
+                     <Button
+                       type="button"
+                       variant="ghost"
+                       size="icon"
+                       className="absolute right-2 top-1/2 -translate-y-1/2"
+                       onClick={() => setShowPassword(!showPassword)}
+                     >
+                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                     </Button>
+                   </div>
+                 </div>
+                 
+                 <div className="space-y-2">
+                   <Label htmlFor="newPassword">New Password</Label>
+                   <Input 
+                     id="newPassword" 
+                     type="password" 
+                     placeholder="Enter new password"
+                     value={passwordData.newPassword}
+                     onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                   />
+                   <p className="text-xs text-muted-foreground">
+                     Password must be at least 8 characters with uppercase, lowercase, numbers, and special characters.
+                   </p>
+                 </div>
+                 
+                 <div className="space-y-2">
+                   <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                   <Input 
+                     id="confirmPassword" 
+                     type="password" 
+                     placeholder="Confirm new password"
+                     value={passwordData.confirmPassword}
+                     onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                   />
+                 </div>
+                 
+                 <Button onClick={handlePasswordUpdate} disabled={passwordLoading}>
+                   <Key className="h-4 w-4 mr-2" />
+                   {passwordLoading ? 'Updating...' : 'Update Password'}
+                 </Button>
               </div>
               
               <Separator />

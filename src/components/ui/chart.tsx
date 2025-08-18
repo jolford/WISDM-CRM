@@ -74,28 +74,53 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  )
+  // Create secure CSS styles using CSS custom properties
+  const cssVariables = React.useMemo(() => {
+    const variables: Record<string, string> = {}
+    
+    Object.entries(THEMES).forEach(([theme, prefix]) => {
+      colorConfig.forEach(([key, itemConfig]) => {
+        const color =
+          itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+          itemConfig.color
+        if (color) {
+          const cssVar = `--color-${key}`
+          const selector = prefix ? `${prefix} [data-chart="${id}"]` : `[data-chart="${id}"]`
+          variables[`${selector}-${cssVar}`] = color
+        }
+      })
+    })
+    
+    return variables
+  }, [id, config, colorConfig])
+
+  React.useEffect(() => {
+    // Safely inject CSS custom properties without dangerouslySetInnerHTML
+    Object.entries(cssVariables).forEach(([key, value]) => {
+      const [selector, property] = key.split('-', 2)
+      const elements = document.querySelectorAll(selector)
+      elements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty(property, value)
+        }
+      })
+    })
+
+    return () => {
+      // Cleanup on unmount
+      Object.keys(cssVariables).forEach((key) => {
+        const [selector, property] = key.split('-', 2)
+        const elements = document.querySelectorAll(selector)
+        elements.forEach((element) => {
+          if (element instanceof HTMLElement) {
+            element.style.removeProperty(property)
+          }
+        })
+      })
+    }
+  }, [cssVariables])
+
+  return null
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
