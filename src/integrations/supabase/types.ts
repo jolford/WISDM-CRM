@@ -1410,7 +1410,7 @@ export type Database = {
           "Account Name"?: string | null
           City?: string | null
           "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: string | null
+          "Contact Name"?: never
           "Contact Owner"?: string | null
           Country?: string | null
           County?: string | null
@@ -1459,7 +1459,7 @@ export type Database = {
           "Account Name"?: string | null
           City?: string | null
           "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: string | null
+          "Contact Name"?: never
           "Contact Owner"?: string | null
           Country?: string | null
           County?: string | null
