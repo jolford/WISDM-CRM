@@ -247,11 +247,11 @@ export default function ProjectManagement() {
           <p className="text-muted-foreground">Track projects, time, and billable hours</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => alert('Time Tracker functionality coming soon!')}>
             <Timer className="h-4 w-4 mr-2" />
             Time Tracker
           </Button>
-          <Button>
+          <Button onClick={() => alert('New Project functionality coming soon!')}>
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
@@ -372,7 +372,7 @@ export default function ProjectManagement() {
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => alert('Filter functionality coming soon!')}>
                   <Filter className="h-4 w-4 mr-2" />
                   More Filters
                 </Button>
