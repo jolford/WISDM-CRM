@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +43,7 @@ export default function Accounts() {
   const [sortField, setSortField] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchAccounts()
@@ -74,6 +76,11 @@ export default function Accounts() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleAccountClick = (accountId: string) => {
+    // Navigate to account detail page
+    navigate(`/accounts/${accountId}`)
   }
 
   const handleEdit = (account: any) => {
@@ -308,7 +315,11 @@ export default function Accounts() {
               </TableHeader>
               <TableBody>
                 {filteredAndSortedAccounts.map((account) => (
-                  <TableRow key={account.id} className="hover:bg-muted/50">
+                  <TableRow 
+                    key={account.id} 
+                    className="hover:bg-muted/50 cursor-pointer" 
+                    onClick={() => handleAccountClick(account.id)}
+                  >
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
