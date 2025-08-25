@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
 import Contacts from "./pages/Contacts";
 import Accounts from "./pages/Accounts";
+import AccountDetail from "./pages/AccountDetail";
 import Deals from "./pages/Deals";
 import Tasks from "./pages/Tasks";
 import SupportDesk from "./pages/SupportDesk";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
           <Route path="/accounts" element={<Layout><Accounts /></Layout>} />
+          <Route path="/accounts/:id" element={<Layout><AccountDetail /></Layout>} />
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
