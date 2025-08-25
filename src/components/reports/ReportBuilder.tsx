@@ -920,19 +920,19 @@ export default function ReportBuilder({ reportId, onSave, onCancel }: ReportBuil
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => alert('Export functionality coming soon!')}>
                 <Download className="h-4 w-4 mr-2" />
                 Export to Excel
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => alert('Share functionality coming soon!')}>
                 <Share className="h-4 w-4 mr-2" />
                 Share Report
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => alert('Schedule functionality coming soon!')}>
                 <Clock className="h-4 w-4 mr-2" />
                 Schedule Report
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => alert('Duplicate functionality coming soon!')}>
                 <Copy className="h-4 w-4 mr-2" />
                 Duplicate Report
               </Button>
