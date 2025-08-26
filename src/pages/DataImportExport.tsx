@@ -787,7 +787,9 @@ export default function DataImportExport() {
         // Define timestamp columns that need special handling
         const timestampColumns = new Set([
           'created_time', 'modified_time', 'last_activity_time', 'unsubscribed_time', 
-          'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time'
+          'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time',
+          // Import: tasks.due_date is a timestamptz column and must be parsed/validated
+          'due_date'
         ])
 
         // Define date columns for maintenance records and deals
