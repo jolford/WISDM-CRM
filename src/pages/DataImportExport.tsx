@@ -1201,13 +1201,37 @@ export default function DataImportExport() {
           }
         })
 
-        const tableName =
-                          importType === 'companies' ? 'accounts' : 
-                          importType === 'maintenance' ? 'maintenance_records' : 
-                          importType
-        const { error: insertError } = await supabase
-          .from(tableName)
-          .insert(recordsWithUserId)
+        let insertError;
+        
+        // Handle different import types with proper TypeScript typing
+        if (importType === 'companies') {
+          const { error } = await supabase
+            .from('accounts')
+            .insert(recordsWithUserId)
+          insertError = error;
+        } else if (importType === 'maintenance') {
+          const { error } = await supabase
+            .from('maintenance_records')
+            .insert(recordsWithUserId)
+          insertError = error;
+        } else if (importType === 'tickets') {
+          const { error } = await supabase
+            .from('tickets')
+            .insert(recordsWithUserId)
+          insertError = error;
+        } else if (importType === 'contacts') {
+          const { error } = await supabase
+            .from('contacts')
+            .insert(recordsWithUserId)
+          insertError = error;
+        } else if (importType === 'deals') {
+          const { error } = await supabase
+            .from('deals')
+            .insert(recordsWithUserId)
+          insertError = error;
+        } else {
+          throw new Error(`Unsupported import type: ${importType}`)
+        }
 
         if (insertError) {
           console.error('Database insert error:', insertError)
