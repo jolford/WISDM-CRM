@@ -89,35 +89,35 @@ export default function AdminConsole() {
       title: "System Settings",
       description: "Configure system-wide settings and preferences",
       icon: Settings,
-      action: () => toast({ title: "System Settings", description: "Opening system settings..." }),
+      action: () => navigate('/settings'),
       badge: "Config"
     },
     {
       title: "Database Management",
       description: "View database statistics and perform maintenance",
       icon: Database,
-      action: () => toast({ title: "Database", description: "Opening database management..." }),
+      action: () => navigate('/data-cleanup'),
       badge: "Data"
     },
     {
       title: "Security Audit",
       description: "Review security logs and access patterns",
       icon: Shield,
-      action: () => toast({ title: "Security Audit", description: "Opening security audit..." }),
+      action: () => navigate('/maintenance'),
       badge: "Security"
     },
     {
       title: "Analytics Dashboard",
       description: "View system analytics and performance metrics",
       icon: BarChart3,
-      action: () => toast({ title: "Analytics", description: "Opening analytics dashboard..." }),
+      action: () => navigate('/reports'),
       badge: "Analytics"
     },
     {
       title: "Import/Export",
       description: "Manage data imports and exports",
       icon: Target,
-      action: () => window.location.href = '/data-migration',
+      action: () => navigate('/data-import-export'),
       badge: "Data"
     }
   ];
