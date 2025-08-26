@@ -400,24 +400,25 @@ export default function DataImportExport() {
           }
           } else if (importType === 'tickets') {
             return {
-              'Ticket Number': 'title',
-              'Subject': 'title',
-              'Title': 'title',
+              // Core mappings to tickets table columns
+              'Subject': 'subject',
               'Description': 'description',
-              'Contact Name': 'description', // Append to description since tasks table doesn't have contact_name
-              'Contact': 'description',
-              'Account Name': 'description', // Append to description since tasks table doesn't have company_name
-              'Company': 'description',
               'Status': 'status',
-              'Category': 'task_type',
-              'Type': 'task_type',
-              'Due Date': 'due_date',
-              // Add missing mappings to prevent unmapped fields from causing issues
-              'To Address': null, // Ignore email fields that don't map to tasks table
-              'Email': null,
+              'Priority': 'priority',
+              'Product Name': 'product',
+              'Email': 'email',
+              'Account Name': 'company',
+              'Contact Name': 'customer_name',
+              'Created Time': 'created_at',
+              'Modified Time': 'updated_at',
+              // Optional extras we currently ignore but keep to avoid "No mapping found" logs
+              'Phone': null,
+              'Ticket Id': null,
+              'Ticket Reference Id': null,
+              'Department': null,
+              'Department Id': null,
               'Contact Id': null,
               'Account Id': null,
-              'Product Name': null,
               'Product Id': null,
               'Ticket Owner': null,
               'Ticket Owner Id': null,
@@ -425,11 +426,11 @@ export default function DataImportExport() {
               'Created By Id': null,
               'Modified By': null,
               'Modified By Id': null,
-              'Created Time': null,
-              'Modified Time': null,
               'Resolution': null,
-              'Priority': null,
+              'To Address': null,
+              'Due Date': null,
               'Mode': null,
+              'Category': null,
               'Sub Category': null,
               'Ticket Closed Time': null,
               'Is Overdue': null,
@@ -442,11 +443,7 @@ export default function DataImportExport() {
               'Ticket On Hold Time': null,
               'Language': null,
               'Vendor Ticket Number': null,
-              'Child Ticket Count': null,
-              'Department': null,
-              'Department Id': null,
-              'Ticket Id': null,
-              'Ticket Reference Id': null
+              'Child Ticket Count': null
             }
           } else if (importType === 'deals') {
             return {
@@ -645,12 +642,30 @@ export default function DataImportExport() {
                 
                 // Check if this is a status field that needs enum validation
                 if (mappedField === 'status' && importType === 'tickets') {
+                  const normalize = (raw: string) => {
+                    const lower = raw.toLowerCase().trim()
+                    const map: Record<string, string> = {
+                      'open': 'pending',
+                      'new': 'pending',
+                      'in progress': 'in_progress',
+                      'in_progress': 'in_progress',
+                      'on hold': 'pending',
+                      'hold': 'pending',
+                      'escalated': 'in_progress',
+                      'closed': 'completed',
+                      'resolved': 'completed',
+                      'cancelled': 'cancelled',
+                      'canceled': 'cancelled'
+                    }
+                    return map[lower] ?? lower
+                  }
                   const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled']
-                  if (!validStatuses.includes(value.toLowerCase())) {
-                    console.log(`🚫 Invalid status value "${value}", using default "pending"`)
+                  const normalized = normalize(value)
+                  if (!validStatuses.includes(normalized)) {
+                    console.log(`🚫 Unrecognized status "${value}", normalizing to "pending"`)
                     mappedRecord[mappedField] = 'pending'
                   } else {
-                    mappedRecord[mappedField] = value.toLowerCase()
+                    mappedRecord[mappedField] = normalized
                   }
                 } else if (mappedField === 'task_type' && importType === 'tickets') {
                   const validTaskTypes = ['call', 'email', 'meeting', 'follow_up', 'other']
