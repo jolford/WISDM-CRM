@@ -111,15 +111,17 @@ export default function DataImportExport() {
       { zoho: "Probability", wisdm: "probability" },
     ],
     tickets: [
-      { zoho: "Ticket Number", wisdm: "title" },
-      { zoho: "Subject", wisdm: "title" },
+      { zoho: "Subject", wisdm: "subject" },
       { zoho: "Description", wisdm: "description" },
-      { zoho: "Contact Name", wisdm: "contact" },
+      { zoho: "Contact Name", wisdm: "customer_name" },
       { zoho: "Account Name", wisdm: "company" },
+      { zoho: "Email", wisdm: "email" },
       { zoho: "Priority", wisdm: "priority" },
       { zoho: "Status", wisdm: "status" },
-      { zoho: "Assignee", wisdm: "assignee" },
-      { zoho: "Category", wisdm: "task_type" },
+      { zoho: "Product Name", wisdm: "product" },
+      { zoho: "Attachment URL", wisdm: "attachment_url" },
+      { zoho: "Created Time", wisdm: "created_at" },
+      { zoho: "Modified Time", wisdm: "updated_at" },
     ],
     maintenance: [
       { zoho: "Product Name", wisdm: "product_name" },
@@ -735,9 +737,9 @@ export default function DataImportExport() {
                 'name', 'value', 'stage', 'probability', 'close_date', 'description', 
                 'notes', 'company_id', 'contact_id', 'deal_owner_name', 'company_name', 'contact_name', 'user_id'
               ])
-           } else if (importType === 'tickets') {
+            } else if (importType === 'tickets') {
              return new Set([
-               'title', 'description', 'task_type', 'status', 'due_date', 'user_id'
+               'subject', 'description', 'status', 'priority', 'product', 'customer_name', 'email', 'company', 'attachment_url', 'created_at', 'updated_at', 'user_id'
              ])
            } else if (importType === 'maintenance') {
              return new Set([
@@ -788,8 +790,7 @@ export default function DataImportExport() {
         const timestampColumns = new Set([
           'created_time', 'modified_time', 'last_activity_time', 'unsubscribed_time', 
           'change_log_time', 'first_visit', 'most_recent_visit', 'last_enriched_time',
-          // Import: tasks.due_date is a timestamptz column and must be parsed/validated
-          'due_date'
+          'created_at', 'updated_at'
         ])
 
         // Define date columns for maintenance records and deals
@@ -1051,27 +1052,9 @@ export default function DataImportExport() {
               cleanRecord.name = 'Unknown Company'
             }
           } else if (importType === 'tickets') {
-            // title is NOT NULL in tasks table (using tasks table for tickets)
-            if (!cleanRecord.title || cleanRecord.title.trim() === '') {
-              cleanRecord.title = 'Imported Ticket'
-            }
-            // Set default task_type if not provided
-            if (!cleanRecord.task_type) {
-              cleanRecord.task_type = 'other'
-            }
-            // Validate and set status - only allow valid enum values
-            const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled']
-            if (!cleanRecord.status || !validStatuses.includes(cleanRecord.status.toLowerCase())) {
-              cleanRecord.status = 'pending'
-            } else {
-              cleanRecord.status = cleanRecord.status.toLowerCase()
-            }
-            // Validate and set task_type - only allow valid enum values  
-            const validTaskTypes = ['call', 'email', 'meeting', 'follow_up', 'other']
-            if (!cleanRecord.task_type || !validTaskTypes.includes(cleanRecord.task_type.toLowerCase())) {
-              cleanRecord.task_type = 'other'
-            } else {
-              cleanRecord.task_type = cleanRecord.task_type.toLowerCase()
+            // subject is required in tickets table
+            if (!cleanRecord.subject || cleanRecord.subject.trim() === '') {
+              cleanRecord.subject = 'Imported Ticket'
             }
           } else if (importType === 'maintenance') {
             // product_name and product_type are NOT NULL in maintenance_records table
@@ -1098,40 +1081,40 @@ export default function DataImportExport() {
               cleanRecord.renewal_reminder_days = 30
             }
             console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
-           } else if (importType === 'deals') {
-             // name is NOT NULL in deals table
-             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
-               console.warn('⚠️ Deal name is missing, setting default. Original record:', record)
-               cleanRecord.name = 'Imported Deal'
-             }
-             // Set default stage if not provided or invalid
-             const validStages = ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']
-             if (!cleanRecord.stage || !validStages.includes(cleanRecord.stage.toLowerCase())) {
-               cleanRecord.stage = 'prospect'
-             } else {
-               cleanRecord.stage = cleanRecord.stage.toLowerCase()
-             }
-             // Ensure numeric fields are properly handled and constrained
-             if (cleanRecord.value && typeof cleanRecord.value === 'string') {
-               const valueNum = parseFloat(cleanRecord.value) || 0
-               cleanRecord.value = Math.max(0, valueNum) // Ensure non-negative
-             }
-             if (cleanRecord.probability && typeof cleanRecord.probability === 'string') {
-               let probNum = parseInt(cleanRecord.probability) || 0
-               // Ensure probability is between 0 and 100
-               probNum = Math.max(0, Math.min(100, probNum))
-               cleanRecord.probability = probNum
-               console.log(`📊 Adjusted probability from "${cleanRecord.probability}" to ${probNum}`)
-             } else if (typeof cleanRecord.probability === 'number') {
-               // Also constrain if it's already a number
-               let probNum = cleanRecord.probability
-               probNum = Math.max(0, Math.min(100, probNum))
-               cleanRecord.probability = probNum
-             }
-             // Set default probability if not provided
-             if (!cleanRecord.probability && cleanRecord.probability !== 0) {
-               cleanRecord.probability = 0
-             }
+          } else if (importType === 'deals') {
+            // name is NOT NULL in deals table
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              console.warn('⚠️ Deal name is missing, setting default. Original record:', record)
+              cleanRecord.name = 'Imported Deal'
+            }
+            // Set default stage if not provided or invalid
+            const validStages = ['prospect', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']
+            if (!cleanRecord.stage || !validStages.includes(cleanRecord.stage.toLowerCase())) {
+              cleanRecord.stage = 'prospect'
+            } else {
+              cleanRecord.stage = cleanRecord.stage.toLowerCase()
+            }
+            // Ensure numeric fields are properly handled and constrained
+            if (cleanRecord.value && typeof cleanRecord.value === 'string') {
+              const valueNum = parseFloat(cleanRecord.value) || 0
+              cleanRecord.value = Math.max(0, valueNum) // Ensure non-negative
+            }
+            if (cleanRecord.probability && typeof cleanRecord.probability === 'string') {
+              let probNum = parseInt(cleanRecord.probability) || 0
+              // Ensure probability is between 0 and 100
+              probNum = Math.max(0, Math.min(100, probNum))
+              cleanRecord.probability = probNum
+              console.log(`📊 Adjusted probability from "${cleanRecord.probability}" to ${probNum}`)
+            } else if (typeof cleanRecord.probability === 'number') {
+              // Also constrain if it's already a number
+              let probNum = cleanRecord.probability
+              probNum = Math.max(0, Math.min(100, probNum))
+              cleanRecord.probability = probNum
+            }
+            // Set default probability if not provided
+            if (!cleanRecord.probability && cleanRecord.probability !== 0) {
+              cleanRecord.probability = 0
+            }
           } else if (importType === 'vendors') {
             // name is NOT NULL in vendors table
             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
@@ -1153,25 +1136,25 @@ export default function DataImportExport() {
             if (!cleanRecord.probability) {
               cleanRecord.probability = 100
             }
-           } else if (importType === 'reports') {
-             // If report_type contains descriptive text and name is empty, use report_type as name
-             if ((!cleanRecord.name || cleanRecord.name.trim() === '') && 
-                 cleanRecord.report_type && cleanRecord.report_type.trim() !== '') {
-               cleanRecord.name = cleanRecord.report_type
-               cleanRecord.report_type = 'custom'
-             }
-             // Set default name if still empty
-             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
-               cleanRecord.name = 'Unknown Report'
-             }
-             // Set default report_type if not provided
-             if (!cleanRecord.report_type || cleanRecord.report_type.trim() === '') {
-               cleanRecord.report_type = 'custom'
-             }
-             // Set default is_active if not provided
-             if (cleanRecord.is_active === undefined || cleanRecord.is_active === null) {
-               cleanRecord.is_active = true
-             }
+          } else if (importType === 'reports') {
+            // If report_type contains descriptive text and name is empty, use report_type as name
+            if ((!cleanRecord.name || cleanRecord.name.trim() === '') && 
+                cleanRecord.report_type && cleanRecord.report_type.trim() !== '') {
+              cleanRecord.name = cleanRecord.report_type
+              cleanRecord.report_type = 'custom'
+            }
+            // Set default name if still empty
+            if (!cleanRecord.name || cleanRecord.name.trim() === '') {
+              cleanRecord.name = 'Unknown Report'
+            }
+            // Set default report_type if not provided
+            if (!cleanRecord.report_type || cleanRecord.report_type.trim() === '') {
+              cleanRecord.report_type = 'custom'
+            }
+            // Set default is_active if not provided
+            if (cleanRecord.is_active === undefined || cleanRecord.is_active === null) {
+              cleanRecord.is_active = true
+            }
           }
           
           return cleanRecord
@@ -1184,7 +1167,7 @@ export default function DataImportExport() {
           } else if (importType === 'companies') {
             hasRequiredFields = record.name
           } else if (importType === 'tickets') {
-            hasRequiredFields = record.title
+            hasRequiredFields = record.subject || record.description
           } else if (importType === 'maintenance') {
             hasRequiredFields = record.product_name && record.product_type
           } else if (importType === 'vendors') {
@@ -1218,9 +1201,10 @@ export default function DataImportExport() {
           }
         })
 
-        const tableName = importType === 'tickets' ? 'tasks' : 
+        const tableName =
+                          importType === 'companies' ? 'accounts' : 
                           importType === 'maintenance' ? 'maintenance_records' : 
-                          importType as 'contacts' | 'accounts' | 'deals' | 'vendors' | 'forecasts' | 'reports'
+                          importType
         const { error: insertError } = await supabase
           .from(tableName)
           .insert(recordsWithUserId)
@@ -1451,7 +1435,7 @@ export default function DataImportExport() {
                         <SelectItem value="vendors">Vendors</SelectItem>
                         <SelectItem value="forecasts">Forecasts</SelectItem>
                         <SelectItem value="reports">Reports</SelectItem>
-                        <SelectItem value="tickets">Tasks/Support Tickets</SelectItem>
+                        <SelectItem value="tickets">Support Tickets</SelectItem>
                         <SelectItem value="maintenance">Maintenance Records</SelectItem>
                    </SelectContent>
                 </Select>
