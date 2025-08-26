@@ -211,7 +211,7 @@ export default function InteractiveDrilldown() {
     const { data: deals } = await supabase
       .from('deals')
       .select('*')
-      .eq('deal_owner', currentLevel.id)
+      .eq('deal_owner_name', currentLevel.id)
       .gte('created_at', new Date(Date.now() - parseInt(filters.dateRange) * 24 * 60 * 60 * 1000).toISOString());
 
     if (!deals) return [];
@@ -541,10 +541,9 @@ export default function InteractiveDrilldown() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <TreeMap
+              <Treemap
                 data={data}
                 dataKey="value"
-                ratio={4/3}
                 stroke="#fff"
                 fill="hsl(var(--primary))"
               />

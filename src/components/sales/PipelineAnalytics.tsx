@@ -384,7 +384,7 @@ export default function PipelineAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="stage" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Conversion Rate']} />
+                  <Tooltip formatter={(value) => [`${typeof value === 'number' ? value.toFixed(1) : value}%`, 'Conversion Rate']} />
                   <Bar dataKey="conversionRate" fill="hsl(var(--chart-2))" />
                 </BarChart>
               </ResponsiveContainer>
