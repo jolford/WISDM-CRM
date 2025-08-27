@@ -155,7 +155,7 @@ export default function AdminConsole() {
       {/* Admin Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {adminActions.map((action, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={action.action}>
+          <Card key={index} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <action.icon className="h-6 w-6 text-primary" />
@@ -165,7 +165,16 @@ export default function AdminConsole() {
               <CardDescription>{action.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log(`Navigating to: ${action.title}`);
+                  action.action();
+                }}
+              >
                 Open
               </Button>
             </CardContent>
