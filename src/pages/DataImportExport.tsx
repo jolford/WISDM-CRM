@@ -1536,22 +1536,43 @@ export default function DataImportExport() {
           {/* Field Mapping */}
           <Card>
             <CardHeader>
-              <CardTitle>Field Mapping Preview</CardTitle>
+              <CardTitle>Field Mapping</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Adjust how your CSV columns map to WISDM CRM fields:
+              </p>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Here's how your Zoho CRM fields will map to WISDM CRM:
-                </p>
                 {sampleMappings[importType as keyof typeof sampleMappings].map((mapping, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium">{mapping.zoho}</span>
+                  <div key={index} className="grid grid-cols-3 gap-4 items-center p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <Input 
+                        value={mapping.zoho} 
+                        onChange={(e) => {
+                          const newMappings = [...sampleMappings[importType as keyof typeof sampleMappings]];
+                          newMappings[index] = { ...newMappings[index], zoho: e.target.value };
+                          // Update the mapping
+                        }}
+                        placeholder="CSV Column Name"
+                        className="text-sm"
+                      />
+                      <label className="text-xs text-muted-foreground">Your CSV Column</label>
+                    </div>
+                    <div className="flex justify-center">
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">{mapping.wisdm}</span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">{mapping.wisdm}</span>
+                      <div className="text-xs text-muted-foreground">WISDM Field</div>
                     </div>
                   </div>
                 ))}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> Make sure your CSV column headers match exactly. 
+                    For tickets, "Subject" should map to the subject field.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
