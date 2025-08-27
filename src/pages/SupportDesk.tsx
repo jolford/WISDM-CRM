@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, TicketIcon, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Search, TicketIcon, Clock, AlertCircle, CheckCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 interface Ticket {
   id: string;
@@ -30,6 +30,8 @@ const SupportDesk: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [sortField, setSortField] = useState<keyof Ticket>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     loadTickets();
@@ -57,14 +59,50 @@ const SupportDesk: React.FC = () => {
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  const handleSort = (field: keyof Ticket) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: keyof Ticket) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    return sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+  };
+
+  const filteredAndSortedTickets = tickets
+    .filter(ticket => {
+      const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           ticket.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+      const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
+      
+      return matchesSearch && matchesStatus && matchesPriority;
+    })
+    .sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      if (sortField === "created_at") {
+        const aDate = new Date(aValue).getTime();
+        const bDate = new Date(bValue).getTime();
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
+      }
+      
+      const aStr = String(aValue || "").toLowerCase();
+      const bStr = String(bValue || "").toLowerCase();
+      
+      if (sortDirection === "asc") {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
+    });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -238,7 +276,7 @@ const SupportDesk: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredTickets.length === 0 ? (
+            {filteredAndSortedTickets.length === 0 ? (
               <div className="text-center py-12">
                 <TicketIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No tickets found</h3>
@@ -257,15 +295,55 @@ const SupportDesk: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("subject")}
+                    >
+                      <div className="flex items-center gap-2">
+                        Subject
+                        {getSortIcon("subject")}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("status")}
+                    >
+                      <div className="flex items-center gap-2">
+                        Status
+                        {getSortIcon("status")}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("priority")}
+                    >
+                      <div className="flex items-center gap-2">
+                        Priority
+                        {getSortIcon("priority")}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("product")}
+                    >
+                      <div className="flex items-center gap-2">
+                        Product
+                        {getSortIcon("product")}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort("created_at")}
+                    >
+                      <div className="flex items-center gap-2">
+                        Created
+                        {getSortIcon("created_at")}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTickets.map((ticket) => (
+                  {filteredAndSortedTickets.map((ticket) => (
                     <TableRow 
                       key={ticket.id} 
                       className="cursor-pointer hover:bg-muted/50"
