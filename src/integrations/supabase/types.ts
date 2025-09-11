@@ -1410,7 +1410,7 @@ export type Database = {
           "Account Name"?: string | null
           City?: string | null
           "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: never
+          "Contact Name"?: string | null
           "Contact Owner"?: string | null
           Country?: string | null
           County?: string | null
@@ -1459,7 +1459,7 @@ export type Database = {
           "Account Name"?: string | null
           City?: string | null
           "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: never
+          "Contact Name"?: string | null
           "Contact Owner"?: string | null
           Country?: string | null
           County?: string | null
@@ -1515,6 +1515,26 @@ export type Database = {
           expected_value: number | null
           stage: Database["public"]["Enums"]["deal_stage"] | null
           total_sales: number | null
+        }
+        Insert: {
+          account_name?: string | null
+          contact_name?: string | null
+          deal_id?: string | null
+          deal_name?: string | null
+          deal_owner_name?: string | null
+          expected_value?: number | null
+          stage?: Database["public"]["Enums"]["deal_stage"] | null
+          total_sales?: never
+        }
+        Update: {
+          account_name?: string | null
+          contact_name?: string | null
+          deal_id?: string | null
+          deal_name?: string | null
+          deal_owner_name?: string | null
+          expected_value?: number | null
+          stage?: Database["public"]["Enums"]["deal_stage"] | null
+          total_sales?: never
         }
         Relationships: []
       }
