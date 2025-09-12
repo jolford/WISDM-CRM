@@ -1524,7 +1524,7 @@ export type Database = {
           deal_owner_name?: string | null
           expected_value?: number | null
           stage?: Database["public"]["Enums"]["deal_stage"] | null
-          total_sales?: never
+          total_sales?: number | null
         }
         Update: {
           account_name?: string | null
@@ -1534,7 +1534,7 @@ export type Database = {
           deal_owner_name?: string | null
           expected_value?: number | null
           stage?: Database["public"]["Enums"]["deal_stage"] | null
-          total_sales?: never
+          total_sales?: number | null
         }
         Relationships: []
       }
