@@ -136,11 +136,13 @@ const CreateTicket: React.FC = () => {
                       <SelectValue placeholder="Select product" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="crm">CRM System</SelectItem>
-                      <SelectItem value="reports">Reporting Module</SelectItem>
-                      <SelectItem value="maintenance">Maintenance Tracking</SelectItem>
-                      <SelectItem value="general">General Support</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="filebound">FileBound</SelectItem>
+                      <SelectItem value="psigen">PSIGEN</SelectItem>
+                      <SelectItem value="applicationxtender">ApplicationXtender</SelectItem>
+                      <SelectItem value="tangent">Tangent</SelectItem>
+                      <SelectItem value="fujitsu">Fujitsu</SelectItem>
+                      <SelectItem value="kodak">Kodak</SelectItem>
+                      <SelectItem value="parascript">Parascript</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
