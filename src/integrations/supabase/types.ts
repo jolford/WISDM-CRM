@@ -1359,18 +1359,18 @@ export type Database = {
         Row: {
           "Account Egnyte Link": string | null
           "Account Name": string | null
-          City: string | null
+          city: string | null
           "Conferences & Organizations Attended": string | null
           "Contact Name": string | null
           "Contact Owner": string | null
-          Country: string | null
-          County: string | null
+          country: string | null
+          county: string | null
           "Created By": string | null
           created_at: string | null
-          Department: string | null
-          Description: string | null
+          department: string | null
+          description: string | null
           "Direct Phone": string | null
-          Email: string | null
+          email: string | null
           "Email Opt Out": boolean | null
           "Enrich Status": string | null
           "First Name": string | null
@@ -1381,23 +1381,23 @@ export type Database = {
           "Last Name": string | null
           "Lead Source": string | null
           "LinkedIn Connection": string | null
-          Mobile: string | null
+          mobile: string | null
           "Modified By": string | null
           "Name Pronunciation": string | null
           notes: string | null
-          Phone: string | null
+          phone: string | null
           "Record Id": string | null
           "Reference Egnyte Link": string | null
           "Reference Services Products & Solutions": string | null
           "Reference Subject Matter, Use Case & Department": string | null
           "Reference Type": string | null
-          Referrer: string | null
+          referrer: string | null
           "Role in deals": string | null
-          Salutation: string | null
-          State: string | null
-          Street: string | null
+          salutation: string | null
+          state: string | null
+          street: string | null
           Tag: string | null
-          Title: string | null
+          title: string | null
           "Unsubscribed Mode": string | null
           "Unsubscribed Time": string | null
           updated_at: string | null
@@ -1408,18 +1408,18 @@ export type Database = {
         Insert: {
           "Account Egnyte Link"?: string | null
           "Account Name"?: string | null
-          City?: string | null
+          city?: string | null
           "Conferences & Organizations Attended"?: string | null
           "Contact Name"?: string | null
           "Contact Owner"?: string | null
-          Country?: string | null
-          County?: string | null
+          country?: string | null
+          county?: string | null
           "Created By"?: string | null
           created_at?: string | null
-          Department?: string | null
-          Description?: string | null
+          department?: string | null
+          description?: string | null
           "Direct Phone"?: string | null
-          Email?: string | null
+          email?: string | null
           "Email Opt Out"?: boolean | null
           "Enrich Status"?: string | null
           "First Name"?: string | null
@@ -1430,23 +1430,23 @@ export type Database = {
           "Last Name"?: string | null
           "Lead Source"?: string | null
           "LinkedIn Connection"?: string | null
-          Mobile?: string | null
+          mobile?: string | null
           "Modified By"?: string | null
           "Name Pronunciation"?: string | null
           notes?: string | null
-          Phone?: string | null
+          phone?: string | null
           "Record Id"?: string | null
           "Reference Egnyte Link"?: string | null
           "Reference Services Products & Solutions"?: string | null
           "Reference Subject Matter, Use Case & Department"?: string | null
           "Reference Type"?: string | null
-          Referrer?: string | null
+          referrer?: string | null
           "Role in deals"?: string | null
-          Salutation?: string | null
-          State?: string | null
-          Street?: string | null
+          salutation?: string | null
+          state?: string | null
+          street?: string | null
           Tag?: string | null
-          Title?: string | null
+          title?: string | null
           "Unsubscribed Mode"?: string | null
           "Unsubscribed Time"?: string | null
           updated_at?: string | null
@@ -1457,18 +1457,18 @@ export type Database = {
         Update: {
           "Account Egnyte Link"?: string | null
           "Account Name"?: string | null
-          City?: string | null
+          city?: string | null
           "Conferences & Organizations Attended"?: string | null
           "Contact Name"?: string | null
           "Contact Owner"?: string | null
-          Country?: string | null
-          County?: string | null
+          country?: string | null
+          county?: string | null
           "Created By"?: string | null
           created_at?: string | null
-          Department?: string | null
-          Description?: string | null
+          department?: string | null
+          description?: string | null
           "Direct Phone"?: string | null
-          Email?: string | null
+          email?: string | null
           "Email Opt Out"?: boolean | null
           "Enrich Status"?: string | null
           "First Name"?: string | null
@@ -1479,23 +1479,23 @@ export type Database = {
           "Last Name"?: string | null
           "Lead Source"?: string | null
           "LinkedIn Connection"?: string | null
-          Mobile?: string | null
+          mobile?: string | null
           "Modified By"?: string | null
           "Name Pronunciation"?: string | null
           notes?: string | null
-          Phone?: string | null
+          phone?: string | null
           "Record Id"?: string | null
           "Reference Egnyte Link"?: string | null
           "Reference Services Products & Solutions"?: string | null
           "Reference Subject Matter, Use Case & Department"?: string | null
           "Reference Type"?: string | null
-          Referrer?: string | null
+          referrer?: string | null
           "Role in deals"?: string | null
-          Salutation?: string | null
-          State?: string | null
-          Street?: string | null
+          salutation?: string | null
+          state?: string | null
+          street?: string | null
           Tag?: string | null
-          Title?: string | null
+          title?: string | null
           "Unsubscribed Mode"?: string | null
           "Unsubscribed Time"?: string | null
           updated_at?: string | null
