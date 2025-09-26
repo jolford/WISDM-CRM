@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_attempts: {
+        Row: {
+          attempt_type: string
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: unknown | null
+          success: boolean | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_type: string
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_type?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       automation_actions: {
         Row: {
           action_type: string
@@ -1242,6 +1272,36 @@ export type Database = {
           },
         ]
       }
+      security_events: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          email: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          email?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          email?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           account_id: string | null
@@ -1543,6 +1603,10 @@ export type Database = {
       check_import_rate_limit: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      cleanup_old_auth_attempts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_contacts_export_data: {
         Args: { requesting_user_id?: string }
