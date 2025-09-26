@@ -44,6 +44,7 @@ import {
 import MaintenanceTracking from "@/components/MaintenanceTracking";
 import MaintenanceImport from "@/components/MaintenanceImport";
 import NotificationSettings from "@/components/NotificationSettings";
+import MaintenanceExpirationReport from "@/components/MaintenanceExpirationReport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Maintenance() {
@@ -59,14 +60,19 @@ export default function Maintenance() {
       </div>
 
       <Tabs defaultValue="records" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="records">Maintenance Records</TabsTrigger>
+          <TabsTrigger value="reports">Expiration Reports</TabsTrigger>
           <TabsTrigger value="import">Import Data</TabsTrigger>
           <TabsTrigger value="notifications">Notification Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="records" className="mt-6">
           <MaintenanceTracking />
+        </TabsContent>
+        
+        <TabsContent value="reports" className="mt-6">
+          <MaintenanceExpirationReport />
         </TabsContent>
         
         <TabsContent value="import" className="mt-6">
