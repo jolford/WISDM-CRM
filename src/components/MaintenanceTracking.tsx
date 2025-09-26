@@ -92,9 +92,26 @@ export default function MaintenanceTracking() {
   });
 
   useEffect(() => {
-    fetchRecords();
-    fetchAccounts();
+    (async () => {
+      await cleanupUnknownRecords();
+      await fetchRecords();
+      await fetchAccounts();
+    })();
   }, []);
+
+  const cleanupUnknownRecords = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from('maintenance_records')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('product_name', 'Unknown Product');
+    } catch (e) {
+      // silent cleanup
+    }
+  };
 
   const fetchRecords = async () => {
     try {
@@ -110,7 +127,8 @@ export default function MaintenanceTracking() {
         .order('end_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      setRecords((data || []) as MaintenanceRecord[]);
+      const cleaned = ((data || []) as MaintenanceRecord[]).filter(r => (r.product_name || '').toLowerCase() !== 'unknown product');
+      setRecords(cleaned);
     } catch (error) {
       console.error('Error fetching maintenance records:', error);
       toast({
