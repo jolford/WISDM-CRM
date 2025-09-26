@@ -175,6 +175,21 @@ export default {
 				'rotate-slow': {
 					from: { transform: 'rotate(0deg)' },
 					to: { transform: 'rotate(360deg)' }
+				},
+				'holographic': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' }
+				},
+				'aurora-dance': {
+					'0%, 100%': { transform: 'translateX(0%) rotate(0deg)', opacity: '0.8' },
+					'25%': { transform: 'translateX(100%) rotate(90deg)', opacity: '0.6' },
+					'50%': { transform: 'translateX(50%) rotate(180deg)', opacity: '1' },
+					'75%': { transform: 'translateX(-50%) rotate(270deg)', opacity: '0.7' }
+				},
+				'mesh-move': {
+					'0%, 100%': { backgroundPosition: '0% 0%, 100% 0%, 0% 100%' },
+					'33%': { backgroundPosition: '100% 100%, 0% 100%, 100% 0%' },
+					'66%': { backgroundPosition: '50% 50%, 50% 0%, 0% 50%' }
 				}
 			},
 			animation: {
@@ -195,6 +210,9 @@ export default {
 				'float': 'float 3s ease-in-out infinite',
 				'pulse-ring': 'pulse-ring 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite',
 				'rotate-slow': 'rotate-slow 10s linear infinite',
+				'holographic': 'holographic 4s ease-in-out infinite',
+				'aurora-dance': 'aurora-dance 8s ease-in-out infinite',
+				'mesh-move': 'mesh-move 20s ease-in-out infinite',
 				'enter': 'fade-in 0.3s ease-out, scale-in 0.2s ease-out',
 				'exit': 'fade-out 0.3s ease-out, scale-out 0.2s ease-out'
 			},

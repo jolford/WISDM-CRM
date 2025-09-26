@@ -33,8 +33,9 @@ export default function Layout({ children }: LayoutProps) {
 
           <div className="flex-1 flex flex-col">
             {/* Header */}
-            <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-              <div className="flex items-center justify-between h-full px-6">
+            <header className="h-16 border-b bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-soft">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-1/5"></div>
+              <div className="relative flex items-center justify-between h-full px-6">
                 <div className="flex items-center gap-4">
                   <SidebarTrigger />
                   <div className="relative">
@@ -93,8 +94,18 @@ export default function Layout({ children }: LayoutProps) {
             <main className="flex-1 p-6">{children}</main>
 
             {/* Footer */}
-            <footer className="text-center text-sm text-gray-400 py-4 border-t">
-              Developed by <strong>Jeremy Olford</strong> © 2025
+            <footer className="relative text-center text-sm py-6 border-t border-border/50 bg-gradient-to-r from-background/50 via-background to-background/50 backdrop-blur-sm">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-3/5 opacity-30"></div>
+              <div className="relative">
+                <p className="text-gradient font-medium">
+                  Developed by <span className="text-holographic font-bold">Jeremy Olford</span> © 2025
+                </p>
+                <div className="mt-2 flex justify-center space-x-2">
+                  <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
+                  <div className="w-1 h-1 bg-chart-1 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                  <div className="w-1 h-1 bg-chart-3 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                </div>
+              </div>
             </footer>
           </div>
         </div>

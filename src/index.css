@@ -56,6 +56,8 @@ All colors MUST be HSL.
     --gradient-hero: linear-gradient(135deg, hsl(261 78% 61%) 0%, hsl(230 100% 70%) 35%, hsl(197 100% 65%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(261 20% 98%));
     --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.1), hsl(261 78% 95% / 0.1));
+    --gradient-aurora: linear-gradient(135deg, hsl(300 100% 80%) 0%, hsl(180 100% 70%) 25%, hsl(60 100% 80%) 50%, hsl(240 100% 80%) 75%, hsl(320 100% 75%) 100%);
+    --gradient-cosmic: radial-gradient(ellipse at top, hsl(261 78% 61% / 0.4) 0%, transparent 70%), radial-gradient(ellipse at bottom right, hsl(197 100% 65% / 0.3) 0%, transparent 70%), radial-gradient(ellipse at bottom left, hsl(142 71% 45% / 0.2) 0%, transparent 70%);
     --gradient-mesh: radial-gradient(circle at 20% 50%, hsl(261 78% 61% / 0.3) 0%, transparent 50%), 
                      radial-gradient(circle at 80% 20%, hsl(197 100% 65% / 0.3) 0%, transparent 50%), 
                      radial-gradient(circle at 40% 80%, hsl(142 71% 45% / 0.2) 0%, transparent 50%);
@@ -67,6 +69,8 @@ All colors MUST be HSL.
     --shadow-glow: 0 0 20px hsl(261 78% 61% / 0.5), 0 0 40px hsl(261 78% 61% / 0.3);
     --shadow-glass: 0 8px 32px hsl(261 78% 61% / 0.12);
     --shadow-colored: 0 10px 25px hsl(261 78% 61% / 0.25), 0 20px 40px hsl(197 100% 65% / 0.15);
+    --shadow-aurora: 0 0 80px hsl(300 100% 80% / 0.3), 0 0 120px hsl(180 100% 70% / 0.2);
+    --shadow-neon: 0 0 20px hsl(261 78% 61%), 0 0 40px hsl(261 78% 61%), 0 0 80px hsl(261 78% 61%);
 
     --radius: 12px;
     --radius-sm: 8px;
@@ -145,8 +149,10 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background-image: var(--gradient-mesh);
+    background-image: var(--gradient-cosmic);
+    background-attachment: fixed;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   html {
@@ -175,12 +181,31 @@ All colors MUST be HSL.
     @apply hover:shadow-glow transition-all duration-300;
   }
 
+  .btn-aurora {
+    background: var(--gradient-aurora);
+    @apply text-white font-bold relative overflow-hidden;
+    box-shadow: var(--shadow-aurora);
+    @apply hover:shadow-glow transition-all duration-300;
+    animation: aurora-dance 8s ease-in-out infinite;
+  }
+
   /* Spectacular Card Variants */
   .card-spectacular {
     @apply bg-gradient-to-br from-card to-accent/5 border border-border/50;
-    @apply backdrop-blur-sm;
+    @apply backdrop-blur-sm relative overflow-hidden;
     box-shadow: var(--shadow-medium);
     @apply hover:shadow-large transition-all duration-300;
+  }
+
+  .card-spectacular::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
+    animation: shimmer 3s ease-in-out infinite;
   }
 
   .card-glass {
@@ -193,6 +218,12 @@ All colors MUST be HSL.
     background: var(--gradient-hero);
     @apply text-white border-0;
     box-shadow: var(--shadow-colored);
+  }
+
+  .card-aurora {
+    background: var(--gradient-aurora);
+    @apply backdrop-blur-sm border-0 text-white relative overflow-hidden;
+    box-shadow: var(--shadow-aurora);
   }
 
   /* Animated Elements */
@@ -240,6 +271,22 @@ All colors MUST be HSL.
     background-clip: text;
   }
 
+  .text-gradient-aurora {
+    background: var(--gradient-aurora);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-holographic {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: holographic 4s ease-in-out infinite;
+  }
+
   /* Loading States */
   .skeleton {
     @apply animate-pulse bg-gradient-to-r from-muted via-muted/50 to-muted;
@@ -255,6 +302,27 @@ All colors MUST be HSL.
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-3d {
+    transform-style: preserve-3d;
+  }
+
+  .bg-mesh-animated {
+    background: var(--gradient-cosmic);
+    animation: mesh-move 20s ease-in-out infinite;
+  }
+
+  .shadow-aurora {
+    box-shadow: var(--shadow-aurora);
+  }
+
+  .shadow-neon {
+    box-shadow: var(--shadow-neon);
   }
 
   .shadow-soft {
@@ -332,5 +400,45 @@ All colors MUST be HSL.
   80%, 100% {
     transform: scale(2);
     opacity: 0;
+  }
+}
+
+@keyframes holographic {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes mesh-move {
+  0%, 100% {
+    background-position: 0% 0%, 100% 0%, 0% 100%;
+  }
+  33% {
+    background-position: 100% 100%, 0% 100%, 100% 0%;
+  }
+  66% {
+    background-position: 50% 50%, 50% 0%, 0% 50%;
+  }
+}
+
+@keyframes aurora-dance {
+  0%, 100% {
+    transform: translateX(0%) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translateX(100%) rotate(90deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(50%) rotate(180deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(-50%) rotate(270deg);
+    opacity: 0.7;
   }
 }
