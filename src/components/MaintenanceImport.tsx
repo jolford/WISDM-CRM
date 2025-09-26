@@ -342,20 +342,20 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-border">
+              <table className="w-full table-fixed border-collapse border border-border">
                 <thead>
                   <tr className="bg-muted">
-                    <th className="border border-border p-2 text-left">Account Name</th>
-                    <th className="border border-border p-2 text-left">Purchase Date</th>
-                    <th className="border border-border p-2 text-left">Start Date</th>
-                    <th className="border border-border p-2 text-left">End Date</th>
-                    <th className="border border-border p-2 text-left">Products</th>
-                    <th className="border border-border p-2 text-left">Serial Number</th>
-                    <th className="border border-border p-2 text-left">Income</th>
-                    <th className="border border-border p-2 text-left">COGS</th>
-                    <th className="border border-border p-2 text-left">Profit</th>
-                    <th className="border border-border p-2 text-left">Margin %</th>
-                    <th className="border border-border p-2 text-left">Notes (Hardware Maintenance)</th>
+                    <th className="border border-border p-2 text-left w-48">Account Name</th>
+                    <th className="border border-border p-2 text-left w-32">Purchase Date</th>
+                    <th className="border border-border p-2 text-left w-32">Start Date</th>
+                    <th className="border border-border p-2 text-left w-32">End Date</th>
+                    <th className="border border-border p-2 text-left w-64">Products</th>
+                    <th className="border border-border p-2 text-left w-40">Serial Number</th>
+                    <th className="border border-border p-2 text-left w-24">Income</th>
+                    <th className="border border-border p-2 text-left w-24">COGS</th>
+                    <th className="border border-border p-2 text-left w-24">Profit</th>
+                    <th className="border border-border p-2 text-left w-24">Margin %</th>
+                    <th className="border border-border p-2 text-left w-64">Notes (Hardware Maintenance)</th>
                   </tr>
                 </thead>
                 <tbody>

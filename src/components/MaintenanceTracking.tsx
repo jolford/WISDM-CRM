@@ -603,75 +603,21 @@ export default function MaintenanceTracking() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('vendor_name')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Account Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('purchase_date')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Purchase Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('start_date')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Start Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('end_date')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    End Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('product_name')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Products
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>Serial Number</TableHead>
-                <TableHead>Income</TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('cost')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    COGS
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>Profit</TableHead>
-                <TableHead>Margin %</TableHead>
-                <TableHead>Notes (Hardware Maintenance)</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="w-48">Account Name</TableHead>
+                <TableHead className="w-32">Purchase Date</TableHead>
+                <TableHead className="w-32">Start Date</TableHead>
+                <TableHead className="w-32">End Date</TableHead>
+                <TableHead className="w-64">Products</TableHead>
+                <TableHead className="w-40">Serial Number</TableHead>
+                <TableHead className="w-24">Income</TableHead>
+                <TableHead className="w-24">COGS</TableHead>
+                <TableHead className="w-24">Profit</TableHead>
+                <TableHead className="w-24">Margin %</TableHead>
+                <TableHead className="w-64">Notes (Hardware Maintenance)</TableHead>
+                <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
