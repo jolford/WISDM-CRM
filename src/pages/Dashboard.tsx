@@ -72,15 +72,37 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
+            <Card key={i} className="card-spectacular">
               <CardContent className="p-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div className="space-y-4">
+                  <div className="skeleton h-4 rounded w-3/4"></div>
+                  <div className="skeleton h-8 rounded w-1/2"></div>
                 </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="card-spectacular">
+            <CardHeader>
+              <div className="skeleton h-6 rounded w-1/2"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="skeleton h-64 rounded"></div>
+            </CardContent>
+          </Card>
+          <Card className="card-spectacular">
+            <CardHeader>
+              <div className="skeleton h-6 rounded w-1/2"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="skeleton h-16 rounded"></div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -96,43 +118,58 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-2">Welcome back! Here's what's happening with your sales.</p>
-        </div>
-        <div className="flex gap-3">
-          <Button size="sm" variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            This Week
-          </Button>
-          <Button size="sm" onClick={() => navigate('/sales-reporting')}>
-            <TrendingUp className="h-4 w-4 mr-2" />
-            View Report
-          </Button>
+    <div className="space-y-8 animate-fade-in">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 text-white shadow-colored">
+        <div className="absolute inset-0 bg-noise opacity-20"></div>
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-4">
+            <h1 className="text-5xl font-bold text-gradient-hero glow-text">
+              Dashboard
+            </h1>
+            <p className="text-white/90 text-lg max-w-2xl">
+              Welcome back! Here's your spectacular overview of sales performance and business insights.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="glass" size="lg" className="hover-lift">
+                <Calendar className="h-5 w-5 mr-2" />
+                This Week
+              </Button>
+              <Button variant="spectacular" size="lg" onClick={() => navigate('/sales-reporting')} className="hover-lift">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                View Reports
+              </Button>
+            </div>
+          </div>
+          <div className="hidden lg:block">
+            <div className="float-animation">
+              <div className="w-32 h-32 bg-white/10 rounded-full backdrop-blur-sm flex items-center justify-center">
+                <TrendingUp className="h-16 w-16 text-white/80" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Key Metrics */}
+      {/* Spectacular Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full -translate-y-10 translate-x-10"></div>
-          <CardContent className="p-6">
+        <Card className="card-spectacular hover-lift group">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary-glow/10 rounded-lg"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300"></div>
+          <CardContent className="relative p-6">
             <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <DollarSign className="h-5 w-5 text-primary" />
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-primary to-primary-glow rounded-xl shadow-medium">
+                    <DollarSign className="h-6 w-6 text-white" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Pipeline Value</p>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pipeline Value</p>
+                    <p className="text-3xl font-bold text-gradient">{formatCurrency(totalRevenue)}</p>
+                  </div>
                 </div>
-                <p className="text-3xl font-bold">{formatCurrency(totalRevenue)}</p>
-                <p className="text-xs text-green-600 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
+                <p className="text-sm text-success flex items-center font-medium">
+                  <TrendingUp className="h-4 w-4 mr-1" />
                   +12% from last month
                 </p>
               </div>
@@ -202,18 +239,44 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="card-spectacular hover-lift group">
+          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-chart-3/10 rounded-xl"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-chart-3/5 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300"></div>
+          <CardContent className="relative p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-chart-3 to-chart-3/80 rounded-xl shadow-medium">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
+                    <p className="text-3xl font-bold text-gradient">23.5%</p>
+                  </div>
+                </div>
+                <p className="text-sm text-success flex items-center font-medium">
+                  <ArrowUpRight className="h-4 w-4 mr-1" />
+                  +2.3% from last month
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Recent Activity */}
+      {/* Spectacular Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-lg border-0">
+        <Card className="card-spectacular hover-lift">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">Recent Deals</CardTitle>
+                <CardTitle className="text-2xl text-gradient">Recent Deals</CardTitle>
                 <CardDescription>Latest deals from your pipeline</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/deals')}>View All</Button>
+              <Button variant="glass" size="sm" onClick={() => navigate('/deals')} className="hover-scale">
+                View All
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -221,13 +284,13 @@ export default function Dashboard() {
               {deals.length > 0 ? deals.map((deal, index) => (
                 <div 
                   key={deal.id || index} 
-                  className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border-l-4 border-primary hover:bg-accent/70 transition-colors cursor-pointer"
+                  className="group flex items-center justify-between p-4 bg-gradient-card rounded-xl border border-border/50 hover:shadow-medium transition-all duration-300 cursor-pointer hover-lift"
                   onClick={() => navigate('/deals')}
                 >
                   <div className="flex-1">
-                    <p className="font-semibold text-lg">{deal.name || 'Unnamed Deal'}</p>
+                    <p className="font-semibold text-lg group-hover:text-gradient transition-colors">{deal.name || 'Unnamed Deal'}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-soft">
                         {deal.stage || 'Unknown'}
                       </Badge>
                       <span className="text-sm text-muted-foreground flex items-center">
@@ -237,7 +300,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-xl text-primary">{formatCurrency(Number(deal.value) || 0)}</p>
+                    <p className="font-bold text-xl text-gradient">{formatCurrency(Number(deal.value) || 0)}</p>
                     <p className="text-xs text-muted-foreground">Deal Value</p>
                   </div>
                 </div>
