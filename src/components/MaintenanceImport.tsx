@@ -214,13 +214,16 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
 
       if (error) throw error;
 
+      // Verify what you can see via RLS immediately after insert
+      const { count } = await supabase
+        .from('maintenance_records')
+        .select('*', { count: 'exact', head: true });
+
       toast({
         title: "Import Successful",
-        description: `Successfully imported ${recordsToInsert.length} maintenance records`,
+        description: `Imported ${recordsToInsert.length} records. You now have ${count ?? 0} visible records.`,
       });
 
-      // Notify other components to refresh
-      window.dispatchEvent(new CustomEvent('maintenance:imported'));
       // Notify other components to refresh
       window.dispatchEvent(new CustomEvent('maintenance:imported'));
 
