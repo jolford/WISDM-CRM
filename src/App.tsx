@@ -30,6 +30,7 @@ import WonDealsCollections from "./pages/WonDealsCollections";
 import PipelineForecast from "./pages/PipelineForecast";
 import Campaigns from "./pages/Campaigns";
 import Marketing from "./pages/Marketing";
+import Egnyte from "./pages/Egnyte";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
           <Route path="/marketing" element={<Layout><Marketing /></Layout>} />
+          <Route path="/egnyte" element={<Layout><Egnyte /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
           <Route path="/support/create" element={<Layout><CreateTicket /></Layout>} />
