@@ -21,6 +21,7 @@ import SalesReporting from "./pages/SalesReporting";
 import ReportsDashboard from "./pages/ReportsDashboard";
 import ProjectManagement from "./pages/ProjectManagement";
 import DataImportExport from "./pages/DataImportExport";
+import DataCleanup from "./pages/DataCleanup";
 import AdminConsole from "./pages/AdminConsole";
 import UserManagement from "./pages/UserManagement";
 import Maintenance from "./pages/Maintenance";
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/reports/pipeline-forecast" element={<Layout><PipelineForecast /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/data-migration" element={<Layout><DataImportExport /></Layout>} />
+          <Route path="/data-cleanup" element={<Layout><DataCleanup /></Layout>} />
           <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
           <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
           <Route path="/maintenance" element={<Layout><Maintenance /></Layout>} />

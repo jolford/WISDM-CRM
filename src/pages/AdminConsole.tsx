@@ -118,7 +118,7 @@ export default function AdminConsole() {
       title: "Import/Export",
       description: "Manage data imports and exports",
       icon: Target,
-      action: () => navigate('/data-import-export'),
+      action: () => navigate('/data-migration'),
       badge: "Data"
     }
   ];
