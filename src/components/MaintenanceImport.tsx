@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Download, FileText } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Papa from "papaparse";
 
 interface MaintenanceRecord {
   product_name: string;
@@ -35,67 +36,96 @@ Tech Solutions,2023-06-01,2023-06-01,2026-06-01,Dell OptiPlex 7090,SN789XYZ,1599
 Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789,799.99,599.99,200.00,25.0%,Annual subscription`;
 
   const parseCsvData = (csvText: string): MaintenanceRecord[] => {
-    const lines = csvText.trim().split('\n');
-    if (lines.length < 2) return [];
+    const result = Papa.parse<Record<string, string>>(csvText, {
+      header: true,
+      skipEmptyLines: true,
+    });
+    const rows = (result.data || []) as Record<string, string>[];
 
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-    const records: MaintenanceRecord[] = [];
-
-    // Create header mapping
-    const getHeaderIndex = (searchTerms: string[]) => {
-      for (const term of searchTerms) {
-        const index = headers.findIndex(h => h.includes(term.toLowerCase()));
-        if (index !== -1) return index;
+    const normalizeDate = (val?: string) => {
+      if (!val) return undefined;
+      const v = val.trim();
+      if (!v || v.toUpperCase() === 'N/A') return undefined;
+      const d = new Date(v);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().slice(0, 10);
       }
-      return -1;
+      const parts = v.replace(/\./g, '/').replace(/-/g, '/').split('/');
+      if (parts.length === 3) {
+        let [a, b, c] = parts.map((s) => s.trim());
+        if (c.length === 2) c = `20${c}`;
+        if (parseInt(a, 10) > 12) {
+          const tmp = a; a = b; b = tmp;
+        }
+        const dd = String(parseInt(b, 10)).padStart(2, '0');
+        const mm = String(parseInt(a, 10)).padStart(2, '0');
+        const yyyy = String(parseInt(c, 10)).padStart(4, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+      return undefined;
     };
 
-    const accountNameIndex = getHeaderIndex(['account name', 'account']);
-    const purchaseDateIndex = getHeaderIndex(['purchase date', 'purchase']);
-    const startDateIndex = getHeaderIndex(['start date', 'start']);
-    const endDateIndex = getHeaderIndex(['end date', 'end']);
-    const productsIndex = getHeaderIndex(['products', 'product name', 'product']);
-    const serialNumberIndex = getHeaderIndex(['serial number', 'serial']);
-    const incomeIndex = getHeaderIndex(['income', 'revenue']);
-    const cogsIndex = getHeaderIndex(['cogs', 'cost']);
-    const notesIndex = getHeaderIndex(['notes', 'notes (hardware maintenance)']);
+    const parseMoney = (val?: string) => {
+      if (!val) return undefined;
+      const cleaned = val.replace(/[$,%\s]/g, '').replace(/,/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? undefined : num;
+    };
 
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim());
-      
-      // Skip empty rows
-      if (values.every(v => !v || v === 'N/A')) continue;
-      
-      const productName = productsIndex >= 0 ? values[productsIndex] : '';
-      if (!productName || productName === 'N/A') continue;
+    const get = (obj: Record<string, string>, keys: string[]) => {
+      for (const k of keys) {
+        const found = Object.keys(obj).find((h) => h.trim().toLowerCase() === k.toLowerCase());
+        if (found) {
+          const v = obj[found];
+          if (v != null && String(v).trim() !== '') return String(v).trim();
+        }
+      }
+      return undefined;
+    };
 
-      // Determine product type based on product name
-      const isHardware = productName.toLowerCase().includes('server') || 
-                        productName.toLowerCase().includes('dell') ||
-                        productName.toLowerCase().includes('hp') ||
-                        productName.toLowerCase().includes('laptop') ||
-                        productName.toLowerCase().includes('desktop') ||
-                        productName.toLowerCase().includes('router') ||
-                        productName.toLowerCase().includes('switch');
+    const isHardwareName = (name: string) => {
+      const n = name.toLowerCase();
+      return ['server','dell','hp','lenovo','laptop','desktop','router','switch','firewall','ap','access point'].some(w => n.includes(w));
+    };
+
+    const records: MaintenanceRecord[] = [];
+
+    for (const row of rows) {
+      const productName = get(row, ['Products', 'Product', 'Product Name']) || '';
+      if (!productName) continue;
 
       const record: MaintenanceRecord = {
         product_name: productName,
-        product_type: isHardware ? 'hardware' : 'software',
-        vendor_name: accountNameIndex >= 0 ? values[accountNameIndex] : undefined,
-        purchase_date: purchaseDateIndex >= 0 && values[purchaseDateIndex] && values[purchaseDateIndex] !== 'N/A' ? values[purchaseDateIndex] : undefined,
-        start_date: startDateIndex >= 0 && values[startDateIndex] && values[startDateIndex] !== 'N/A' ? values[startDateIndex] : undefined,
-        end_date: endDateIndex >= 0 && values[endDateIndex] && values[endDateIndex] !== 'N/A' ? values[endDateIndex] : undefined,
-        cost: cogsIndex >= 0 && values[cogsIndex] && values[cogsIndex] !== 'N/A' ? parseFloat(values[cogsIndex].replace('$', '').replace(',', '')) : undefined,
-        license_key: undefined, // Not provided in this format
-        serial_number: serialNumberIndex >= 0 && values[serialNumberIndex] && values[serialNumberIndex] !== 'N/A' ? values[serialNumberIndex] : undefined,
-        status: 'active', // Default to active
-        notes: notesIndex >= 0 ? values[notesIndex] : undefined
+        product_type: isHardwareName(productName) ? 'hardware' : 'software',
+        vendor_name: get(row, ['Account Name', 'Account']),
+        purchase_date: normalizeDate(get(row, ['Purchase Date', 'Purchase'])),
+        start_date: normalizeDate(get(row, ['Start Date', 'Start'])),
+        end_date: normalizeDate(get(row, ['End Date', 'End'])),
+        cost: parseMoney(get(row, ['COGS', 'Cost'])),
+        license_key: undefined,
+        serial_number: get(row, ['Serial Number', 'Serial']),
+        status: 'active',
+        notes: get(row, ['Notes (Hardware Maintenance)', 'Notes']),
       };
 
       records.push(record);
     }
 
     return records;
+  };
+
+  const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      setCsvData(text);
+      const parsed = parseCsvData(text);
+      setPreviewData(parsed);
+      toast({ title: "CSV Parsed Successfully", description: `Found ${parsed.length} maintenance records` });
+    } catch (err) {
+      toast({ title: "File Read Error", description: "Failed to read the CSV file.", variant: "destructive" });
+    }
   };
 
   const handlePreview = () => {
@@ -197,6 +227,12 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
               <strong>Required CSV Format:</strong> Account Name, Purchase Date (YYYY-MM-DD), Start Date, End Date, Products, Serial Number, Income, COGS, Profit, Margin %, Notes (Hardware Maintenance)
             </AlertDescription>
           </Alert>
+
+          <div className="space-y-2">
+            <Label htmlFor="csvFile">Upload CSV File</Label>
+            <Input id="csvFile" type="file" accept=".csv" onChange={onFileChange} />
+            <p className="text-sm text-muted-foreground">Or paste CSV below</p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="csvData">Paste CSV Data</Label>
