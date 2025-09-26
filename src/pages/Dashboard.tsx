@@ -120,7 +120,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-stellar p-8 text-white shadow-stellar perspective-1000">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-primary p-8 text-white shadow-colored perspective-1000">
         <div className="absolute inset-0 bg-noise opacity-20"></div>
         <div className="absolute top-0 left-0 w-full h-full opacity-30">
           <div className="absolute top-10 left-10 w-20 h-20 bg-white/20 rounded-full blur-xl animate-float"></div>
@@ -129,7 +129,7 @@ export default function Dashboard() {
         </div>
         <div className="relative z-10 flex items-center justify-between transform-3d">
           <div className="space-y-4">
-            <h1 className="text-5xl font-bold text-holographic glow-text">
+            <h1 className="text-5xl font-bold text-gradient-hero glow-text">
               Dashboard
             </h1>
             <p className="text-white/90 text-lg max-w-2xl font-medium">
@@ -148,7 +148,7 @@ export default function Dashboard() {
           </div>
           <div className="hidden lg:block">
             <div className="float-animation perspective-1000">
-              <div className="w-32 h-32 bg-white/10 rounded-full backdrop-blur-sm flex items-center justify-center transform-3d hover:rotate-y-12 transition-transform duration-500 shadow-stellar">
+              <div className="w-32 h-32 bg-white/10 rounded-full backdrop-blur-sm flex items-center justify-center transform-3d hover:rotate-y-12 transition-transform duration-500 shadow-colored">
                 <TrendingUp className="h-16 w-16 text-white/80 animate-pulse" />
               </div>
             </div>
@@ -158,20 +158,20 @@ export default function Dashboard() {
 
       {/* Spectacular Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-stellar hover-lift group perspective-1000">
-          <div className="absolute inset-0 bg-gradient-stellar/20 rounded-lg blur-sm"></div>
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300 animate-pulse"></div>
+        <Card className="card-spectacular hover-lift group perspective-1000">
+          <div className="absolute inset-0 bg-gradient-primary/10 rounded-lg blur-sm"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300 animate-pulse"></div>
           <CardContent className="relative p-6 transform-3d group-hover:rotateY-3 transition-transform duration-500">
             <div className="flex items-center justify-between">
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-stellar rounded-xl shadow-stellar relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                  <div className="p-3 bg-gradient-primary rounded-xl shadow-colored relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10 animate-shimmer"></div>
                     <DollarSign className="h-6 w-6 text-white relative z-10" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white/80">Pipeline Value</p>
-                    <p className="text-3xl font-bold text-holographic">{formatCurrency(totalRevenue)}</p>
+                    <p className="text-3xl font-bold text-gradient">{formatCurrency(totalRevenue)}</p>
                   </div>
                 </div>
                 <p className="text-sm text-white/90 flex items-center font-medium">
@@ -259,7 +259,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-                    <p className="text-3xl font-bold text-gradient-stellar">23.5%</p>
+                    <p className="text-3xl font-bold text-gradient">23.5%</p>
                   </div>
                 </div>
                 <p className="text-sm text-success flex items-center font-medium">
@@ -279,7 +279,7 @@ export default function Dashboard() {
           <CardHeader className="pb-4 relative">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl text-holographic">Recent Deals</CardTitle>
+                <CardTitle className="text-2xl text-gradient">Recent Deals</CardTitle>
                 <CardDescription className="text-muted-foreground/80">Latest deals from your pipeline</CardDescription>
               </div>
               <Button variant="glass" size="sm" onClick={() => navigate('/deals')} className="hover-scale btn-glass shadow-soft">
