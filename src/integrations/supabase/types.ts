@@ -712,6 +712,47 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_notifications: {
+        Row: {
+          created_at: string
+          email_sent: boolean
+          id: string
+          maintenance_record_id: string | null
+          notification_type: string
+          sent_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          maintenance_record_id?: string | null
+          notification_type: string
+          sent_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          maintenance_record_id?: string | null
+          notification_type?: string
+          sent_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_notifications_maintenance_record_id_fkey"
+            columns: ["maintenance_record_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_records: {
         Row: {
           account_id: string | null
@@ -812,10 +853,12 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
+          enable_maintenance_notifications: boolean | null
           first_name: string | null
           id: string
           is_active: boolean
           last_name: string | null
+          notification_email: string | null
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
         }
@@ -823,10 +866,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          enable_maintenance_notifications?: boolean | null
           first_name?: string | null
           id: string
           is_active?: boolean
           last_name?: string | null
+          notification_email?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
@@ -834,10 +879,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          enable_maintenance_notifications?: boolean | null
           first_name?: string | null
           id?: string
           is_active?: boolean
           last_name?: string | null
+          notification_email?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
