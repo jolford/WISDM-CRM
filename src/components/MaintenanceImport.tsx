@@ -119,7 +119,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       const record: MaintenanceRecord = {
         product_name: productName,
         product_type: isHardwareName(productName) ? 'hardware' : 'software',
-        vendor_name: get(row, ['account name', 'account']),
+        vendor_name: get(row, ['account name', 'vendor', 'vendor name']),
         purchase_date: normalizeDate(get(row, ['purchase date', 'purchase'])),
         start_date: normalizeDate(get(row, ['start date', 'start'])),
         end_date: normalizeDate(get(row, ['end date', 'end'])),
