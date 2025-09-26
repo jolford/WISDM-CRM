@@ -381,7 +381,7 @@ export default function Dashboard() {
               {deals.length > 0 ? deals.map((deal, index) => (
                 <div 
                   key={deal.id || index} 
-                  className="group flex items-center justify-between p-4 bg-gradient-card rounded-xl border border-border/50 hover:shadow-medium transition-all duration-300 cursor-pointer hover-lift"
+                  className="group flex items-center justify-between p-4 bg-gradient-card rounded-xl border border-border/50 hover:shadow-medium transition-all duration-300 cursor-pointer hover-lift hover:scale-[1.02]"
                   onClick={() => navigate('/deals')}
                 >
                   <div className="flex-1">
@@ -430,7 +430,7 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={task.id || index} 
-                    className={`flex items-center justify-between p-4 rounded-lg border-l-4 transition-colors cursor-pointer ${
+                    className={`flex items-center justify-between p-4 rounded-lg border-l-4 transition-colors cursor-pointer hover:scale-[1.02] ${
                       isOverdue ? 'bg-red-50 border-red-400 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30' : 'bg-accent/50 border-blue-400 hover:bg-accent/70'
                     }`}
                     onClick={() => navigate('/tasks')}
