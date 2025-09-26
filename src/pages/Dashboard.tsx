@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, Users, DollarSign, Target, Calendar, ArrowUpRight, CheckSquare } from 'lucide-react'
+import { TrendingUp, Users, DollarSign, Target, Calendar, ArrowUpRight, CheckSquare, Plus, Grid3X3 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { WidgetDialog } from "@/components/WidgetDialog"
+import { CustomWidget } from "@/components/CustomWidget"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
@@ -14,11 +17,15 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState([])
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [totalDeals, setTotalDeals] = useState(0)
+  const [customWidgets, setCustomWidgets] = useState<any[]>([])
+  const [showWidgetDialog, setShowWidgetDialog] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   useEffect(() => {
     fetchDashboardData()
+    fetchCustomWidgets()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -64,6 +71,77 @@ export default function Dashboard() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCustomWidgets = async () => {
+    if (!user?.id) return
+    
+    try {
+      // First get or create a dashboard
+      const { data: dashboard, error: dashboardError } = await supabase
+        .from('reports')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_dashboard', true)
+        .maybeSingle()
+
+      let dashboardId = dashboard?.id
+
+      if (!dashboardId) {
+        const { data: newDashboard, error: createError } = await supabase
+          .from('reports')
+          .insert([{
+            name: 'My Dashboard',
+            description: 'Custom dashboard with widgets',
+            user_id: user.id,
+            is_dashboard: true,
+            data_sources: ['deals']
+          }])
+          .select('id')
+          .single()
+
+        if (createError) throw createError
+        dashboardId = newDashboard.id
+      }
+
+      // Fetch widgets for this dashboard
+      const { data: widgets, error: widgetsError } = await supabase
+        .from('dashboard_widgets')
+        .select('*')
+        .eq('dashboard_id', dashboardId)
+        .order('position_y', { ascending: true })
+        .order('position_x', { ascending: true })
+
+      if (widgetsError) throw widgetsError
+
+      setCustomWidgets(widgets || [])
+    } catch (error) {
+      console.error('Error fetching custom widgets:', error)
+    }
+  }
+
+  const handleDeleteWidget = async (widgetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('dashboard_widgets')
+        .delete()
+        .eq('id', widgetId)
+
+      if (error) throw error
+
+      setCustomWidgets(prev => prev.filter(w => w.id !== widgetId))
+      toast({
+        title: "Success",
+        description: "Widget deleted successfully"
+      })
+    } catch (error) {
+      console.error('Error deleting widget:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete widget",
+        variant: "destructive"
+      })
     }
   }
 
@@ -119,6 +197,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Monitor your performance and manage custom widgets</p>
+        </div>
+        <Button onClick={() => setShowWidgetDialog(true)} className="btn-spectacular">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Widget
+        </Button>
+      </div>
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-primary p-8 text-white shadow-colored perspective-1000">
         <div className="absolute inset-0 bg-noise opacity-20"></div>
@@ -374,6 +463,39 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Custom Widgets Section */}
+      {customWidgets.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Grid3X3 className="h-5 w-5" />
+            <h2 className="text-2xl font-bold">Custom Widgets</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {customWidgets.map((widget) => (
+              <CustomWidget
+                key={widget.id}
+                widget={widget}
+                onDelete={handleDeleteWidget}
+                onEdit={() => {
+                  // TODO: Implement edit functionality
+                  toast({
+                    title: "Coming Soon",
+                    description: "Widget editing will be available soon"
+                  })
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Widget Creation Dialog */}
+      <WidgetDialog 
+        open={showWidgetDialog} 
+        onOpenChange={setShowWidgetDialog}
+        onSuccess={fetchCustomWidgets}
+      />
     </div>
   )
 }
