@@ -280,22 +280,20 @@ export default function DataImportExport() {
         throw new Error('File contains potentially malicious content')
       }
       
-      const lines = text.split('\n').filter(line => line.trim()) // Remove empty lines
+      const lines = text.split(/\r?\n/).filter(line => line.trim()) // Remove empty lines and handle CRLF
       
-      // Security: Limit number of records
-      const maxRecords = 10000
-      if (lines.length > maxRecords) {
-        throw new Error(`File contains too many records. Maximum allowed: ${maxRecords}`)
+      // Detect delimiter from header line (tab, semicolon, or comma)
+      const headerLine = lines[0]?.replace(/^\uFEFF/, '') || ''
+      const detectedDelimiter = headerLine.includes('\t') ? '\t' : ((headerLine.includes(';') && !headerLine.includes(',')) ? ';' : ',')
+      
+      const headers = headerLine.split(detectedDelimiter).map(h => h.trim().replace(/"/g, ''))
+      console.log('📋 CSV Headers found:', headers, '| Delimiter:', JSON.stringify(detectedDelimiter))
+      
+      // Check if CSV has proper headers (more than 1 column or doesn't look like a filename)
+      if (headers.length === 1 && (headers[0].includes('.csv') || headers[0].includes('report') || headers[0].length > 50)) {
+        throw new Error('Invalid CSV format: The file appears to have malformed headers. Please ensure your CSV has proper column headers in the first row.')
       }
-      
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
-        console.log('📋 CSV Headers found:', headers)
-        
-        // Check if CSV has proper headers (more than 1 column or doesn't look like a filename)
-        if (headers.length === 1 && (headers[0].includes('.csv') || headers[0].includes('report') || headers[0].length > 50)) {
-          throw new Error('Invalid CSV format: The file appears to have malformed headers. Please ensure your CSV has proper column headers in the first row.')
-        }
-      
+
       // Security: Validate headers (allow common CSV characters including special chars, quotes, etc.)
       const allowedHeaderPattern = /^[a-zA-Z0-9\s_.,&():/'"#@%$*+=\[\]{}|\\~`!?-]+$/
       const invalidHeaders = headers.filter(header => !allowedHeaderPattern.test(header))
@@ -485,6 +483,7 @@ export default function DataImportExport() {
               'Vendor Name': 'vendor_name',
               'Vendor': 'vendor_name',
               'Manufacturer': 'vendor_name',
+              'Account Name': 'vendor_name', // Map account column to vendor_name per request
               'Serial Number': 'serial_number',
               'Serial': 'serial_number',
               'S/N': 'serial_number',
@@ -502,9 +501,14 @@ export default function DataImportExport() {
               'Cost': 'cost',
               'Price': 'cost',
               'Amount': 'cost',
+              'COGS': 'cost', // Map COGS to cost in DB
+              'Income': null,
+              'Profit': null,
+              'Margin %': null,
               'Status': 'status',
               'State': 'status',
               'Notes': 'notes',
+              'Notes (Hardware Maintenance)': 'notes',
               'Comments': 'notes',
               'Description': 'notes',
               'Renewal Reminder Days': 'renewal_reminder_days',
@@ -595,7 +599,7 @@ export default function DataImportExport() {
       // Process each line with validation
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+          const values = lines[i].split(detectedDelimiter).map(v => v.trim().replace(/"/g, ''))
           
           const mappedRecord: Record<string, any> = {}
           console.log('🔄 Processing row:', i + 1, 'Raw values:', values)
