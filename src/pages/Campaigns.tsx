@@ -1,57 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Mail, Phone, Target, Calendar, Users, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateCampaignDialog } from "@/components/CreateCampaignDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const Campaigns = () => {
   const { toast } = useToast();
-  const [campaigns, setCampaigns] = useState([
-    {
-      id: 1,
-      name: "Q1 Product Launch",
-      type: "Email",
-      status: "Active",
-      startDate: "2024-01-15",
-      endDate: "2024-03-31",
-      targetAudience: "Enterprise Customers",
-      budget: 15000,
-      spent: 8500,
-      leads: 245,
-      conversions: 32,
-      conversionRate: 13.1
-    },
-    {
-      id: 2,
-      name: "Summer Sales Boost",
-      type: "Multi-channel",
-      status: "Draft",
-      startDate: "2024-06-01",
-      endDate: "2024-08-31",
-      targetAudience: "SMB Prospects",
-      budget: 25000,
-      spent: 0,
-      leads: 0,
-      conversions: 0,
-      conversionRate: 0
-    },
-    {
-      id: 3,
-      name: "Customer Retention Drive",
-      type: "Email",
-      status: "Completed",
-      startDate: "2023-11-01",
-      endDate: "2023-12-31",
-      targetAudience: "Existing Customers",
-      budget: 8000,
-      spent: 7800,
-      leads: 156,
-      conversions: 48,
-      conversionRate: 30.8
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load campaigns",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCampaigns(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -79,9 +73,54 @@ const Campaigns = () => {
     }
   };
 
-  const handleCampaignCreated = (newCampaign: any) => {
-    setCampaigns(prev => [...prev, newCampaign]);
+  const handleCampaignCreated = async (newCampaign: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('campaigns')
+        .insert([newCampaign])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating campaign:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create campaign",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCampaigns(prev => [data, ...prev]);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-muted rounded"></div>
+            ))}
+          </div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-48 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -174,17 +213,17 @@ const Campaigns = () => {
                     Duration
                   </div>
                   <div className="text-sm">
-                    <div>{new Date(campaign.startDate).toLocaleDateString()}</div>
-                    <div className="text-muted-foreground">to {new Date(campaign.endDate).toLocaleDateString()}</div>
+                    <div>{campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : 'Not set'}</div>
+                    <div className="text-muted-foreground">to {campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Not set'}</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Budget</div>
                   <div className="text-sm">
-                    <div className="font-medium">${campaign.spent.toLocaleString()} / ${campaign.budget.toLocaleString()}</div>
+                    <div className="font-medium">${(campaign.spent || 0).toLocaleString()} / ${(campaign.budget || 0).toLocaleString()}</div>
                     <div className="text-muted-foreground">
-                      {campaign.budget > 0 ? Math.round((campaign.spent / campaign.budget) * 100) : 0}% spent
+                      {campaign.budget > 0 ? Math.round(((campaign.spent || 0) / campaign.budget) * 100) : 0}% spent
                     </div>
                   </div>
                 </div>
@@ -192,15 +231,15 @@ const Campaigns = () => {
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Performance</div>
                   <div className="text-sm">
-                    <div className="font-medium">{campaign.leads} leads</div>
-                    <div className="text-muted-foreground">{campaign.conversions} conversions</div>
+                    <div className="font-medium">{campaign.leads || 0} leads</div>
+                    <div className="text-muted-foreground">{campaign.conversions || 0} conversions</div>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Conversion Rate</div>
                   <div className="text-lg font-bold text-primary">
-                    {campaign.conversionRate}%
+                    {campaign.conversion_rate || 0}%
                   </div>
                 </div>
               </div>
@@ -212,7 +251,7 @@ const Campaigns = () => {
                 <Button variant="outline" size="sm">
                   Edit
                 </Button>
-                {campaign.status === "Active" && (
+                {campaign.status === "active" && (
                   <Button variant="outline" size="sm">
                     Pause
                   </Button>

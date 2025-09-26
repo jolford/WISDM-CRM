@@ -227,6 +227,74 @@ export type Database = {
         }
         Relationships: []
       }
+      campaigns: {
+        Row: {
+          account_id: string | null
+          budget: number | null
+          conversion_rate: number | null
+          conversions: number | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          leads: number | null
+          name: string
+          spent: number | null
+          start_date: string | null
+          status: string
+          target_audience: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          budget?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          leads?: number | null
+          name: string
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          target_audience?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          budget?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          leads?: number | null
+          name?: string
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          target_audience?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           account_egnyte_link: string | null
@@ -901,6 +969,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          account_id: string | null
           billable_rate: number | null
           budget: number | null
           client: string | null
@@ -920,6 +989,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           billable_rate?: number | null
           budget?: number | null
           client?: string | null
@@ -939,6 +1009,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
           billable_rate?: number | null
           budget?: number | null
           client?: string | null
@@ -957,7 +1028,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_charts: {
         Row: {
@@ -1388,6 +1467,7 @@ export type Database = {
       }
       tickets: {
         Row: {
+          account_id: string | null
           attachment_url: string | null
           company: string | null
           created_at: string | null
@@ -1403,6 +1483,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          account_id?: string | null
           attachment_url?: string | null
           company?: string | null
           created_at?: string | null
@@ -1418,6 +1499,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          account_id?: string | null
           attachment_url?: string | null
           company?: string | null
           created_at?: string | null
@@ -1432,7 +1514,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tickets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_entries: {
         Row: {

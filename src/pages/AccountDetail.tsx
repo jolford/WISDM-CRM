@@ -13,6 +13,11 @@ const AccountDetail = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [account, setAccount] = useState<any>(null)
+  const [contacts, setContacts] = useState<any[]>([])
+  const [deals, setDeals] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>([])
+  const [tickets, setTickets] = useState<any[]>([])
+  const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -24,14 +29,15 @@ const AccountDetail = () => {
   const fetchAccount = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      // Fetch account details
+      const { data: accountData, error: accountError } = await supabase
         .from('accounts')
         .select('*')
         .eq('id', id)
         .maybeSingle()
 
-      if (error) {
-        console.error('Error fetching account:', error)
+      if (accountError) {
+        console.error('Error fetching account:', accountError)
         toast({
           title: "Error",
           description: "Failed to load account details",
@@ -40,7 +46,7 @@ const AccountDetail = () => {
         return
       }
 
-      if (!data) {
+      if (!accountData) {
         toast({
           title: "Not Found",
           description: "Account not found",
@@ -50,7 +56,23 @@ const AccountDetail = () => {
         return
       }
 
-      setAccount(data)
+      setAccount(accountData)
+
+      // Fetch related data in parallel
+      const [contactsRes, dealsRes, projectsRes, ticketsRes, campaignsRes] = await Promise.all([
+        supabase.from('contacts').select('*').eq('account_id', id),
+        supabase.from('deals').select('*').eq('account_id', id),
+        supabase.from('projects').select('*').eq('account_id', id),
+        supabase.from('tickets').select('*').eq('account_id', id),
+        supabase.from('campaigns').select('*').eq('account_id', id),
+      ])
+
+      setContacts(contactsRes.data || [])
+      setDeals(dealsRes.data || [])
+      setProjects(projectsRes.data || [])
+      setTickets(ticketsRes.data || [])
+      setCampaigns(campaignsRes.data || [])
+
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -119,8 +141,11 @@ const AccountDetail = () => {
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="contacts">Contacts</TabsTrigger>
-              <TabsTrigger value="deals">Deals</TabsTrigger>
+              <TabsTrigger value="contacts">Contacts ({contacts.length})</TabsTrigger>
+              <TabsTrigger value="deals">Deals ({deals.length})</TabsTrigger>
+              <TabsTrigger value="projects">Projects ({projects.length})</TabsTrigger>
+              <TabsTrigger value="tickets">Support ({tickets.length})</TabsTrigger>
+              <TabsTrigger value="campaigns">Campaigns ({campaigns.length})</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
             
@@ -189,10 +214,27 @@ const AccountDetail = () => {
             <TabsContent value="contacts">
               <Card>
                 <CardHeader>
-                  <CardTitle>Related Contacts</CardTitle>
+                  <CardTitle>Related Contacts ({contacts.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">No contacts found for this account.</p>
+                  {contacts.length > 0 ? (
+                    <div className="space-y-4">
+                      {contacts.map((contact) => (
+                        <div key={contact.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{contact.first_name} {contact.last_name}</h3>
+                              {contact.title && <p className="text-sm text-muted-foreground">{contact.title}</p>}
+                              {contact.email && <p className="text-sm text-muted-foreground">{contact.email}</p>}
+                              {contact.phone && <p className="text-sm text-muted-foreground">{contact.phone}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No contacts found for this account.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -200,10 +242,157 @@ const AccountDetail = () => {
             <TabsContent value="deals">
               <Card>
                 <CardHeader>
-                  <CardTitle>Related Deals</CardTitle>
+                  <CardTitle>Related Deals ({deals.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">No deals found for this account.</p>
+                  {deals.length > 0 ? (
+                    <div className="space-y-4">
+                      {deals.map((deal) => (
+                        <div key={deal.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{deal.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Stage: {deal.stage} • Value: ${deal.value?.toLocaleString() || 'N/A'}
+                              </p>
+                              {deal.close_date && (
+                                <p className="text-sm text-muted-foreground">
+                                  Close Date: {new Date(deal.close_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            <Badge variant={deal.stage === 'won' ? 'default' : 'secondary'}>
+                              {deal.stage}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No deals found for this account.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="projects">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Related Projects ({projects.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {projects.length > 0 ? (
+                    <div className="space-y-4">
+                      {projects.map((project) => (
+                        <div key={project.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{project.name}</h3>
+                              <p className="text-sm text-muted-foreground">{project.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Status: {project.status} • Budget: ${project.budget?.toLocaleString() || 'N/A'}
+                              </p>
+                              {project.start_date && (
+                                <p className="text-sm text-muted-foreground">
+                                  Start: {new Date(project.start_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            <Badge variant={project.status === 'completed' ? 'default' : 'secondary'}>
+                              {project.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No projects found for this account.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="tickets">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Support Tickets ({tickets.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {tickets.length > 0 ? (
+                    <div className="space-y-4">
+                      {tickets.map((ticket) => (
+                        <div key={ticket.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{ticket.subject}</h3>
+                              <p className="text-sm text-muted-foreground">{ticket.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Customer: {ticket.customer_name || ticket.email}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Created: {new Date(ticket.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant={ticket.status === 'open' ? 'destructive' : 'secondary'}>
+                                {ticket.status}
+                              </Badge>
+                              {ticket.priority && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Priority: {ticket.priority}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No support tickets found for this account.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="campaigns">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Marketing Campaigns ({campaigns.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {campaigns.length > 0 ? (
+                    <div className="space-y-4">
+                      {campaigns.map((campaign) => (
+                        <div key={campaign.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{campaign.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Type: {campaign.type} • Target: {campaign.target_audience}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Budget: ${campaign.budget?.toLocaleString() || 'N/A'} • 
+                                Leads: {campaign.leads || 0} • 
+                                Conversions: {campaign.conversions || 0}
+                              </p>
+                              {campaign.start_date && (
+                                <p className="text-sm text-muted-foreground">
+                                  Duration: {new Date(campaign.start_date).toLocaleDateString()} - {
+                                    campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Ongoing'
+                                  }
+                                </p>
+                              )}
+                            </div>
+                            <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
+                              {campaign.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No campaigns found for this account.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -227,6 +416,26 @@ const AccountDetail = () => {
               <CardTitle>Quick Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Total Contacts</span>
+                <Badge variant="secondary">{contacts.length}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Active Deals</span>
+                <Badge variant="secondary">{deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').length}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Projects</span>
+                <Badge variant="secondary">{projects.length}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Open Tickets</span>
+                <Badge variant="secondary">{tickets.filter(t => t.status === 'open').length}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Campaigns</span>
+                <Badge variant="secondary">{campaigns.length}</Badge>
+              </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Company Size</span>
                 <Badge variant="secondary">{account.size || 'Unknown'}</Badge>

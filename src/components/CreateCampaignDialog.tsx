@@ -56,18 +56,17 @@ export function CreateCampaignDialog({ onCampaignCreated }: CreateCampaignDialog
     }
 
     const newCampaign = {
-      id: Date.now(),
       name: formData.name,
       type: formData.type,
-      status: "Draft",
-      startDate: formData.startDate.toISOString().split('T')[0],
-      endDate: formData.endDate.toISOString().split('T')[0],
-      targetAudience: formData.targetAudience,
+      status: "draft",
+      start_date: formData.startDate.toISOString().split('T')[0],
+      end_date: formData.endDate.toISOString().split('T')[0],
+      target_audience: formData.targetAudience,
       budget: parseInt(formData.budget),
       spent: 0,
       leads: 0,
       conversions: 0,
-      conversionRate: 0,
+      conversion_rate: 0,
       description: formData.description,
     };
 
