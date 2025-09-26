@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ interface ConnectSocialAccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccountAdded: () => void;
+  editingAccount?: any;
 }
 
 const platforms = [
@@ -22,7 +23,7 @@ const platforms = [
   { value: "wordpress", label: "WordPress", icon: Globe },
 ];
 
-export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded }: ConnectSocialAccountDialogProps) => {
+export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded, editingAccount }: ConnectSocialAccountDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +35,30 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
     username: "",
     api_key: "",
   });
+
+  useEffect(() => {
+    if (editingAccount) {
+      setFormData({
+        platform: editingAccount.platform || "",
+        account_name: editingAccount.account_name || "",
+        account_handle: editingAccount.account_handle || "",
+        site_url: editingAccount.account_id_external || "",
+        connection_type: "", // We don't store this separately, so leave empty
+        username: "", // We don't store this separately, so leave empty
+        api_key: "", // Don't pre-fill sensitive data
+      });
+    } else {
+      setFormData({
+        platform: "",
+        account_name: "",
+        account_handle: "",
+        site_url: "",
+        connection_type: "",
+        username: "",
+        api_key: "",
+      });
+    }
+  }, [editingAccount, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,33 +88,55 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
-        .from('social_accounts')
-        .insert([{
-          user_id: user.id,
-          platform: formData.platform,
-          account_name: formData.account_name,
-          account_handle: formData.account_handle,
-          account_id_external: formData.site_url || null,
-          access_token_ref: formData.api_key || null,
-          is_active: true,
-        }]);
+      if (editingAccount) {
+        // Update existing account
+        const { error } = await supabase
+          .from('social_accounts')
+          .update({
+            platform: formData.platform,
+            account_name: formData.account_name,
+            account_handle: formData.account_handle,
+            account_id_external: formData.site_url || null,
+            access_token_ref: formData.api_key || editingAccount.access_token_ref,
+          })
+          .eq('id', editingAccount.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Account Connected",
-        description: `Successfully connected ${formData.platform} account`,
-      });
+        toast({
+          title: "Account Updated",
+          description: `Successfully updated ${formData.platform} account`,
+        });
+      } else {
+        // Create new account
+        const { error } = await supabase
+          .from('social_accounts')
+          .insert([{
+            user_id: user.id,
+            platform: formData.platform,
+            account_name: formData.account_name,
+            account_handle: formData.account_handle,
+            account_id_external: formData.site_url || null,
+            access_token_ref: formData.api_key || null,
+            is_active: true,
+          }]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Account Connected",
+          description: `Successfully connected ${formData.platform} account`,
+        });
+      }
 
       setFormData({ platform: "", account_name: "", account_handle: "", site_url: "", connection_type: "", username: "", api_key: "" });
       onAccountAdded();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error adding social account:', error);
+      console.error('Error saving social account:', error);
       toast({
         title: "Error",
-        description: "Failed to connect social media account",
+        description: `Failed to ${editingAccount ? 'update' : 'connect'} social media account`,
         variant: "destructive",
       });
     } finally {
@@ -103,9 +150,9 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Connect Social Media Account</DialogTitle>
+          <DialogTitle>{editingAccount ? 'Edit' : 'Connect'} Social Media Account</DialogTitle>
           <DialogDescription>
-            Add a social media account to manage posts and content.
+            {editingAccount ? 'Update your' : 'Add a'} social media account to manage posts and content.
           </DialogDescription>
         </DialogHeader>
         
@@ -233,7 +280,7 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Connecting..." : "Connect Account"}
+              {loading ? `${editingAccount ? 'Updating' : 'Connecting'}...` : `${editingAccount ? 'Update' : 'Connect'} Account`}
             </Button>
           </DialogFooter>
         </form>

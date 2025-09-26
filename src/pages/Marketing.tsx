@@ -36,6 +36,7 @@ const Marketing = () => {
   const [socialPosts, setSocialPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConnectDialog, setShowConnectDialog] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<any>(null);
 
   useEffect(() => {
     fetchMarketingData();
@@ -84,6 +85,40 @@ const Marketing = () => {
       case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     }
+  };
+
+  const handleDeleteAccount = async (accountId: string, accountName: string) => {
+    if (!confirm(`Are you sure you want to delete the connection to ${accountName}?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('social_accounts')
+        .delete()
+        .eq('id', accountId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Account Deleted",
+        description: `Successfully removed ${accountName} connection`,
+      });
+
+      fetchMarketingData();
+    } catch (error) {
+      console.error('Error deleting social account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete social media account",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditAccount = (account: any) => {
+    setEditingAccount(account);
+    setShowConnectDialog(true);
   };
 
   if (loading) {
@@ -241,10 +276,18 @@ const Marketing = () => {
                             </>
                           )}
                           
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditAccount(account)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteAccount(account.id, account.account_name)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -514,8 +557,12 @@ const Marketing = () => {
 
       <ConnectSocialAccountDialog
         open={showConnectDialog}
-        onOpenChange={setShowConnectDialog}
+        onOpenChange={(open) => {
+          setShowConnectDialog(open);
+          if (!open) setEditingAccount(null);
+        }}
         onAccountAdded={fetchMarketingData}
+        editingAccount={editingAccount}
       />
     </div>
   );
