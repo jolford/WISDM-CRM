@@ -133,7 +133,7 @@ export default function Dashboard() {
               Dashboard
             </h1>
             <p className="text-white/90 text-lg max-w-2xl font-medium">
-              Welcome back! Here's your spectacular overview of sales performance and business insights.
+              Welcome back! Here's your overview of sales performance and business insights.
             </p>
             <div className="flex gap-3">
               <Button variant="glass" size="lg" className="hover-lift btn-glass">
