@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Plus, Search, Upload, Download, Share, Edit, Trash2, ExternalLink, Settings } from "lucide-react";
+import { FolderOpen, Plus, Search, Upload, Download, Share, Settings, ExternalLink, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ConnectEgnyteDialog } from "@/components/ConnectEgnyteDialog";
@@ -12,6 +12,7 @@ export default function Egnyte() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [connections, setConnections] = useState<any[]>([]);
+  const [selectedConnection, setSelectedConnection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editingConnection, setEditingConnection] = useState<any>(null);
 
@@ -28,22 +29,25 @@ export default function Egnyte() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
+      
       setConnections(data || []);
+      if (data && data.length > 0 && !selectedConnection) {
+        setSelectedConnection(data[0]);
+      }
     } catch (error: any) {
       console.error('Error fetching connections:', error);
       toast({
         title: "Error",
         description: "Failed to load Egnyte connections",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteConnection = async (connection: any) => {
-    if (!confirm(`Are you sure you want to delete the connection "${connection.connection_name}"?`)) {
+  const handleDeleteConnection = async (connectionId: string) => {
+    if (!confirm("Are you sure you want to delete this Egnyte connection?")) {
       return;
     }
 
@@ -51,23 +55,32 @@ export default function Egnyte() {
       const { error } = await supabase
         .from('egnyte_connections')
         .delete()
-        .eq('id', connection.id);
+        .eq('id', connectionId);
 
       if (error) throw error;
 
       toast({
-        title: "Connection deleted",
-        description: "Egnyte connection has been removed successfully.",
+        title: "Success",
+        description: "Egnyte connection deleted successfully"
       });
 
-      fetchConnections();
+      await fetchConnections();
+      if (selectedConnection?.id === connectionId) {
+        setSelectedConnection(connections.length > 1 ? connections[0] : null);
+      }
     } catch (error: any) {
       console.error('Error deleting connection:', error);
       toast({
         title: "Error",
-        description: "Failed to delete connection",
-        variant: "destructive",
+        description: "Failed to delete Egnyte connection",
+        variant: "destructive"
       });
+    }
+  };
+
+  const openEgnyteSite = (connection: any) => {
+    if (connection?.domain_name) {
+      window.open(`https://${connection.domain_name}`, '_blank');
     }
   };
 
@@ -93,6 +106,49 @@ export default function Egnyte() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading Egnyte connections...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If no connections exist, show connection setup
+  if (connections.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Egnyte File Management</h1>
+            <p className="text-muted-foreground">
+              Access and manage your Egnyte files and folders
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <FolderOpen className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Egnyte Connections</h3>
+            <p className="text-muted-foreground text-center mb-6 max-w-md">
+              Connect your Egnyte site to start accessing and managing your files directly from here.
+            </p>
+            <ConnectEgnyteDialog onConnectionChange={fetchConnections}>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Connect Egnyte Site
+              </Button>
+            </ConnectEgnyteDialog>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -103,69 +159,134 @@ export default function Egnyte() {
           </p>
         </div>
         <div className="flex gap-2">
-          <ConnectEgnyteDialog
-            connection={editingConnection}
-            onConnectionUpdate={() => {
-              fetchConnections();
-              setEditingConnection(null);
-            }}
-          >
-            <Button>
+          <Button onClick={() => openEgnyteSite(selectedConnection)}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Open Egnyte
+          </Button>
+          <ConnectEgnyteDialog onConnectionChange={fetchConnections}>
+            <Button variant="outline">
               <Plus className="mr-2 h-4 w-4" />
-              Connect Egnyte
+              Add Connection
             </Button>
           </ConnectEgnyteDialog>
         </div>
       </div>
 
       {/* Connections Management */}
-      {connections.length > 0 && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Egnyte Connections</CardTitle>
+          <CardDescription>
+            Manage your connected Egnyte sites
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {connections.map((connection) => (
+              <div key={connection.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`h-3 w-3 rounded-full ${connection.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <div>
+                    <p className="font-medium">{connection.connection_name}</p>
+                    <p className="text-sm text-muted-foreground">{connection.domain_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Connected as: {connection.username}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={connection.is_active ? "default" : "secondary"}>
+                    {connection.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEgnyteSite(connection)}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  <ConnectEgnyteDialog 
+                    editingConnection={connection} 
+                    onConnectionChange={fetchConnections}
+                  >
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </ConnectEgnyteDialog>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteConnection(connection.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedConnection && (
         <Card>
           <CardHeader>
-            <CardTitle>Connected Egnyte Accounts</CardTitle>
+            <CardTitle>File Browser - {selectedConnection.connection_name}</CardTitle>
             <CardDescription>
-              Manage your Egnyte connections
+              Browse and manage files from {selectedConnection.domain_name}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {connections.map((connection) => (
-                <div key={connection.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search files and folders..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Button>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </Button>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                New Folder
+              </Button>
+            </div>
+
+            <div className="text-sm text-muted-foreground mb-4">
+              <p>
+                <strong>Note:</strong> File browsing functionality will be available once you provide 
+                API access. Currently showing sample data.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {mockFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
                   <div className="flex items-center gap-3">
-                    <Settings className="h-4 w-4 text-muted-foreground" />
+                    {getFileIcon(file.type)}
                     <div>
-                      <p className="font-medium">{connection.connection_name}</p>
+                      <p className="font-medium">{file.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {connection.domain_name} • {connection.username}
+                        {file.size} • Modified {file.modified}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {connection.is_active ? "Active" : "Inactive"}
+                    <Badge variant="secondary" className={getTypeColor(file.type)}>
+                      {file.type}
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(`https://${connection.domain_name}`, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <ConnectEgnyteDialog
-                      connection={connection}
-                      onConnectionUpdate={fetchConnections}
-                    >
+                    <div className="flex gap-1">
                       <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
+                        <Download className="h-4 w-4" />
                       </Button>
-                    </ConnectEgnyteDialog>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteConnection(connection)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button variant="ghost" size="sm">
+                        <Share className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -173,95 +294,6 @@ export default function Egnyte() {
           </CardContent>
         </Card>
       )}
-
-      {/* File Browser */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>File Browser</CardTitle>
-              <CardDescription>
-                {connections.length > 0 
-                  ? "Browse and manage your Egnyte files" 
-                  : "Connect to Egnyte to browse files"
-                }
-              </CardDescription>
-            </div>
-            {connections.length > 0 && (
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload
-                </Button>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Folder
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {connections.length === 0 ? (
-            <div className="text-center py-8">
-              <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Egnyte connections</h3>
-              <p className="text-muted-foreground mb-4">
-                Connect your Egnyte account to start browsing and managing files.
-              </p>
-              <ConnectEgnyteDialog onConnectionUpdate={fetchConnections}>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Connect Egnyte
-                </Button>
-              </ConnectEgnyteDialog>
-            </div>
-          ) : (
-            <>
-              <div className="flex gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search files and folders..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {mockFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
-                    <div className="flex items-center gap-3">
-                      {getFileIcon(file.type)}
-                      <div>
-                        <p className="font-medium">{file.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {file.size} • Modified {file.modified}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className={getTypeColor(file.type)}>
-                        {file.type}
-                      </Badge>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Share className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,108 +17,120 @@ import { z } from "zod";
 
 const egnyteSchema = z.object({
   connectionName: z.string().trim().min(1, "Connection name is required").max(100),
-  domainName: z.string().trim().min(1, "Domain name is required").regex(
-    /^[a-zA-Z0-9-]+\.egnyte\.com$/,
-    "Domain must be in format: yourcompany.egnyte.com"
-  ),
+  domainName: z.string().trim().min(1, "Domain name is required")
+    .regex(/^[a-zA-Z0-9-]+\.egnyte\.com$/, "Must be a valid Egnyte domain (e.g., yourcompany.egnyte.com)"),
   username: z.string().trim().min(1, "Username is required").max(100),
-  apiToken: z.string().trim().min(1, "API token is required").max(500),
+  apiToken: z.string().trim().optional(),
 });
 
 interface ConnectEgnyteDialogProps {
   children: React.ReactNode;
-  connection?: any;
-  onConnectionUpdate?: () => void;
+  editingConnection?: any;
+  onConnectionChange?: () => void;
 }
 
 export function ConnectEgnyteDialog({ 
   children, 
-  connection, 
-  onConnectionUpdate 
+  editingConnection, 
+  onConnectionChange 
 }: ConnectEgnyteDialogProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
-    connectionName: connection?.connection_name || "",
-    domainName: connection?.domain_name || "",
-    username: connection?.username || "",
-    apiToken: connection?.api_token || "",
+    connectionName: editingConnection?.connection_name || "",
+    domainName: editingConnection?.domain_name || "",
+    username: editingConnection?.username || "",
+    apiToken: editingConnection?.api_token || "",
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    try {
+      egnyteSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      }
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Validate form data
-      const validatedData = egnyteSchema.parse(formData);
-      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to connect your Egnyte account.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const connectionData = {
-        connection_name: validatedData.connectionName,
-        domain_name: validatedData.domainName,
-        username: validatedData.username,
-        api_token: validatedData.apiToken,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: user.id,
+        connection_name: formData.connectionName.trim(),
+        domain_name: formData.domainName.trim(),
+        username: formData.username.trim(),
+        api_token: formData.apiToken.trim() || null,
       };
 
-      if (connection) {
-        // Update existing connection
-        const { error } = await supabase
+      let result;
+      if (editingConnection) {
+        result = await supabase
           .from('egnyte_connections')
           .update(connectionData)
-          .eq('id', connection.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Connection updated",
-          description: "Egnyte connection has been updated successfully.",
-        });
+          .eq('id', editingConnection.id);
       } else {
-        // Create new connection
-        const { error } = await supabase
+        result = await supabase
           .from('egnyte_connections')
           .insert([connectionData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Connection created",
-          description: "Egnyte connection has been created successfully.",
-        });
       }
 
+      if (result.error) {
+        throw result.error;
+      }
+
+      toast({
+        title: "Success",
+        description: `Egnyte connection ${editingConnection ? 'updated' : 'created'} successfully!`
+      });
+      
       setOpen(false);
-      onConnectionUpdate?.();
-      
-      // Reset form if creating new connection
-      if (!connection) {
-        setFormData({
-          connectionName: "",
-          domainName: "",
-          username: "",
-          apiToken: "",
-        });
-      }
-      
+      setFormData({
+        connectionName: "",
+        domainName: "",
+        username: "",
+        apiToken: "",
+      });
+      onConnectionChange?.();
     } catch (error: any) {
-      console.error('Connection error:', error);
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0];
-        toast({
-          title: "Validation Error",
-          description: firstError.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to save Egnyte connection",
-          variant: "destructive",
-        });
-      }
+      console.error('Error saving Egnyte connection:', error);
+      toast({
+        title: "Error",
+        description: error.message || `Failed to ${editingConnection ? 'update' : 'create'} Egnyte connection`,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -125,98 +138,83 @@ export function ConnectEgnyteDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div onClick={() => setOpen(true)}>
-        {children}
-      </div>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {connection ? "Edit Egnyte Connection" : "Connect to Egnyte"}
+            {editingConnection ? 'Edit' : 'Connect'} Egnyte Account
           </DialogTitle>
           <DialogDescription>
-            Connect your Egnyte account to manage files directly from the CRM.
+            {editingConnection 
+              ? 'Update your Egnyte connection settings.'
+              : 'Connect your Egnyte site to access and manage files.'
+            }
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="connectionName">Connection Name</Label>
-              <Input
-                id="connectionName"
-                placeholder="Main Egnyte Account"
-                value={formData.connectionName}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  connectionName: e.target.value
-                }))}
-                required
-                maxLength={100}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="domainName">Egnyte Domain</Label>
-              <Input
-                id="domainName"
-                placeholder="yourcompany.egnyte.com"
-                value={formData.domainName}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  domainName: e.target.value
-                }))}
-                required
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground">
-                Your Egnyte domain (e.g., yourcompany.egnyte.com)
-              </p>
-            </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                placeholder="your.email@company.com"
-                value={formData.username}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  username: e.target.value
-                }))}
-                required
-                maxLength={100}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="apiToken">API Token</Label>
-              <Input
-                id="apiToken"
-                type="password"
-                placeholder="Your Egnyte API token"
-                value={formData.apiToken}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  apiToken: e.target.value
-                }))}
-                required
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground">
-                Generate an API token from your Egnyte admin panel
-              </p>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="connectionName">Connection Name</Label>
+            <Input
+              id="connectionName"
+              value={formData.connectionName}
+              onChange={(e) => setFormData(prev => ({ ...prev, connectionName: e.target.value }))}
+              placeholder="My Egnyte Site"
+              className={errors.connectionName ? "border-destructive" : ""}
+            />
+            {errors.connectionName && (
+              <p className="text-sm text-destructive">{errors.connectionName}</p>
+            )}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="domainName">Egnyte Domain</Label>
+            <Input
+              id="domainName"
+              value={formData.domainName}
+              onChange={(e) => setFormData(prev => ({ ...prev, domainName: e.target.value }))}
+              placeholder="yourcompany.egnyte.com"
+              className={errors.domainName ? "border-destructive" : ""}
+            />
+            {errors.domainName && (
+              <p className="text-sm text-destructive">{errors.domainName}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+              placeholder="your.email@company.com"
+              className={errors.username ? "border-destructive" : ""}
+            />
+            {errors.username && (
+              <p className="text-sm text-destructive">{errors.username}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="apiToken">API Token (Optional)</Label>
+            <Input
+              id="apiToken"
+              type="password"
+              value={formData.apiToken}
+              onChange={(e) => setFormData(prev => ({ ...prev, apiToken: e.target.value }))}
+              placeholder="Enter your Egnyte API token"
+            />
+            <p className="text-xs text-muted-foreground">
+              API token is optional but recommended for enhanced functionality
+            </p>
+          </div>
+
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Connecting..." : connection ? "Update Connection" : "Connect"}
+              {loading ? "Connecting..." : editingConnection ? "Update" : "Connect"}
             </Button>
           </DialogFooter>
         </form>
