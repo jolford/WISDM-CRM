@@ -73,6 +73,9 @@ const Marketing = () => {
       case 'twitter': return <Twitter className="h-4 w-4 text-blue-400" />;
       case 'instagram': return <Instagram className="h-4 w-4 text-pink-600" />;
       case 'wordpress': return <Globe className="h-4 w-4 text-blue-500" />;
+      case 'teams': return <Globe className="h-4 w-4 text-purple-600" />;
+      case 'office365': return <Globe className="h-4 w-4 text-blue-800" />;
+      case 'egnyte': return <Globe className="h-4 w-4 text-green-600" />;
       default: return <Globe className="h-4 w-4" />;
     }
   };
@@ -274,6 +277,49 @@ const Marketing = () => {
                                 WP Admin
                               </Button>
                             </>
+                          )}
+                          
+                          {account.platform === 'egnyte' && account.account_handle && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => window.open(`https://${account.account_handle}`, '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Open Egnyte
+                            </Button>
+                          )}
+                          
+                          {account.platform === 'office365' && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open('https://outlook.office.com/mail', '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Outlook
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open('https://outlook.office.com/calendar', '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Calendar
+                              </Button>
+                            </>
+                          )}
+                          
+                          {account.platform === 'teams' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => window.open('https://teams.microsoft.com', '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Teams
+                            </Button>
                           )}
                           
                           <Button 

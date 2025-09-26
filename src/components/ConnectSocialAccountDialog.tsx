@@ -21,6 +21,9 @@ const platforms = [
   { value: "twitter", label: "Twitter", icon: Twitter },
   { value: "instagram", label: "Instagram", icon: Instagram },
   { value: "wordpress", label: "WordPress", icon: Globe },
+  { value: "teams", label: "Microsoft Teams", icon: Globe },
+  { value: "office365", label: "Office 365", icon: Globe },
+  { value: "egnyte", label: "Egnyte", icon: Globe },
 ];
 
 export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded, editingAccount }: ConnectSocialAccountDialogProps) => {
@@ -34,6 +37,12 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
     connection_type: "",
     username: "",
     api_key: "",
+    tenant_id: "",
+    client_id: "",
+    webhook_url: "",
+    scopes: "",
+    domain: "",
+    api_token: "",
   });
 
   useEffect(() => {
@@ -46,6 +55,12 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
         connection_type: "", // We don't store this separately, so leave empty
         username: "", // We don't store this separately, so leave empty
         api_key: "", // Don't pre-fill sensitive data
+        tenant_id: "",
+        client_id: "",
+        webhook_url: "",
+        scopes: "",
+        domain: "",
+        api_token: "",
       });
     } else {
       setFormData({
@@ -56,6 +71,12 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
         connection_type: "",
         username: "",
         api_key: "",
+        tenant_id: "",
+        client_id: "",
+        webhook_url: "",
+        scopes: "",
+        domain: "",
+        api_token: "",
       });
     }
   }, [editingAccount, open]);
@@ -63,20 +84,22 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.platform || !formData.account_name || !formData.account_handle) {
+    // Platform-specific validation
+    const requiredFields = {
+      wordpress: ["account_name", "account_handle", "connection_type", "site_url"],
+      teams: ["account_name", "tenant_id", "client_id"],
+      office365: ["account_name", "tenant_id", "client_id", "scopes"],
+      egnyte: ["account_name", "domain", "client_id", "api_token"],
+      default: ["account_name", "account_handle"]
+    };
+
+    const fields = requiredFields[formData.platform as keyof typeof requiredFields] || requiredFields.default;
+    const missingFields = fields.filter(field => !formData[field as keyof typeof formData]);
+
+    if (missingFields.length > 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // WordPress-specific validation
-    if (formData.platform === 'wordpress' && (!formData.connection_type || !formData.site_url)) {
-      toast({
-        title: "Missing WordPress Information",
-        description: "Please fill in connection type and site URL for WordPress",
+        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
         variant: "destructive",
       });
       return;
@@ -129,7 +152,21 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
         });
       }
 
-      setFormData({ platform: "", account_name: "", account_handle: "", site_url: "", connection_type: "", username: "", api_key: "" });
+      setFormData({ 
+        platform: "", 
+        account_name: "", 
+        account_handle: "", 
+        site_url: "", 
+        connection_type: "", 
+        username: "", 
+        api_key: "",
+        tenant_id: "",
+        client_id: "",
+        webhook_url: "",
+        scopes: "",
+        domain: "",
+        api_token: "",
+      });
       onAccountAdded();
       onOpenChange(false);
     } catch (error) {
@@ -267,10 +304,107 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded,
                   }
                 </p>
               </div>
-            </>
-          )}
+              </>
+            )}
 
-          <DialogFooter>
+            {formData.platform === 'teams' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="tenant_id">Tenant ID *</Label>
+                  <Input
+                    id="tenant_id"
+                    placeholder="Microsoft 365 Tenant ID"
+                    value={formData.tenant_id}
+                    onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client_id">Client ID *</Label>
+                  <Input
+                    id="client_id"
+                    placeholder="Application Client ID"
+                    value={formData.client_id}
+                    onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="webhook_url">Webhook URL</Label>
+                  <Input
+                    id="webhook_url"
+                    placeholder="Teams webhook URL (optional)"
+                    value={formData.webhook_url}
+                    onChange={(e) => setFormData({ ...formData, webhook_url: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+
+            {formData.platform === 'office365' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="tenant_id">Tenant ID *</Label>
+                  <Input
+                    id="tenant_id"
+                    placeholder="Microsoft 365 Tenant ID"
+                    value={formData.tenant_id}
+                    onChange={(e) => setFormData({ ...formData, tenant_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client_id">Client ID *</Label>
+                  <Input
+                    id="client_id"
+                    placeholder="Application Client ID"
+                    value={formData.client_id}
+                    onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="scopes">Scopes *</Label>
+                  <Input
+                    id="scopes"
+                    placeholder="e.g., Mail.Read, Calendars.ReadWrite"
+                    value={formData.scopes}
+                    onChange={(e) => setFormData({ ...formData, scopes: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+
+            {formData.platform === 'egnyte' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Egnyte Domain *</Label>
+                  <Input
+                    id="domain"
+                    placeholder="yourcompany.egnyte.com"
+                    value={formData.domain}
+                    onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client_id">Client ID *</Label>
+                  <Input
+                    id="client_id"
+                    placeholder="Egnyte API Client ID"
+                    value={formData.client_id}
+                    onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="api_token">API Token *</Label>
+                  <Input
+                    id="api_token"
+                    type="password"
+                    placeholder="Egnyte API token"
+                    value={formData.api_token}
+                    onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+
+            <DialogFooter>
             <Button
               type="button"
               variant="outline"
