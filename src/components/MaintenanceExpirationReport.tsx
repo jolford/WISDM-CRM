@@ -36,6 +36,7 @@ const MaintenanceExpirationReport: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [maintenanceData, setMaintenanceData] = useState<MaintenanceRecord[]>([]);
   const [expirationGroups, setExpirationGroups] = useState<ExpirationGroup[]>([]);
+  const [activeTab, setActiveTab] = useState("30-days");
 
   useEffect(() => {
     if (user) {
@@ -202,7 +203,11 @@ const MaintenanceExpirationReport: React.FC = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {expirationGroups.map((group) => (
-          <Card key={group.period} className="relative overflow-hidden">
+          <Card 
+            key={group.period} 
+            className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/20"
+            onClick={() => setActiveTab(group.period)}
+          >
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 {group.icon}
@@ -220,7 +225,7 @@ const MaintenanceExpirationReport: React.FC = () => {
       </div>
 
       {/* Detailed Tabs */}
-      <Tabs defaultValue="30-days" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           {expirationGroups.map((group) => (
             <TabsTrigger key={group.period} value={group.period}>
