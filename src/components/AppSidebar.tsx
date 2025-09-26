@@ -35,6 +35,7 @@ const mainItems = [
   { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Deals", url: "/deals", icon: Target },
   { title: "Campaigns", url: "/campaigns", icon: Megaphone },
+  { title: "Marketing", url: "/marketing", icon: BarChart3 },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ]
