@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
+import Papa from "papaparse"
 
 export default function DataImportExport() {
   const { toast } = useToast()
@@ -280,451 +281,342 @@ export default function DataImportExport() {
         throw new Error('File contains potentially malicious content')
       }
       
-      const lines = text.split(/\r?\n/).filter(line => line.trim()) // Remove empty lines and handle CRLF
-      
-      // Detect delimiter from header line (tab, semicolon, or comma)
-      const headerLine = lines[0]?.replace(/^\uFEFF/, '') || ''
-      const detectedDelimiter = headerLine.includes('\t') ? '\t' : ((headerLine.includes(';') && !headerLine.includes(',')) ? ';' : ',')
-      
-      const headers = headerLine.split(detectedDelimiter).map(h => h.trim().replace(/"/g, ''))
-      console.log('📋 CSV Headers found:', headers, '| Delimiter:', JSON.stringify(detectedDelimiter))
-      
-      // Check if CSV has proper headers (more than 1 column or doesn't look like a filename)
-      if (headers.length === 1 && (headers[0].includes('.csv') || headers[0].includes('report') || headers[0].length > 50)) {
-        throw new Error('Invalid CSV format: The file appears to have malformed headers. Please ensure your CSV has proper column headers in the first row.')
-      }
+// Use PapaParse for robust CSV parsing (handles quotes and commas inside fields)
+const parsed = Papa.parse<Record<string, string>>(text.replace(/^\uFEFF/, ''), {
+  header: true,
+  skipEmptyLines: true,
+  dynamicTyping: false,
+});
 
-      // Security: Validate headers (allow common CSV characters including special chars, quotes, etc.)
-      const allowedHeaderPattern = /^[a-zA-Z0-9\s_.,&():/'"#@%$*+=\[\]{}|\\~`!?-]+$/
-      const invalidHeaders = headers.filter(header => !allowedHeaderPattern.test(header))
-      if (invalidHeaders.length > 0) {
-        console.warn('Invalid headers found:', invalidHeaders)
-        console.log('All headers:', headers)
-        // Make validation less strict - just warn instead of failing
-        console.warn('Some headers contain special characters but proceeding with import...')
+const headers = parsed.meta.fields || [];
+console.log('📋 CSV Headers found (Papa):', headers)
+console.log(`Processing ${parsed.data.length} records from ${selectedFile.name}`)
+
+// Create column mapping for CSV headers -> database columns
+const getColumnMapping = (importType: string) => {
+  if (importType === 'contacts') {
+    return {
+      'Record Id': 'record_id',
+      'Contact Owner.id': 'contact_owner_id', 
+      'Contact Owner': 'contact_owner',
+      'Lead Source': 'lead_source',
+      'First Name': 'first_name',
+      'Last Name': 'last_name',
+      'Account Name.id': 'account_name_id',
+      'Account Name': 'account_name',
+      'Vendor Name.id': 'vendor_name_id',
+      'Vendor Name': 'vendor_name',
+      'Email': 'email',
+      'Title': 'title',
+      'Department': 'department',
+      'Phone': 'phone',
+      'Mobile': 'mobile',
+      'Created By.id': 'created_by_id',
+      'Created By': 'created_by',
+      'Modified By.id': 'modified_by_id',
+      'Modified By': 'modified_by',
+      'Created Time': 'created_time',
+      'Modified Time': 'modified_time',
+      'Contact Name': 'contact_name',
+      'Description': 'description',
+      'Email Opt Out': 'email_opt_out',
+      'Salutation': 'salutation',
+      'Last Activity Time': 'last_activity_time',
+      'Tag': 'tag',
+      'Reporting To.id': 'reporting_to_id',
+      'Reporting To': 'reporting_to',
+      'Unsubscribed Mode': 'unsubscribed_mode',
+      'Unsubscribed Time': 'unsubscribed_time',
+      'Change Log Time': 'change_log_time',
+      'First Visit': 'first_visit',
+      'Visitor Score': 'visitor_score',
+      'Referrer': 'referrer',
+      'Average Time Spent (Minutes)': 'average_time_spent_minutes',
+      'Most Recent Visit': 'most_recent_visit',
+      'First Page Visited': 'first_page_visited',
+      'Number Of Chats': 'number_of_chats',
+      'Days Visited': 'days_visited',
+      'General Phone': 'general_phone',
+      'Direct Phone': 'direct_phone',
+      'LinkedIn Connection': 'linkedin_connection',
+      'Account Egnyte Link': 'account_egnyte_link',
+      'Name Pronunciation': 'name_pronunciation',
+      'Industry & FB Group Memberships': 'industry_fb_group_memberships',
+      'Role in deals': 'role_in_deals',
+      'Street': 'street',
+      'City': 'city',
+      'Zip Code': 'zip_code',
+      'State': 'state',
+      'Country': 'country',
+      'County': 'county',
+      'Locked': 'locked',
+      'Last Enriched Time': 'last_enriched_time',
+      'Enrich Status': 'enrich_status',
+      'Reference Type': 'reference_type',
+      'Reference Subject Matter, Use Case  & Department': 'reference_subject_matter',
+      'Reference Egnyte Link': 'reference_egnyte_link',
+      'Reference Services Products & Solutions': 'reference_services_products',
+      'Conferences & Organizations Attended': 'conferences_organizations_attended'
+    }
+  } else if (importType === 'companies') {
+    return {
+      'Account Name': 'name',
+      'Company Name': 'name',
+      'Name': 'name',
+      'Website': 'website',
+      'Industry': 'industry',
+      'Size': 'size',
+      'Employees': 'size',
+      'Annual Revenue': 'revenue',
+      'Revenue': 'revenue',
+      'Phone': 'phone',
+      'Email': 'email',
+      'Address': 'address',
+      'Street': 'address',
+      'City': 'city',
+      'State': 'state',
+      'Country': 'country',
+      'Zip Code': 'zip_code',
+      'Postal Code': 'zip_code',
+      'Notes': 'notes',
+      'Description': 'notes'
+    }
+  } else if (importType === 'tickets') {
+    return {
+      'Subject': 'subject',
+      'Description': 'description',
+      'Status': 'status',
+      'Priority': 'priority',
+      'Product Name': 'product',
+      'Email': 'email',
+      'Account Name': 'company',
+      'Contact Name': 'customer_name',
+      'Created Time': 'created_at',
+      'Modified Time': 'updated_at',
+      'Phone': null,
+      'Ticket Id': null,
+      'Ticket Reference Id': null,
+      'Department': null,
+      'Department Id': null,
+      'Contact Id': null,
+      'Account Id': null,
+      'Product Id': null,
+      'Ticket Owner': null,
+      'Ticket Owner Id': null,
+      'Created By': null,
+      'Created By Id': null,
+      'Modified By': null,
+      'Modified By Id': null,
+      'Resolution': null,
+      'To Address': null,
+      'Due Date': null,
+      'Mode': null,
+      'Category': null,
+      'Sub Category': null,
+      'Ticket Closed Time': null,
+      'Is Overdue': null,
+      'Is Escalated': null,
+      'Classification': null,
+      'Time to Respond': null,
+      'Team': null,
+      'Team Id': null,
+      'Tags': null,
+      'Ticket On Hold Time': null,
+      'Language': null,
+      'Vendor Ticket Number': null,
+      'Child Ticket Count': null
+    }
+  } else if (importType === 'deals') {
+    return {
+      'Deal Name': 'name',
+      'Name': 'name',
+      'Title': 'name',
+      'Deal Owner': 'deal_owner_name',
+      'Account Name': 'company_name',
+      'Company': 'company_name',
+      'Amount': 'value',
+      'Value': 'value',
+      'Deal Value': 'value',
+      'Stage': 'stage',
+      'Deal Stage': 'stage',
+      'Status': 'stage',
+      'Close Date': 'close_date',
+      'Closing Date': 'close_date',
+      'Expected Close': 'close_date',
+      'Contact Name': 'contact_name',
+      'Contact': 'contact_name',
+      'Win Probability': 'probability',
+      'Description': 'description',
+      'Notes': 'notes',
+      'Comments': 'notes'
+    }
+  } else if (importType === 'maintenance') {
+    return {
+      'Product Name': 'product_name',
+      'Product': 'product_name',
+      'Products': 'product_name',
+      'Name': 'product_name',
+      'Software Name': 'product_name',
+      'Hardware Name': 'product_name',
+      'Item Name': 'product_name',
+      'Asset Name': 'product_name',
+      'Product Type': 'product_type',
+      'Type': 'product_type',
+      'Category': 'product_type',
+      'Vendor Name': 'vendor_name',
+      'Vendor': 'vendor_name',
+      'Manufacturer': 'vendor_name',
+      'Account Name': 'vendor_name',
+      'Serial Number': 'serial_number',
+      'Serial': 'serial_number',
+      'S/N': 'serial_number',
+      'License Key': 'license_key',
+      'License': 'license_key',
+      'Key': 'license_key',
+      'Purchase Date': 'purchase_date',
+      'Purchased': 'purchase_date',
+      'Start Date': 'start_date',
+      'Start': 'start_date',
+      'End Date': 'end_date',
+      'End': 'end_date',
+      'Expiry Date': 'end_date',
+      'Expiration Date': 'end_date',
+      'Cost': 'cost',
+      'Price': 'cost',
+      'Amount': 'cost',
+      'COGS': 'cost',
+      'Income': 'income',
+      'Profit': 'profit',
+      'Margin %': 'margin_percent',
+      'Status': 'status',
+      'State': 'status',
+      'Notes': 'notes',
+      'Notes (Hardware Maintenance)': 'notes',
+      'Comments': 'notes',
+      'Description': 'notes',
+      'Renewal Reminder Days': 'renewal_reminder_days',
+      'Reminder Days': 'renewal_reminder_days'
+    }
+  } else if (importType === 'vendors') {
+    return {
+      'Vendor Name': 'name',
+      'Name': 'name',
+      'Company Name': 'name',
+      'Contact Name': 'contact_name',
+      'Contact': 'contact_name',
+      'Email': 'email',
+      'Phone': 'phone',
+      'Website': 'website',
+      'Address': 'address',
+      'Street': 'address',
+      'City': 'city',
+      'State': 'state',
+      'Country': 'country',
+      'Zip Code': 'zip_code',
+      'Postal Code': 'zip_code',
+      'Industry': 'industry',
+      'Status': 'status',
+      'Notes': 'notes',
+      'Comments': 'notes',
+      'Description': 'notes'
+    }
+  } else if (importType === 'forecasts') {
+    return {
+      'Period': 'period',
+      'Time Period': 'period',
+      'Quarter': 'period',
+      'Month': 'period',
+      'Year': 'period',
+      'Forecast Type': 'forecast_type',
+      'Type': 'forecast_type',
+      'Category': 'forecast_type',
+      'Target Amount': 'target_amount',
+      'Target': 'target_amount',
+      'Goal': 'target_amount',
+      'Actual Amount': 'actual_amount',
+      'Actual': 'actual_amount',
+      'Result': 'actual_amount',
+      'Probability': 'probability',
+      'Confidence': 'probability',
+      'Likelihood': 'probability',
+      'Notes': 'notes',
+      'Comments': 'notes',
+      'Description': 'notes'
+    }
+  } else if (importType === 'reports') {
+    return {
+      'Report Name': 'name',
+      'Name': 'name',
+      'Title': 'name',
+      'Report Type': 'report_type',
+      'Type': 'report_type',
+      'Category': 'report_type',
+      'Description': 'description',
+      'Notes': 'description',
+      'Data Source': 'data_source',
+      'Source': 'data_source',
+      'Table': 'data_source',
+      'Schedule': 'schedule',
+      'Frequency': 'schedule',
+      'Timing': 'schedule',
+      'Format': 'format',
+      'Output Format': 'format',
+      'Export Format': 'format',
+      'Recipients': 'recipients',
+      'Email Recipients': 'recipients',
+      'Send To': 'recipients',
+      'Active': 'is_active',
+      'Enabled': 'is_active',
+      'Status': 'is_active'
+    }
+  }
+  return {}
+}
+
+const columnMapping = getColumnMapping(importType)
+console.log('🔍 Available column mapping for', importType, ':', columnMapping)
+
+const records: any[] = []
+const validatedRecords: any[] = []
+
+const rows = (parsed.data || []) as Record<string, string>[]
+for (let i = 0; i < rows.length; i++) {
+  const row = rows[i]
+  const mappedRecord: Record<string, any> = {}
+  console.log('🔄 Processing row:', i + 1, 'Raw values:', row)
+
+  Object.keys(row).forEach((header) => {
+    const value = row[header] ?? ''
+    if (columnMapping[header] !== undefined) {
+      if (columnMapping[header] !== null) {
+        const mappedField = columnMapping[header]
+        mappedRecord[mappedField] = typeof value === 'string' ? value.trim() : value
+      } else {
+        console.log(`   🚫 Ignoring field "${header}" (explicitly mapped to null)`) 
       }
-      
-      console.log('CSV headers found:', headers)
-      console.log(`Processing ${lines.length - 1} records from ${selectedFile.name}`)
-      
-      // Create column mapping for contacts and companies to handle CSV headers -> database columns
-      const getColumnMapping = (importType: string) => {
-        if (importType === 'contacts') {
-          return {
-            'Record Id': 'record_id',
-            'Contact Owner.id': 'contact_owner_id', 
-            'Contact Owner': 'contact_owner',
-            'Lead Source': 'lead_source',
-            'First Name': 'first_name',
-            'Last Name': 'last_name',
-            'Account Name.id': 'account_name_id',
-            'Account Name': 'account_name',
-            'Vendor Name.id': 'vendor_name_id',
-            'Vendor Name': 'vendor_name',
-            'Email': 'email',
-            'Title': 'title',
-            'Department': 'department',
-            'Phone': 'phone',
-            'Mobile': 'mobile',
-            'Created By.id': 'created_by_id',
-            'Created By': 'created_by',
-            'Modified By.id': 'modified_by_id',
-            'Modified By': 'modified_by',
-            'Created Time': 'created_time',
-            'Modified Time': 'modified_time',
-            'Contact Name': 'contact_name',
-            'Description': 'description',
-            'Email Opt Out': 'email_opt_out',
-            'Salutation': 'salutation',
-            'Last Activity Time': 'last_activity_time',
-            'Tag': 'tag',
-            'Reporting To.id': 'reporting_to_id',
-            'Reporting To': 'reporting_to',
-            'Unsubscribed Mode': 'unsubscribed_mode',
-            'Unsubscribed Time': 'unsubscribed_time',
-            'Change Log Time': 'change_log_time',
-            'First Visit': 'first_visit',
-            'Visitor Score': 'visitor_score',
-            'Referrer': 'referrer',
-            'Average Time Spent (Minutes)': 'average_time_spent_minutes',
-            'Most Recent Visit': 'most_recent_visit',
-            'First Page Visited': 'first_page_visited',
-            'Number Of Chats': 'number_of_chats',
-            'Days Visited': 'days_visited',
-            'General Phone': 'general_phone',
-            'Direct Phone': 'direct_phone',
-            'LinkedIn Connection': 'linkedin_connection',
-            'Account Egnyte Link': 'account_egnyte_link',
-            'Name Pronunciation': 'name_pronunciation',
-            'Industry & FB Group Memberships': 'industry_fb_group_memberships',
-            'Role in deals': 'role_in_deals',
-            'Street': 'street',
-            'City': 'city',
-            'Zip Code': 'zip_code',
-            'State': 'state',
-            'Country': 'country',
-            'County': 'county',
-            'Locked': 'locked',
-            'Last Enriched Time': 'last_enriched_time',
-            'Enrich Status': 'enrich_status',
-            'Reference Type': 'reference_type',
-            'Reference Subject Matter, Use Case  & Department': 'reference_subject_matter',
-            'Reference Egnyte Link': 'reference_egnyte_link',
-            'Reference Services Products & Solutions': 'reference_services_products',
-            'Conferences & Organizations Attended': 'conferences_organizations_attended'
-          }
-        } else if (importType === 'companies') {
-          return {
-            'Account Name': 'name',
-            'Company Name': 'name',
-            'Name': 'name',
-            'Website': 'website',
-            'Industry': 'industry',
-            'Size': 'size',
-            'Employees': 'size',
-            'Annual Revenue': 'revenue',
-            'Revenue': 'revenue',
-            'Phone': 'phone',
-            'Email': 'email',
-            'Address': 'address',
-            'Street': 'address',
-            'City': 'city',
-            'State': 'state',
-            'Country': 'country',
-            'Zip Code': 'zip_code',
-            'Postal Code': 'zip_code',
-            'Notes': 'notes',
-            'Description': 'notes'
-          }
-          } else if (importType === 'tickets') {
-            return {
-              // Core mappings to tickets table columns
-              'Subject': 'subject',
-              'Description': 'description',
-              'Status': 'status',
-              'Priority': 'priority',
-              'Product Name': 'product',
-              'Email': 'email',
-              'Account Name': 'company',
-              'Contact Name': 'customer_name',
-              'Created Time': 'created_at',
-              'Modified Time': 'updated_at',
-              // Optional extras we currently ignore but keep to avoid "No mapping found" logs
-              'Phone': null,
-              'Ticket Id': null,
-              'Ticket Reference Id': null,
-              'Department': null,
-              'Department Id': null,
-              'Contact Id': null,
-              'Account Id': null,
-              'Product Id': null,
-              'Ticket Owner': null,
-              'Ticket Owner Id': null,
-              'Created By': null,
-              'Created By Id': null,
-              'Modified By': null,
-              'Modified By Id': null,
-              'Resolution': null,
-              'To Address': null,
-              'Due Date': null,
-              'Mode': null,
-              'Category': null,
-              'Sub Category': null,
-              'Ticket Closed Time': null,
-              'Is Overdue': null,
-              'Is Escalated': null,
-              'Classification': null,
-              'Time to Respond': null,
-              'Team': null,
-              'Team Id': null,
-              'Tags': null,
-              'Ticket On Hold Time': null,
-              'Language': null,
-              'Vendor Ticket Number': null,
-              'Child Ticket Count': null
-            }
-          } else if (importType === 'deals') {
-            return {
-              'Deal Name': 'name',
-              'Name': 'name',
-              'Title': 'name',
-              'Deal Owner': 'deal_owner_name', // Store owner name as text field
-              'Account Name': 'company_name', // Store company name as text
-              'Company': 'company_name',
-              'Amount': 'value',
-              'Value': 'value',
-              'Deal Value': 'value',
-              'Stage': 'stage',
-              'Deal Stage': 'stage',
-              'Status': 'stage',
-              'Close Date': 'close_date',
-              'Closing Date': 'close_date',
-              'Expected Close': 'close_date',
-              'Contact Name': 'contact_name',
-              'Contact': 'contact_name',
-              'Win Probability': 'probability',
-              'Description': 'description',
-              'Notes': 'notes',
-              'Comments': 'notes'
-            }
-          } else if (importType === 'maintenance') {
-            return {
-              'Product Name': 'product_name',
-              'Product': 'product_name',
-              'Products': 'product_name', // Add mapping for plural "Products" column
-              'Name': 'product_name',
-              'Software Name': 'product_name',
-              'Hardware Name': 'product_name',
-              'Item Name': 'product_name',
-              'Asset Name': 'product_name',
-              'Product Type': 'product_type',
-              'Type': 'product_type',
-              'Category': 'product_type',
-              'Vendor Name': 'vendor_name',
-              'Vendor': 'vendor_name',
-              'Manufacturer': 'vendor_name',
-              'Account Name': 'vendor_name', // Map account column to vendor_name per request
-              'Serial Number': 'serial_number',
-              'Serial': 'serial_number',
-              'S/N': 'serial_number',
-              'License Key': 'license_key',
-              'License': 'license_key',
-              'Key': 'license_key',
-              'Purchase Date': 'purchase_date',
-              'Purchased': 'purchase_date',
-              'Start Date': 'start_date',
-              'Start': 'start_date',
-              'End Date': 'end_date',
-              'End': 'end_date',
-              'Expiry Date': 'end_date',
-              'Expiration Date': 'end_date',
-              'Cost': 'cost',
-              'Price': 'cost',
-              'Amount': 'cost',
-              'COGS': 'cost', // Map COGS to cost in DB
-              'Income': null,
-              'Profit': null,
-              'Margin %': null,
-              'Status': 'status',
-              'State': 'status',
-              'Notes': 'notes',
-              'Notes (Hardware Maintenance)': 'notes',
-              'Comments': 'notes',
-              'Description': 'notes',
-              'Renewal Reminder Days': 'renewal_reminder_days',
-              'Reminder Days': 'renewal_reminder_days'
-            }
-          } else if (importType === 'vendors') {
-            return {
-              'Vendor Name': 'name',
-              'Name': 'name',
-              'Company Name': 'name',
-              'Contact Name': 'contact_name',
-              'Contact': 'contact_name',
-              'Email': 'email',
-              'Phone': 'phone',
-              'Website': 'website',
-              'Address': 'address',
-              'Street': 'address',
-              'City': 'city',
-              'State': 'state',
-              'Country': 'country',
-              'Zip Code': 'zip_code',
-              'Postal Code': 'zip_code',
-              'Industry': 'industry',
-              'Status': 'status',
-              'Notes': 'notes',
-              'Comments': 'notes',
-              'Description': 'notes'
-            }
-          } else if (importType === 'forecasts') {
-            return {
-              'Period': 'period',
-              'Time Period': 'period',
-              'Quarter': 'period',
-              'Month': 'period',
-              'Year': 'period',
-              'Forecast Type': 'forecast_type',
-              'Type': 'forecast_type',
-              'Category': 'forecast_type',
-              'Target Amount': 'target_amount',
-              'Target': 'target_amount',
-              'Goal': 'target_amount',
-              'Actual Amount': 'actual_amount',
-              'Actual': 'actual_amount',
-              'Result': 'actual_amount',
-              'Probability': 'probability',
-              'Confidence': 'probability',
-              'Likelihood': 'probability',
-              'Notes': 'notes',
-              'Comments': 'notes',
-              'Description': 'notes'
-            }
-          } else if (importType === 'reports') {
-            return {
-              'Report Name': 'name',
-              'Name': 'name',
-              'Title': 'name',
-              'Report Type': 'report_type',
-              'Type': 'report_type',
-              'Category': 'report_type',
-              'Description': 'description',
-              'Notes': 'description',
-              'Data Source': 'data_source',
-              'Source': 'data_source',
-              'Table': 'data_source',
-              'Schedule': 'schedule',
-              'Frequency': 'schedule',
-              'Timing': 'schedule',
-              'Format': 'format',
-              'Output Format': 'format',
-              'Export Format': 'format',
-              'Recipients': 'recipients',
-              'Email Recipients': 'recipients',
-              'Send To': 'recipients',
-              'Active': 'is_active',
-              'Enabled': 'is_active',
-              'Status': 'is_active'
-            }
-          }
-        return {}
-      }
-      
-      const columnMapping = getColumnMapping(importType)
-      console.log('🔍 Available column mapping for', importType, ':', columnMapping)
-      
-      const records = []
-      const validatedRecords = []
-      
-      // Process each line with validation
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(detectedDelimiter).map(v => v.trim().replace(/"/g, ''))
-          
-          const mappedRecord: Record<string, any> = {}
-          console.log('🔄 Processing row:', i + 1, 'Raw values:', values)
-          
-          headers.forEach((header, index) => {
-            const value = values[index] || ''
-            if (columnMapping[header] !== undefined) {
-              // Only map if the mapping is not null (null means ignore the field)
-              if (columnMapping[header] !== null) {
-                // Enhanced validation to prevent HTML/CSS content from being mapped to wrong fields
-                const mappedField = columnMapping[header]
-                
-                // Check if this is a timestamp/date field that shouldn't contain HTML/CSS
-                const timestampFields = ['due_date', 'created_time', 'modified_time', 'start_date', 'end_date', 'purchase_date', 'close_date']
-                
-                if (timestampFields.includes(mappedField)) {
-                  // Skip HTML/CSS content and email addresses for timestamp fields
-                  const htmlCssPatterns = [
-                    /<[^>]*>/,  // HTML tags
-                    /style\s*=/,  // CSS styles
-                    /font-/,  // Font styles
-                    /margin:/,  // Margin styles
-                    /padding:/,  // Padding styles
-                    /@[^@]*\.[a-zA-Z]{2,}/,  // Email addresses
-                    /rgba?\(/,  // Color functions
-                    /px|em|rem|%/g,  // CSS units
-                    /sans-serif|serif/g,  // Font families
-                    /inherit|initial|auto/g,  // CSS keywords
-                    /\d+\.\d+\.\d+\.\d+/g,  // IP addresses
-                    /^[a-zA-Z0-9]+$/g  // IDs that are just alphanumeric
-                  ]
-                  
-                  if (htmlCssPatterns.some(pattern => pattern.test(value))) {
-                    console.log(`🚫 Skipping invalid timestamp content for "${header}": "${value}"`)
-                    return // Skip this field
-                  }
-                  
-                  // Additional validation for timestamp format
-                  if (value && !value.includes('-') && !value.includes('/') && !value.includes(':')) {
-                    console.log(`🚫 Skipping non-timestamp value for "${header}": "${value}"`)
-                    return // Skip this field
-                  }
-                }
-                
-                // Check if this is a status field that needs enum validation
-                if (mappedField === 'status' && importType === 'tickets') {
-                  const normalize = (raw: string) => {
-                    const lower = raw.toLowerCase().trim()
-                    const map: Record<string, string> = {
-                      'open': 'pending',
-                      'new': 'pending',
-                      'in progress': 'in_progress',
-                      'in_progress': 'in_progress',
-                      'on hold': 'pending',
-                      'hold': 'pending',
-                      'escalated': 'in_progress',
-                      'closed': 'completed',
-                      'resolved': 'completed',
-                      'cancelled': 'cancelled',
-                      'canceled': 'cancelled'
-                    }
-                    return map[lower] ?? lower
-                  }
-                  const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled']
-                  const normalized = normalize(value)
-                  if (!validStatuses.includes(normalized)) {
-                    console.log(`🚫 Unrecognized status "${value}", normalizing to "pending"`)
-                    mappedRecord[mappedField] = 'pending'
-                  } else {
-                    mappedRecord[mappedField] = normalized
-                  }
-                } else if (mappedField === 'task_type' && importType === 'tickets') {
-                  const validTaskTypes = ['call', 'email', 'meeting', 'follow_up', 'other']
-                  if (!validTaskTypes.includes(value.toLowerCase())) {
-                    console.log(`🚫 Invalid task_type value "${value}", using default "other"`)
-                    mappedRecord[mappedField] = 'other'
-                  } else {
-                    mappedRecord[mappedField] = value.toLowerCase()
-                  }
-                } else {
-                  // For other fields, just clean HTML/CSS content
-                  let cleanValue = value
-                  if (typeof cleanValue === 'string') {
-                    cleanValue = cleanValue
-                      .replace(/<[^>]*>/g, '') // Remove HTML tags
-                      .replace(/style\s*=\s*[^>]*?>/g, '') // Remove style attributes
-                      .replace(/margin:\s*[^;]*;?/g, '') // Remove margin styles
-                      .replace(/padding:\s*[^;]*;?/g, '') // Remove padding styles
-                      .replace(/font-[^;]*;?/g, '') // Remove font styles
-                      .trim()
-                  }
-                  
-                  mappedRecord[mappedField] = cleanValue
-                }
-                
-                console.log(`   📌 Mapped "${header}" → "${mappedField}" = "${mappedRecord[mappedField] || 'CLEANED'}"`)
-              } else {
-                console.log(`   🚫 Ignoring field "${header}" (explicitly mapped to null)`)
-              }
-            } else {
-              console.log(`   ❌ No mapping found for header: "${header}"`)
-            }
-          })
-          
-          console.log('🎯 Final mapped record for row', i + 1, ':', mappedRecord)
-          
-          records.push(mappedRecord)
-          validatedRecords.push(mappedRecord)
-        }
-        
-        // Update progress
-        setImportProgress((i / lines.length) * 100)
-        await new Promise(resolve => setTimeout(resolve, 5)) // Small delay for UI
-      }
-      
-      if (validatedRecords.length === 0) {
-        throw new Error('No valid records found in the file')
-      }
-      
-        console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
-        
-        // Store directly in database instead of localStorage
-        console.log('💾 Storing data directly in database')
-        
-        setImportProgress(50)
+    } else {
+      console.log(`   ❌ No mapping found for header: "${header}"`)
+    }
+  })
+
+  console.log('🎯 Final mapped record for row', i + 1, ':', mappedRecord)
+  records.push(mappedRecord)
+  validatedRecords.push(mappedRecord)
+
+  setImportProgress(Math.min(45, Math.round(((i + 1) / rows.length) * 45)))
+  await new Promise(resolve => setTimeout(resolve, 2))
+}
+
+if (validatedRecords.length === 0) {
+  throw new Error('No valid records found in the file')
+}
+
+console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
+
+// Store directly in database instead of localStorage
+console.log('💾 Storing data directly in database')
+
+setImportProgress(50)
       
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -802,7 +694,7 @@ export default function DataImportExport() {
         // Define numeric columns that need special handling
         const numericColumns = new Set([
           'visitor_score', 'number_of_chats', 'days_visited', 'average_time_spent_minutes',
-          'cost', 'renewal_reminder_days', 'target_amount', 'actual_amount', 'probability'
+          'cost', 'income', 'profit', 'margin_percent', 'renewal_reminder_days', 'target_amount', 'actual_amount', 'probability'
         ])
 
         // Define timestamp columns that need special handling
@@ -822,20 +714,18 @@ export default function DataImportExport() {
 
         // Helper function to safely convert to number
         const safeNumberConvert = (value: string, fieldName: string): number | null => {
-          if (!value || value.trim() === '') return null
-          
-          // Check if it looks like a timestamp (contains / or :)
-          if (value.includes('/') || value.includes(':') || value.includes('-')) {
-            console.warn(`Skipping timestamp-like value "${value}" for numeric field ${fieldName}`)
-            return null
-          }
-          
-          const num = parseFloat(value)
-          if (isNaN(num)) {
+          if (value === null || value === undefined) return null
+          const raw = String(value)
+          const cleaned = raw
+            .replace(/\$/g, '')
+            .replace(/,/g, '')
+            .replace(/%/g, '')
+            .replace(/\s+/g, '')
+          if (cleaned === '' || isNaN(Number(cleaned))) {
             console.warn(`Invalid number "${value}" for field ${fieldName}, setting to null`)
             return null
           }
-          return num
+          return Number(cleaned)
         }
 
         // Helper function to safely convert to timestamp
