@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+// Email functionality will be added when Resend is properly configured
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -103,30 +102,10 @@ serve(async (req) => {
         ? `${profile.first_name} ${profile.last_name}` 
         : profile.email;
 
-      // Send email notification
+      // Log notification (email functionality will be added when Resend is configured)
       try {
-        await resend.emails.send({
-          from: "WISDM Maintenance Alerts <maintenance@westint.com>",
-          to: [notificationEmail],
-          subject: `Maintenance Renewal Alert: ${record.product_name} expires in ${daysUntilExpiry} days`,
-          html: `
-            <h2>Maintenance Renewal Alert</h2>
-            <p>Hello ${userName},</p>
-            <p>This is a reminder that the following maintenance/license is expiring soon:</p>
-            
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>${record.product_name}</h3>
-              <p><strong>Type:</strong> ${record.product_type}</p>
-              <p><strong>Vendor:</strong> ${record.vendor_name || 'N/A'}</p>
-              <p><strong>Expiration Date:</strong> ${new Date(record.end_date).toLocaleDateString()}</p>
-              <p><strong>Days Until Expiry:</strong> ${daysUntilExpiry} days</p>
-            </div>
-            
-            <p>Please contact your accounting department to arrange renewal.</p>
-            
-            <p>Best regards,<br>WISDM Maintenance Alert System</p>
-          `,
-        });
+        console.log(`Would send notification for ${record.product_name} to ${notificationEmail}`);
+        console.log(`Content: Maintenance Renewal Alert - ${record.product_name} expires in ${daysUntilExpiry} days`);
 
         // Record the notification
         await supabaseClient
@@ -135,25 +114,15 @@ serve(async (req) => {
             maintenance_record_id: record.id,
             user_id: record.user_id,
             notification_type: notificationType,
-            email_sent: true,
+            email_sent: false, // Set to false until email is actually implemented
             sent_at: new Date().toISOString(),
           });
 
         notificationsSent++;
-        console.log(`Notification sent for ${record.product_name} to ${notificationEmail}`);
+        console.log(`Notification logged for ${record.product_name} to ${notificationEmail}`);
 
-      } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        
-        // Record failed notification
-        await supabaseClient
-          .from('maintenance_notifications')
-          .upsert({
-            maintenance_record_id: record.id,
-            user_id: record.user_id,
-            notification_type: notificationType,
-            email_sent: false,
-          });
+      } catch (logError) {
+        console.error('Error logging notification:', logError);
       }
     }
 
@@ -170,7 +139,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in maintenance-notifications function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

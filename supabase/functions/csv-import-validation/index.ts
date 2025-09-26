@@ -88,7 +88,7 @@ serve(async (req) => {
       
       console.log('Parsed headers:', headers);
     } catch (error) {
-      throw new Error(`Failed to parse CSV headers: ${error.message}`);
+      throw new Error(`Failed to parse CSV headers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     
     // Enhanced security validation for headers
@@ -217,7 +217,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'Internal server error'
+        error: error instanceof Error ? error.message : 'Internal server error'
       }),
       {
         status: 400,

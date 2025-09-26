@@ -1,10 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@4.0.0";
-import { renderAsync } from "npm:@react-email/components@0.0.22";
-import React from "npm:react@18.3.1";
-import { WelcomeEmail } from "./_templates/welcome-email.tsx";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -17,8 +12,6 @@ interface CreateUserRequest {
   role: 'admin' | 'manager' | 'sales_rep';
   sendEmail?: boolean;
 }
-
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -122,34 +115,8 @@ serve(async (req) => {
 
     console.log(`Role assigned successfully: ${role}`);
 
-    // Send welcome email if requested
-    if (sendEmail) {
-      try {
-        const loginUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovableproject.com') || 'https://your-app-url.com'}/auth`;
-        
-        const emailHtml = await renderAsync(
-          React.createElement(WelcomeEmail, {
-            firstName: firstName || email.split('@')[0],
-            email,
-            temporaryPassword,
-            loginUrl,
-            role: role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          })
-        );
-
-        await resend.emails.send({
-          from: 'CRM System <onboarding@resend.dev>',
-          to: [email],
-          subject: 'Welcome to CRM System - Your Account is Ready',
-          html: emailHtml,
-        });
-
-        console.log('Welcome email sent successfully');
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Don't fail the entire operation if email fails
-      }
-    }
+    // Email functionality temporarily disabled
+    console.log(`User created with temporary password: ${temporaryPassword}`);
 
     // Log the creation in audit log
     await supabase.from('import_audit_log').insert({
@@ -182,16 +149,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('User creation error:', error);
     
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message || 'Internal server error'
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: error instanceof Error ? error.message : 'Internal server error'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
   }
 });
 
