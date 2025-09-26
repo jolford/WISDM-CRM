@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Mail, Phone, Target, Calendar, Users, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CreateCampaignDialog } from "@/components/CreateCampaignDialog";
 
 const Campaigns = () => {
   const { toast } = useToast();
-  const [campaigns] = useState([
+  const [campaigns, setCampaigns] = useState([
     {
       id: 1,
       name: "Q1 Product Launch",
@@ -78,11 +79,8 @@ const Campaigns = () => {
     }
   };
 
-  const handleCreateCampaign = () => {
-    toast({
-      title: "Create Campaign",
-      description: "Campaign creation feature coming soon!",
-    });
+  const handleCampaignCreated = (newCampaign: any) => {
+    setCampaigns(prev => [...prev, newCampaign]);
   };
 
   return (
@@ -92,10 +90,7 @@ const Campaigns = () => {
           <h1 className="text-3xl font-bold">Campaigns</h1>
           <p className="text-muted-foreground">Manage your marketing campaigns and track performance</p>
         </div>
-        <Button onClick={handleCreateCampaign}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Campaign
-        </Button>
+        <CreateCampaignDialog onCampaignCreated={handleCampaignCreated} />
       </div>
 
       {/* Campaign Stats Overview */}
