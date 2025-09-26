@@ -54,6 +54,9 @@ interface MaintenanceRecord {
   license_key: string | null;
   serial_number: string | null;
   cost: number | null;
+  income: number | null;
+  profit: number | null;
+  margin_percent: number | null;
   status: 'active' | 'expired' | 'cancelled';
   notes: string | null;
   renewal_reminder_days: number;
@@ -629,10 +632,10 @@ export default function MaintenanceTracking() {
                   <TableCell>{formatDate(record.end_date)}</TableCell>
                   <TableCell className="font-medium">{record.product_name}</TableCell>
                   <TableCell>{record.serial_number || 'N/A'}</TableCell>
-                  <TableCell>{'N/A'}</TableCell>
+                  <TableCell>{formatCurrency(record.income)}</TableCell>
                   <TableCell>{formatCurrency(record.cost)}</TableCell>
-                  <TableCell>{'N/A'}</TableCell>
-                  <TableCell>{'N/A'}</TableCell>
+                  <TableCell>{formatCurrency(record.profit)}</TableCell>
+                  <TableCell>{record.margin_percent != null ? `${record.margin_percent}%` : 'N/A'}</TableCell>
                   <TableCell>{record.notes || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">

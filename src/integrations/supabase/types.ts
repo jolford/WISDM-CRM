@@ -719,10 +719,13 @@ export type Database = {
           created_at: string
           end_date: string | null
           id: string
+          income: number | null
           license_key: string | null
+          margin_percent: number | null
           notes: string | null
           product_name: string
           product_type: string
+          profit: number | null
           purchase_date: string | null
           renewal_reminder_days: number | null
           serial_number: string | null
@@ -738,10 +741,13 @@ export type Database = {
           created_at?: string
           end_date?: string | null
           id?: string
+          income?: number | null
           license_key?: string | null
+          margin_percent?: number | null
           notes?: string | null
           product_name: string
           product_type: string
+          profit?: number | null
           purchase_date?: string | null
           renewal_reminder_days?: number | null
           serial_number?: string | null
@@ -757,10 +763,13 @@ export type Database = {
           created_at?: string
           end_date?: string | null
           id?: string
+          income?: number | null
           license_key?: string | null
+          margin_percent?: number | null
           notes?: string | null
           product_name?: string
           product_type?: string
+          profit?: number | null
           purchase_date?: string | null
           renewal_reminder_days?: number | null
           serial_number?: string | null
