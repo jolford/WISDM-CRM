@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { QuickAddDialog } from "@/components/QuickAddDialog"
 import {
   CheckCircle,
   Clock,
@@ -39,6 +40,7 @@ export default function Tasks() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [completedTasks, setCompletedTasks] = useState<string[]>([])
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -140,10 +142,20 @@ export default function Tasks() {
           <h1 className="text-3xl font-bold">Tasks</h1>
           <p className="text-muted-foreground">Manage your tasks and follow-ups from imported data</p>
         </div>
-        <Button onClick={() => toast({ title: "Feature Coming Soon", description: "Task creation will be available soon!" })}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Task
-        </Button>
+        <QuickAddDialog 
+          open={isDialogOpen} 
+          onOpenChange={setIsDialogOpen} 
+          defaultTab="task"
+          onSuccess={() => {
+            fetchTasks()
+            setIsDialogOpen(false)
+          }}
+        >
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Task
+          </Button>
+        </QuickAddDialog>
       </div>
 
       {/* Quick Stats */}
