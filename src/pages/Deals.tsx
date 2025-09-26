@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { QuickAddDialog } from "@/components/QuickAddDialog"
 import { 
   Plus, 
   Target, 
@@ -76,6 +77,7 @@ export default function Deals() {
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
   const [sortField, setSortField] = useState<keyof Deal>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
   const { toast } = useToast()
 
   const stages = ["prospect", "qualified", "proposal", "negotiation", "closed"]
@@ -414,7 +416,7 @@ export default function Deals() {
             <p className="text-muted-foreground mb-4">
               Import some deals or create your first deal to get started
             </p>
-            <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
+            <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Deal
             </Button>
@@ -575,7 +577,7 @@ export default function Deals() {
             <List className="h-4 w-4 mr-2" />
             List
           </Button>
-          <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Deal
           </Button>
@@ -594,13 +596,24 @@ export default function Deals() {
             <p className="text-muted-foreground mb-4">
               Import some deals or create your first deal to get started
             </p>
-            <Button onClick={() => alert('Create Deal functionality would open a modal/form here')}>
+            <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Deal
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Create Deal Dialog */}
+      <QuickAddDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog}
+        defaultTab="deal"
+        onSuccess={() => {
+          fetchData() // Refresh the deals list
+          setShowCreateDialog(false)
+        }}
+      />
     </div>
   )
 }

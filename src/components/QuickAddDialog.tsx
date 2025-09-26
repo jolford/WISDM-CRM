@@ -25,11 +25,18 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 
 interface QuickAddDialogProps {
-  children: React.ReactNode
+  children?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  defaultTab?: string
+  onSuccess?: () => void
 }
 
-export function QuickAddDialog({ children }: QuickAddDialogProps) {
-  const [open, setOpen] = useState(false)
+export function QuickAddDialog({ children, open: externalOpen, onOpenChange, defaultTab = "contact", onSuccess }: QuickAddDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = externalOpen !== undefined
+  const open = isControlled ? externalOpen : internalOpen
+  const setOpen = isControlled ? (onOpenChange || (() => {})) : setInternalOpen
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
@@ -123,6 +130,7 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
       
       resetForms()
       setOpen(false)
+      if (onSuccess) onSuccess()
     } catch (error) {
       console.error('Error creating item:', error)
       toast({
@@ -137,9 +145,11 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      {children && (
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -151,7 +161,7 @@ export function QuickAddDialog({ children }: QuickAddDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="contact" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="contact" className="text-xs">
               <Users className="h-3 w-3 mr-1" />
