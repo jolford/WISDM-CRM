@@ -195,7 +195,18 @@ const Marketing = () => {
                           <div>
                             <h3 className="font-medium">{account.account_name}</h3>
                             <p className="text-sm text-muted-foreground">
-                              @{account.account_handle} • {account.platform}
+                              {account.platform === 'wordpress' ? (
+                                <>
+                                  {account.account_handle} • {account.platform}
+                                  {account.account_id_external && (
+                                    <span className="block text-xs">
+                                      Site: {account.account_id_external}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <>@{account.account_handle} • {account.platform}</>
+                              )}
                             </p>
                             {account.last_sync && (
                               <p className="text-xs text-muted-foreground">
@@ -208,6 +219,28 @@ const Marketing = () => {
                           <Badge variant={account.is_active ? "default" : "secondary"}>
                             {account.is_active ? "Active" : "Inactive"}
                           </Badge>
+                          
+                          {account.platform === 'wordpress' && account.account_id_external && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open(account.account_id_external, '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                View Site
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open(`${account.account_id_external}/wp-admin`, '_blank')}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                WP Admin
+                              </Button>
+                            </>
+                          )}
+                          
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
