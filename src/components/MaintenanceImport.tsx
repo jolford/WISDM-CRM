@@ -205,6 +205,11 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
         description: `Successfully imported ${recordsToInsert.length} maintenance records`,
       });
 
+      // Notify other components to refresh
+      window.dispatchEvent(new CustomEvent('maintenance:imported'));
+      // Notify other components to refresh
+      window.dispatchEvent(new CustomEvent('maintenance:imported'));
+
       setCsvData("");
       setPreviewData([]);
     } catch (error) {

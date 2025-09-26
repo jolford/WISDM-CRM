@@ -97,6 +97,12 @@ export default function MaintenanceTracking() {
       await fetchRecords();
       await fetchAccounts();
     })();
+
+    const onImported = () => {
+      fetchRecords();
+    };
+    window.addEventListener('maintenance:imported', onImported);
+    return () => window.removeEventListener('maintenance:imported', onImported);
   }, []);
 
   const cleanupUnknownRecords = async () => {
