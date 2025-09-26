@@ -890,6 +890,66 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          billable_rate: number | null
+          budget: number | null
+          client: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          hours_estimated: number | null
+          hours_logged: number | null
+          id: string
+          name: string
+          phase: string | null
+          priority: string
+          progress: number | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billable_rate?: number | null
+          budget?: number | null
+          client?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          hours_estimated?: number | null
+          hours_logged?: number | null
+          id?: string
+          name: string
+          phase?: string | null
+          priority?: string
+          progress?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billable_rate?: number | null
+          budget?: number | null
+          client?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          hours_estimated?: number | null
+          hours_logged?: number | null
+          id?: string
+          name?: string
+          phase?: string | null
+          priority?: string
+          progress?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       report_charts: {
         Row: {
           aggregate_function: string | null
@@ -1348,6 +1408,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      time_entries: {
+        Row: {
+          billable: boolean | null
+          created_at: string
+          date: string
+          description: string | null
+          hours: number
+          id: string
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billable?: boolean | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          hours?: number
+          id?: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billable?: boolean | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          hours?: number
+          id?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {

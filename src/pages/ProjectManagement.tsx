@@ -1,10 +1,14 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
+import { ProjectDialog } from "@/components/ProjectDialog"
+import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 import { 
   Plus, 
   Search, 
@@ -50,15 +54,65 @@ export default function ProjectManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [currentTimer, setCurrentTimer] = useState("00:00:00")
+  const [projects, setProjects] = useState<any[]>([])
+  const [timeEntries, setTimeEntries] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  const { user } = useAuth()
+  const { toast } = useToast()
 
-  const projects = []
+  useEffect(() => {
+    if (user) {
+      fetchProjects()
+      fetchTimeEntries()
+    }
+  }, [user])
 
-  const timeEntries = []
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setProjects(data || [])
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load projects",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchTimeEntries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select(`
+          *,
+          projects(name)
+        `)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      if (error) throw error
+      setTimeEntries(data || [])
+    } catch (error) {
+      console.error('Error fetching time entries:', error)
+    }
+  }
 
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = project.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         project.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         project.id?.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === "all" || project.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -100,9 +154,9 @@ export default function ProjectManagement() {
   const calculateProjectStats = () => {
     const totalProjects = projects.length
     const activeProjects = projects.filter(p => p.status === 'in-progress').length
-    const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0)
-    const totalHours = projects.reduce((sum, p) => sum + p.hoursLogged, 0)
-    const totalBillable = projects.reduce((sum, p) => sum + (p.hoursLogged * p.billableRate), 0)
+    const totalBudget = projects.reduce((sum, p) => sum + (p.budget || 0), 0)
+    const totalHours = projects.reduce((sum, p) => sum + (p.hours_logged || 0), 0)
+    const totalBillable = projects.reduce((sum, p) => sum + ((p.hours_logged || 0) * (p.billable_rate || 0)), 0)
 
     return { totalProjects, activeProjects, totalBudget, totalHours, totalBillable }
   }
@@ -126,10 +180,7 @@ export default function ProjectManagement() {
             <Timer className="h-4 w-4 mr-2" />
             Time Tracker
           </Button>
-          <Button onClick={() => alert('New Project functionality coming soon!')}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Project
-          </Button>
+          <ProjectDialog onProjectCreated={fetchProjects} />
         </div>
       </div>
 
@@ -191,6 +242,9 @@ export default function ProjectManagement() {
                       {project.name}
                     </SelectItem>
                   ))}
+                  {projects.filter(p => p.status !== 'completed').length === 0 && (
+                    <SelectItem value="none" disabled>No active projects</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <Button 
@@ -256,15 +310,28 @@ export default function ProjectManagement() {
           </Card>
 
           {/* Projects Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredProjects.map((project) => (
+          {loading ? (
+            <div className="text-center py-8">Loading projects...</div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No projects found</p>
+              <ProjectDialog>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Your First Project
+                </Button>
+              </ProjectDialog>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {filteredProjects.map((project) => (
               <Card key={project.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="font-mono text-xs">
-                          {project.id}
+                          {project.id.slice(0, 8)}
                         </Badge>
                         <Badge className={getStatusColor(project.status)}>
                           {project.status.replace("-", " ")}
@@ -274,14 +341,16 @@ export default function ProjectManagement() {
                         </Badge>
                       </div>
                       <CardTitle className="text-lg">{project.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
-                            {project.clientInitials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm text-muted-foreground">{project.client}</span>
-                      </div>
+                      {project.client && (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                              {project.client.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-muted-foreground">{project.client}</span>
+                        </div>
+                      )}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -311,50 +380,57 @@ export default function ProjectManagement() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">{project.progress}%</span>
+                      <span className="font-medium">{project.progress || 0}%</span>
                     </div>
-                    <Progress value={project.progress} className="h-2" />
+                    <Progress value={project.progress || 0} className="h-2" />
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Budget</p>
-                      <p className="font-semibold text-green-600">{formatCurrency(project.budget)}</p>
+                      <p className="font-semibold text-green-600">{formatCurrency(project.budget || 0)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Hours</p>
-                      <p className="font-semibold">{project.hoursLogged} / {project.hoursEstimated}h</p>
+                      <p className="font-semibold">{project.hours_logged || 0} / {project.hours_estimated || 0}h</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Rate</p>
-                      <p className="font-semibold">${project.billableRate}/hr</p>
+                      <p className="font-semibold">${project.billable_rate || 0}/hr</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Phase</p>
-                      <p className="font-semibold">{project.phase}</p>
+                      <p className="font-semibold">{project.phase || 'Planning'}</p>
                     </div>
                   </div>
                   
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {project.teamMembers.length} team members
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Due {formatDate(project.endDate)}
-                        </span>
+                  {(project.start_date || project.end_date) && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        {project.start_date && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Started {formatDate(project.start_date)}
+                            </span>
+                          </div>
+                        )}
+                        {project.end_date && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Due {formatDate(project.end_date)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="timesheet" className="space-y-4">
@@ -367,29 +443,29 @@ export default function ProjectManagement() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {timeEntries.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <p className="font-medium">{entry.projectName}</p>
-                      <p className="text-sm text-muted-foreground">{entry.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{entry.teamMember}</span>
-                        <span>{formatDate(entry.date)}</span>
-                        <Badge variant={entry.billable ? "default" : "secondary"}>
-                          {entry.billable ? "Billable" : "Non-billable"}
-                        </Badge>
+                {timeEntries.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No time entries found</p>
+                  </div>
+                ) : (
+                  timeEntries.map((entry) => (
+                    <div key={entry.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <p className="font-medium">{entry.projects?.name || 'Unknown Project'}</p>
+                        <p className="text-sm text-muted-foreground">{entry.description || 'No description'}</p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>{formatDate(entry.date)}</span>
+                          <Badge variant={entry.billable ? "default" : "secondary"}>
+                            {entry.billable ? "Billable" : "Non-billable"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">{entry.hours}h</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-lg">{entry.hours}h</p>
-                      {entry.billable && (
-                        <p className="text-sm text-green-600">
-                          {formatCurrency(entry.hours * entry.rate)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -405,26 +481,32 @@ export default function ProjectManagement() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {projects.filter(p => p.status !== 'completed').map((project) => (
-                  <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">{project.client}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {project.hoursLogged}h @ ${project.billableRate}/hr
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">
-                        {formatCurrency(project.hoursLogged * project.billableRate)}
-                      </p>
-                      <Button variant="outline" size="sm" className="mt-1">
-                        <FileText className="h-3 w-3 mr-1" />
-                        Invoice
-                      </Button>
-                    </div>
+                {projects.filter(p => p.status !== 'completed').length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No active projects for billing</p>
                   </div>
-                ))}
+                ) : (
+                  projects.filter(p => p.status !== 'completed').map((project) => (
+                    <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{project.name}</p>
+                        {project.client && <p className="text-sm text-muted-foreground">{project.client}</p>}
+                        <p className="text-xs text-muted-foreground">
+                          {project.hours_logged || 0}h @ ${project.billable_rate || 0}/hr
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600">
+                          {formatCurrency((project.hours_logged || 0) * (project.billable_rate || 0))}
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-1">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Invoice
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
             
