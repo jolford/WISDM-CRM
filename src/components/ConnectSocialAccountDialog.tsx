@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Facebook, Linkedin, Twitter, Instagram } from "lucide-react";
+import { Facebook, Linkedin, Twitter, Instagram, Globe } from "lucide-react";
 
 interface ConnectSocialAccountDialogProps {
   open: boolean;
@@ -19,6 +19,7 @@ const platforms = [
   { value: "linkedin", label: "LinkedIn", icon: Linkedin },
   { value: "twitter", label: "Twitter", icon: Twitter },
   { value: "instagram", label: "Instagram", icon: Instagram },
+  { value: "wordpress", label: "WordPress", icon: Globe },
 ];
 
 export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded }: ConnectSocialAccountDialogProps) => {

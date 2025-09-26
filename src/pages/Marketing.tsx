@@ -71,6 +71,7 @@ const Marketing = () => {
       case 'linkedin': return <Linkedin className="h-4 w-4 text-blue-700" />;
       case 'twitter': return <Twitter className="h-4 w-4 text-blue-400" />;
       case 'instagram': return <Instagram className="h-4 w-4 text-pink-600" />;
+      case 'wordpress': return <Globe className="h-4 w-4 text-blue-500" />;
       default: return <Globe className="h-4 w-4" />;
     }
   };
