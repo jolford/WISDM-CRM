@@ -176,7 +176,12 @@ const Marketing = () => {
                     <CardTitle>Connected Social Media Accounts</CardTitle>
                     <CardDescription>Manage your connected social media platforms</CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={() => {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Social media account connection will be available soon!",
+                    });
+                  }}>
                     <Plus className="h-4 w-4 mr-2" />
                     Connect Account
                   </Button>
@@ -220,7 +225,12 @@ const Marketing = () => {
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No Social Accounts Connected</h3>
                     <p className="text-muted-foreground mb-4">Connect your social media accounts to start posting and managing content.</p>
-                    <Button>
+                    <Button onClick={() => {
+                      toast({
+                        title: "Coming Soon",
+                        description: "Social media account connection will be available soon!",
+                      });
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Connect Your First Account
                     </Button>
@@ -240,7 +250,12 @@ const Marketing = () => {
                     <CardTitle>Social Media Posts</CardTitle>
                     <CardDescription>Create and manage your social media content</CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={() => {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Post creation feature will be available soon!",
+                    });
+                  }}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Post
                   </Button>
@@ -297,7 +312,12 @@ const Marketing = () => {
                     <Share2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No Social Posts Yet</h3>
                     <p className="text-muted-foreground mb-4">Start creating content to engage with your audience across social platforms.</p>
-                    <Button>
+                    <Button onClick={() => {
+                      toast({
+                        title: "Coming Soon",
+                        description: "Post creation feature will be available soon!",
+                      });
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Create Your First Post
                     </Button>
@@ -317,7 +337,12 @@ const Marketing = () => {
                     <CardTitle>Blog Posts</CardTitle>
                     <CardDescription>Manage your website blog content</CardDescription>
                   </div>
-                  <Button>
+                  <Button onClick={() => {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Blog post creation feature will be available soon!",
+                    });
+                  }}>
                     <Plus className="h-4 w-4 mr-2" />
                     New Blog Post
                   </Button>
@@ -378,7 +403,12 @@ const Marketing = () => {
                     <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No Blog Posts Yet</h3>
                     <p className="text-muted-foreground mb-4">Start creating blog content to share your expertise and attract customers.</p>
-                    <Button>
+                    <Button onClick={() => {
+                      toast({
+                        title: "Coming Soon",
+                        description: "Blog post creation feature will be available soon!",
+                      });
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Write Your First Post
                     </Button>
