@@ -142,6 +142,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       setCsvData(text);
       const parsed = parseCsvData(text);
       setPreviewData(parsed);
+      console.log('📄 File parsed CSV sample:', parsed.slice(0, 2));
       if (parsed.length === 0) {
         toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
       } else {
@@ -156,6 +157,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
     try {
       const parsed = parseCsvData(csvData);
       setPreviewData(parsed);
+      console.log('🔍 Parsed CSV sample:', parsed.slice(0, 2));
       if (parsed.length === 0) {
         toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
       } else {
@@ -188,11 +190,23 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const recordsToInsert = previewData.map(record => ({
-        ...record,
+      const recordsToInsert = previewData.map((r) => ({
         user_id: user.id,
-        renewal_reminder_days: 30
+        product_name: r.product_name,
+        product_type: r.product_type,
+        vendor_name: r.vendor_name ?? null,
+        purchase_date: r.purchase_date ?? null,
+        start_date: r.start_date ?? null,
+        end_date: r.end_date ?? null,
+        cost: r.cost ?? null,
+        license_key: r.license_key ?? null,
+        serial_number: r.serial_number ?? null,
+        status: r.status,
+        notes: r.notes ?? null,
+        renewal_reminder_days: 30,
       }));
+
+      console.log('📝 Prepared maintenance insert payload (first row):', recordsToInsert[0]);
 
       const { error } = await supabase
         .from('maintenance_records')
