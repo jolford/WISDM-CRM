@@ -36,27 +36,31 @@ Tech Solutions,2023-06-01,2023-06-01,2026-06-01,Dell OptiPlex 7090,SN789XYZ,1599
 Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789,799.99,599.99,200.00,25.0%,Annual subscription`;
 
   const parseCsvData = (csvText: string): MaintenanceRecord[] => {
-    const result = Papa.parse<Record<string, string>>(csvText, {
+    const text = csvText.replace(/^\uFEFF/, '');
+    const firstLine = text.split(/\r?\n/)[0] || '';
+    const detectedDelimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') && !firstLine.includes(',') ? ';' : ',';
+
+    const result = Papa.parse<Record<string, string>>(text, {
       header: true,
       skipEmptyLines: true,
+      delimiter: detectedDelimiter,
+      transformHeader: (h: string) => h.replace(/\uFEFF/g, '').trim().replace(/\s+/g, ' ').toLowerCase(),
     });
+
     const rows = (result.data || []) as Record<string, string>[];
 
+    const norm = (s?: string) => (s ? s.trim() : undefined);
+
     const normalizeDate = (val?: string) => {
-      if (!val) return undefined;
-      const v = val.trim();
+      const v = norm(val);
       if (!v || v.toUpperCase() === 'N/A') return undefined;
       const d = new Date(v);
-      if (!isNaN(d.getTime())) {
-        return d.toISOString().slice(0, 10);
-      }
+      if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
       const parts = v.replace(/\./g, '/').replace(/-/g, '/').split('/');
       if (parts.length === 3) {
         let [a, b, c] = parts.map((s) => s.trim());
         if (c.length === 2) c = `20${c}`;
-        if (parseInt(a, 10) > 12) {
-          const tmp = a; a = b; b = tmp;
-        }
+        if (parseInt(a, 10) > 12) { const t = a; a = b; b = t; }
         const dd = String(parseInt(b, 10)).padStart(2, '0');
         const mm = String(parseInt(a, 10)).padStart(2, '0');
         const yyyy = String(parseInt(c, 10)).padStart(4, '0');
@@ -66,15 +70,16 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
     };
 
     const parseMoney = (val?: string) => {
-      if (!val) return undefined;
-      const cleaned = val.replace(/[$,%\s]/g, '').replace(/,/g, '');
+      const v = norm(val);
+      if (!v || v.toUpperCase() === 'N/A') return undefined;
+      const cleaned = v.replace(/[$,%\s]/g, '').replace(/,/g, '');
       const num = parseFloat(cleaned);
       return isNaN(num) ? undefined : num;
     };
 
     const get = (obj: Record<string, string>, keys: string[]) => {
       for (const k of keys) {
-        const found = Object.keys(obj).find((h) => h.trim().toLowerCase() === k.toLowerCase());
+        const found = Object.keys(obj).find((h) => h.trim() === k.toLowerCase());
         if (found) {
           const v = obj[found];
           if (v != null && String(v).trim() !== '') return String(v).trim();
@@ -91,21 +96,21 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
     const records: MaintenanceRecord[] = [];
 
     for (const row of rows) {
-      const productName = get(row, ['Products', 'Product', 'Product Name']) || '';
+      const productName = get(row, ['products', 'product', 'product name']) || '';
       if (!productName) continue;
 
       const record: MaintenanceRecord = {
         product_name: productName,
         product_type: isHardwareName(productName) ? 'hardware' : 'software',
-        vendor_name: get(row, ['Account Name', 'Account']),
-        purchase_date: normalizeDate(get(row, ['Purchase Date', 'Purchase'])),
-        start_date: normalizeDate(get(row, ['Start Date', 'Start'])),
-        end_date: normalizeDate(get(row, ['End Date', 'End'])),
-        cost: parseMoney(get(row, ['COGS', 'Cost'])),
+        vendor_name: get(row, ['account name', 'account']),
+        purchase_date: normalizeDate(get(row, ['purchase date', 'purchase'])),
+        start_date: normalizeDate(get(row, ['start date', 'start'])),
+        end_date: normalizeDate(get(row, ['end date', 'end'])),
+        cost: parseMoney(get(row, ['cogs', 'cost'])),
         license_key: undefined,
-        serial_number: get(row, ['Serial Number', 'Serial']),
+        serial_number: get(row, ['serial number', 'serial']),
         status: 'active',
-        notes: get(row, ['Notes (Hardware Maintenance)', 'Notes']),
+        notes: get(row, ['notes (hardware maintenance)', 'notes']),
       };
 
       records.push(record);
@@ -122,7 +127,11 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       setCsvData(text);
       const parsed = parseCsvData(text);
       setPreviewData(parsed);
-      toast({ title: "CSV Parsed Successfully", description: `Found ${parsed.length} maintenance records` });
+      if (parsed.length === 0) {
+        toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
+      } else {
+        toast({ title: "CSV Parsed Successfully", description: `Found ${parsed.length} maintenance records` });
+      }
     } catch (err) {
       toast({ title: "File Read Error", description: "Failed to read the CSV file.", variant: "destructive" });
     }
@@ -132,14 +141,18 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
     try {
       const parsed = parseCsvData(csvData);
       setPreviewData(parsed);
-      toast({
-        title: "CSV Parsed Successfully",
-        description: `Found ${parsed.length} maintenance records`,
-      });
+      if (parsed.length === 0) {
+        toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
+      } else {
+        toast({
+          title: "CSV Parsed Successfully",
+          description: `Found ${parsed.length} maintenance records`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Parse Error",
-        description: "Failed to parse CSV data. Please check the format.",
+        description: "Failed to parse CSV/TSV data. Please check the format.",
         variant: "destructive",
       });
     }
@@ -224,7 +237,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
           <Alert>
             <FileText className="h-4 w-4" />
             <AlertDescription>
-              <strong>Required CSV Format:</strong> Account Name, Purchase Date (YYYY-MM-DD), Start Date, End Date, Products, Serial Number, Income, COGS, Profit, Margin %, Notes (Hardware Maintenance)
+              <strong>Required Columns (CSV or TSV):</strong> Account Name, Purchase Date (YYYY-MM-DD), Start Date, End Date, Products, Serial Number, Income, COGS, Profit, Margin %, Notes (Hardware Maintenance)
             </AlertDescription>
           </Alert>
 
