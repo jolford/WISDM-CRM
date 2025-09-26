@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ConnectSocialAccountDialog } from "@/components/ConnectSocialAccountDialog";
 
 const Marketing = () => {
   const { toast } = useToast();
@@ -34,6 +35,7 @@ const Marketing = () => {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [socialPosts, setSocialPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showConnectDialog, setShowConnectDialog] = useState(false);
 
   useEffect(() => {
     fetchMarketingData();
@@ -176,12 +178,7 @@ const Marketing = () => {
                     <CardTitle>Connected Social Media Accounts</CardTitle>
                     <CardDescription>Manage your connected social media platforms</CardDescription>
                   </div>
-                  <Button onClick={() => {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Social media account connection will be available soon!",
-                    });
-                  }}>
+                  <Button onClick={() => setShowConnectDialog(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Connect Account
                   </Button>
@@ -225,12 +222,7 @@ const Marketing = () => {
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No Social Accounts Connected</h3>
                     <p className="text-muted-foreground mb-4">Connect your social media accounts to start posting and managing content.</p>
-                    <Button onClick={() => {
-                      toast({
-                        title: "Coming Soon",
-                        description: "Social media account connection will be available soon!",
-                      });
-                    }}>
+                    <Button onClick={() => setShowConnectDialog(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Connect Your First Account
                     </Button>
@@ -485,6 +477,12 @@ const Marketing = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ConnectSocialAccountDialog
+        open={showConnectDialog}
+        onOpenChange={setShowConnectDialog}
+        onAccountAdded={fetchMarketingData}
+      />
     </div>
   );
 };
