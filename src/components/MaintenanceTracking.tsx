@@ -271,6 +271,31 @@ export default function MaintenanceTracking() {
     });
   };
 
+  // Count of obviously bad records (placeholder name)
+  const unknownCount = records.filter(r => r.product_name.toLowerCase() === 'unknown product').length;
+
+  const handleBulkDeleteUnknown = async () => {
+    if (unknownCount === 0) {
+      toast({ title: 'Nothing to delete', description: 'No "Unknown Product" records found.' });
+      return;
+    }
+    const confirmed = confirm(`Delete ${unknownCount} bad records (product_name = "Unknown Product")? This cannot be undone.`);
+    if (!confirmed) return;
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_records')
+        .delete()
+        .eq('product_name', 'Unknown Product')
+        .select('id');
+      if (error) throw error;
+      const deleted = data?.length ?? 0;
+      toast({ title: 'Deleted', description: `Removed ${deleted} bad maintenance records.` });
+      fetchRecords();
+    } catch (err) {
+      console.error('Bulk delete error:', err);
+      toast({ title: 'Delete failed', description: 'Could not delete bad records.', variant: 'destructive' });
+    }
+  };
   const getStatusBadge = (status: string, endDate: string | null) => {
     const isExpiring = endDate && new Date(endDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     
@@ -571,8 +596,11 @@ export default function MaintenanceTracking() {
 
       {/* Records Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Maintenance Records</CardTitle>
+          <Button variant="destructive" onClick={handleBulkDeleteUnknown} disabled={unknownCount === 0}>
+            <AlertTriangle className="h-4 w-4 mr-2" /> Delete "Unknown Product" ({unknownCount})
+          </Button>
         </CardHeader>
         <CardContent>
           <Table>
