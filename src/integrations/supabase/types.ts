@@ -759,6 +759,45 @@ export type Database = {
           },
         ]
       }
+      egnyte_connections: {
+        Row: {
+          api_token: string | null
+          connection_name: string
+          created_at: string | null
+          domain_name: string
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          updated_at: string | null
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          api_token?: string | null
+          connection_name: string
+          created_at?: string | null
+          domain_name: string
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          updated_at?: string | null
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          api_token?: string | null
+          connection_name?: string
+          created_at?: string | null
+          domain_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          updated_at?: string | null
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       forecasts: {
         Row: {
           actual_amount: number | null
