@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import Papa from "papaparse"
+import { logger } from "@/lib/logger"
 
 export default function DataImportExport() {
   const { toast } = useToast()
@@ -235,7 +236,7 @@ export default function DataImportExport() {
       return
     }
 
-    console.log('🔥 Import started - handleImport called')
+    logger.info('Import process started', { context: 'DataImportExport' })
     
     if (!selectedFile) {
       console.error('❌ No file selected')
@@ -247,14 +248,18 @@ export default function DataImportExport() {
       return
     }
 
-    console.log('📁 File selected:', selectedFile.name, 'Size:', selectedFile.size, 'Type:', selectedFile.type)
+    logger.debug('File selected for import', { 
+      name: selectedFile.name, 
+      size: selectedFile.size, 
+      type: selectedFile.type 
+    }, { context: 'DataImportExport' })
 
     setIsImporting(true)
     setImportProgress(0)
 
     try {
       // Skip server-side validation for now and use client-side only
-      console.log('⏭️ Skipping server validation, using client-side validation only')
+      logger.debug('Using client-side validation', undefined, { context: 'DataImportExport' })
       
       const text = await selectedFile.text()
       
@@ -289,8 +294,10 @@ const parsed = Papa.parse<Record<string, string>>(text.replace(/^\uFEFF/, ''), {
 });
 
 const headers = parsed.meta.fields || [];
-console.log('📋 CSV Headers found (Papa):', headers)
-console.log(`Processing ${parsed.data.length} records from ${selectedFile.name}`)
+logger.debug('CSV processing started', { 
+  headerCount: headers.length, 
+  recordCount: parsed.data.length 
+}, { context: 'DataImportExport' })
 
 // Create column mapping for CSV headers -> database columns
 const getColumnMapping = (importType: string) => {
@@ -574,7 +581,7 @@ const getColumnMapping = (importType: string) => {
 }
 
 const columnMapping = getColumnMapping(importType)
-console.log('🔍 Available column mapping for', importType, ':', columnMapping)
+logger.debug('Column mapping configured', { importType }, { context: 'DataImportExport' })
 
 const records: any[] = []
 const validatedRecords: any[] = []
@@ -583,7 +590,7 @@ const rows = (parsed.data || []) as Record<string, string>[]
 for (let i = 0; i < rows.length; i++) {
   const row = rows[i]
   const mappedRecord: Record<string, any> = {}
-  console.log('🔄 Processing row:', i + 1, 'Raw values:', row)
+  logger.debug('Processing CSV row', { rowIndex: i + 1 }, { context: 'DataImportExport' })
 
   Object.keys(row).forEach((header) => {
     const value = row[header] ?? ''
@@ -592,14 +599,14 @@ for (let i = 0; i < rows.length; i++) {
         const mappedField = columnMapping[header]
         mappedRecord[mappedField] = typeof value === 'string' ? value.trim() : value
       } else {
-        console.log(`   🚫 Ignoring field "${header}" (explicitly mapped to null)`) 
+        logger.debug('Field mapping ignored', { header }, { context: 'DataImportExport' }) 
       }
     } else {
-      console.log(`   ❌ No mapping found for header: "${header}"`)
+      logger.warn('No mapping found for header', { header }, { context: 'DataImportExport' })
     }
   })
 
-  console.log('🎯 Final mapped record for row', i + 1, ':', mappedRecord)
+  logger.debug('Record mapped successfully', { rowIndex: i + 1 }, { context: 'DataImportExport' })
   records.push(mappedRecord)
   validatedRecords.push(mappedRecord)
 
@@ -611,10 +618,13 @@ if (validatedRecords.length === 0) {
   throw new Error('No valid records found in the file')
 }
 
-console.log(`Successfully processed ${validatedRecords.length} valid records out of ${records.length} total`)
+logger.info('CSV validation completed', { 
+  validRecords: validatedRecords.length, 
+  totalRecords: records.length 
+}, { context: 'DataImportExport' })
 
 // Store directly in database instead of localStorage
-console.log('💾 Storing data directly in database')
+logger.debug('Starting database storage', undefined, { context: 'DataImportExport' })
 
 setImportProgress(50)
       
@@ -764,7 +774,7 @@ setImportProgress(50)
         const safeDateConvert = (value: string): string | null => {
           if (!value || value.trim() === '') return null
           
-          console.log(`🔍 Processing date value: "${value}"`)
+          logger.debug('Processing date value', undefined, { context: 'DataImportExport' })
           
           // Comprehensive check for HTML/CSS content and reject it
           const cssKeywords = [
@@ -852,10 +862,10 @@ setImportProgress(50)
             }
             
             const isoString = date.toISOString().split('T')[0]
-            console.log(`✅ Successfully converted "${value}" to "${isoString}"`)
+            logger.debug('Date conversion successful', undefined, { context: 'DataImportExport' })
             return isoString
           } catch (error) {
-            console.warn(`Error parsing date "${value}":`, error)
+            logger.warn('Date parsing failed', error, { context: 'DataImportExport' })
             return null
           }
         }
@@ -910,13 +920,13 @@ setImportProgress(50)
 
               // Handle date columns (for maintenance records)
               if (dateColumns.has(key)) {
-                console.log(`🗓️ Processing date column "${key}" with value: "${record[key]}"`)
+                logger.debug('Processing date column', { key }, { context: 'DataImportExport' })
                 const dateValue = safeDateConvert(record[key])
                 if (dateValue !== null) {
                   cleanRecord[key] = dateValue
-                  console.log(`📅 Added date field "${key}": "${dateValue}"`)
+                  logger.debug('Date field added successfully', { key }, { context: 'DataImportExport' })
                 } else {
-                  console.log(`❌ Skipped invalid date for "${key}": "${record[key]}"`)
+                  logger.warn('Invalid date value skipped', { key }, { context: 'DataImportExport' })
                 }
                 return
               }
@@ -968,11 +978,11 @@ setImportProgress(50)
           } else if (importType === 'maintenance') {
             // product_name and product_type are NOT NULL in maintenance_records table
             if (!cleanRecord.product_name || cleanRecord.product_name.trim() === '') {
-              console.log('⚠️ Setting default product_name because value was:', cleanRecord.product_name)
+              logger.debug('Setting default product_name', undefined, { context: 'DataImportExport' })
               cleanRecord.product_name = 'Unknown Product'
             }
             if (!cleanRecord.product_type || cleanRecord.product_type.trim() === '') {
-              console.log('⚠️ Setting default product_type because value was:', cleanRecord.product_type)
+              logger.debug('Setting default product_type', undefined, { context: 'DataImportExport' })
               cleanRecord.product_type = 'software'  // lowercase to match constraint
             } else {
               // Normalize product_type to lowercase to match constraint
@@ -989,7 +999,7 @@ setImportProgress(50)
             if (!cleanRecord.renewal_reminder_days) {
               cleanRecord.renewal_reminder_days = 30
             }
-            console.log('🔧 Final maintenance record after cleanup:', cleanRecord)
+            logger.debug('Maintenance record cleaned', undefined, { context: 'DataImportExport' })
           } else if (importType === 'deals') {
             // name is NOT NULL in deals table
             if (!cleanRecord.name || cleanRecord.name.trim() === '') {
@@ -1013,7 +1023,7 @@ setImportProgress(50)
               // Ensure probability is between 0 and 100
               probNum = Math.max(0, Math.min(100, probNum))
               cleanRecord.probability = probNum
-              console.log(`📊 Adjusted probability from "${cleanRecord.probability}" to ${probNum}`)
+              logger.debug('Probability value adjusted', { adjustedValue: probNum }, { context: 'DataImportExport' })
             } else if (typeof cleanRecord.probability === 'number') {
               // Also constrain if it's already a number
               let probNum = cleanRecord.probability
@@ -1093,20 +1103,16 @@ setImportProgress(50)
           return hasRequiredFields
         })
 
-        console.log(`📊 Final clean records being sent to database (first 3):`, recordsWithUserId.slice(0, 3))
-        console.log(`🔢 Total records to import: ${recordsWithUserId.length}`)
+        logger.info('Records prepared for database import', { 
+          totalRecords: recordsWithUserId.length 
+        }, { context: 'DataImportExport' })
         
         // Log any records with date fields for debugging
         recordsWithUserId.forEach((record, index) => {
           const dateFields = ['purchase_date', 'start_date', 'end_date', 'due_date', 'created_at', 'updated_at']
           const hasDateFields = dateFields.some(field => record[field])
           if (hasDateFields && index < 5) {
-            console.log(`📋 Record ${index + 1} date fields:`, 
-              dateFields.reduce((acc, field) => {
-                if (record[field]) acc[field] = record[field]
-                return acc
-              }, {})
-            )
+            logger.debug('Record with date fields processed', { recordIndex: index + 1 }, { context: 'DataImportExport' })
           }
         })
 
@@ -1147,7 +1153,9 @@ setImportProgress(50)
           throw new Error(`Failed to save data: ${insertError.message}`)
         }
 
-        console.log('✅ Data stored successfully in database. Total records:', validatedRecords.length)
+        logger.info('Data import completed successfully', { 
+          totalRecords: validatedRecords.length 
+        }, { context: 'DataImportExport' })
         
         setImportProgress(100)
         
@@ -1241,7 +1249,7 @@ setImportProgress(50)
     }
 
     setIsLoading(true)
-    console.log("Triggering Zapier webhook:", webhookUrl)
+    logger.info('Triggering Zapier webhook', undefined, { context: 'DataImportExport' })
 
     try {
       // Sanitize data before sending

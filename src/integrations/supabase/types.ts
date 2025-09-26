@@ -560,13 +560,6 @@ export type Database = {
             foreignKeyName: "deal_invoices_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
-            referencedRelation: "deal_collections_summary"
-            referencedColumns: ["deal_id"]
-          },
-          {
-            foreignKeyName: "deal_invoices_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
           },
@@ -1367,13 +1360,6 @@ export type Database = {
             foreignKeyName: "tasks_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
-            referencedRelation: "deal_collections_summary"
-            referencedColumns: ["deal_id"]
-          },
-          {
-            foreignKeyName: "tasks_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
           },
@@ -1554,39 +1540,7 @@ export type Database = {
       }
     }
     Views: {
-      deal_collections_summary: {
-        Row: {
-          account_name: string | null
-          contact_name: string | null
-          deal_id: string | null
-          deal_name: string | null
-          deal_owner_name: string | null
-          expected_value: number | null
-          stage: Database["public"]["Enums"]["deal_stage"] | null
-          total_sales: number | null
-        }
-        Insert: {
-          account_name?: string | null
-          contact_name?: string | null
-          deal_id?: string | null
-          deal_name?: string | null
-          deal_owner_name?: string | null
-          expected_value?: number | null
-          stage?: Database["public"]["Enums"]["deal_stage"] | null
-          total_sales?: number | null
-        }
-        Update: {
-          account_name?: string | null
-          contact_name?: string | null
-          deal_id?: string | null
-          deal_name?: string | null
-          deal_owner_name?: string | null
-          expected_value?: number | null
-          stage?: Database["public"]["Enums"]["deal_stage"] | null
-          total_sales?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       assign_user_role: {
@@ -1632,6 +1586,19 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_deal_collections_summary: {
+        Args: { requesting_user_id?: string }
+        Returns: {
+          account_name: string
+          contact_name: string
+          deal_id: string
+          deal_name: string
+          deal_owner_name: string
+          expected_value: number
+          stage: Database["public"]["Enums"]["deal_stage"]
+          total_sales: number
+        }[]
       }
       handle_new_ticket_message: {
         Args:

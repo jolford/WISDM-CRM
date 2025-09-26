@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { logger } from "@/lib/logger"
 import {
   Plus,
   Search,
@@ -94,7 +95,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   const loadReports = async () => {
     try {
       setLoading(true)
-      console.log('Loading reports...')
+      logger.debug('Loading reports', undefined, { context: 'ReportList' })
       
       const { data, error } = await supabase
         .from('reports')
@@ -106,11 +107,11 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
         throw error
       }
       
-      console.log('Raw reports data:', data)
+      logger.debug('Reports loaded successfully', { count: data?.length }, { context: 'ReportList' })
       
       // If no reports exist, create some sample reports
       if (!data || data.length === 0) {
-        console.log('No reports found, creating sample reports...')
+        logger.info('Creating sample reports for new user', undefined, { context: 'ReportList' })
         await createSampleReports()
         return
       }
@@ -125,7 +126,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
         data_sources: report.data_sources || ['deals']
       }))
       
-      console.log('Processed reports:', processedReports)
+      logger.debug('Reports processed', { count: processedReports.length }, { context: 'ReportList' })
       setReports(processedReports)
     } catch (error) {
       console.error('Error loading reports:', error)
@@ -189,7 +190,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
         throw error
       }
 
-      console.log('Created sample reports:', insertedReports)
+      logger.info('Sample reports created successfully', { count: insertedReports?.length }, { context: 'ReportList' })
       
       // Reload reports after creating samples
       loadReports()
@@ -272,7 +273,7 @@ export default function ReportList({ onCreateNew, onEditReport, onViewReport }: 
   }
 
   const handleSort = (field: string) => {
-    console.log('Sorting by:', field)
+    logger.debug('Sorting reports', { field }, { context: 'ReportList' })
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {

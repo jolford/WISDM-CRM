@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/AuthContext"
 import { usePasswordChange } from "@/hooks/usePasswordChange"
 import { supabase } from "@/integrations/supabase/client"
+import { logger } from "@/lib/logger"
 import { 
   User, 
   Bell, 
@@ -149,9 +150,7 @@ export default function Settings() {
   }
 
   const handleProfileUpdate = async () => {
-    console.log('handleProfileUpdate called');
-    console.log('user:', user);
-    console.log('profileData:', profileData);
+    logger.debug('Profile update initiated', undefined, { context: 'Settings' });
     
     if (!user?.id) {
       console.error('No user ID found');
@@ -184,7 +183,7 @@ export default function Settings() {
     
     setLoading(true)
     try {
-      console.log('Attempting to update profile...');
+      logger.debug('Updating profile in database', undefined, { context: 'Settings' });
       
       const updateData = {
         first_name: profileData.first_name.trim(),
@@ -192,7 +191,7 @@ export default function Settings() {
         updated_at: new Date().toISOString()
       };
       
-      console.log('Update data:', updateData);
+      logger.debug('Profile update data prepared', undefined, { context: 'Settings' });
       
       const { error } = await supabase
         .from('profiles')
@@ -204,7 +203,7 @@ export default function Settings() {
         throw error;
       }
 
-      console.log('Profile update successful');
+      logger.info('Profile updated successfully', undefined, { context: 'Settings' });
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
@@ -300,7 +299,7 @@ export default function Settings() {
         </div>
         <Button 
           onClick={() => {
-            console.log('Save button clicked');
+            logger.debug('Settings save initiated', undefined, { context: 'Settings' });
             handleProfileUpdate();
           }} 
           disabled={loading}

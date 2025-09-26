@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Building2, Target, CheckSquare, BarChart3, Settings, Shield, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 export default function AdminConsole() {
   const { profile } = useAuth();
@@ -58,7 +59,7 @@ export default function AdminConsole() {
         { label: "Pending Tasks", value: taskCount?.toString() || "0", change: "" }
       ]);
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      logger.error('Failed to fetch admin stats', error, { context: 'AdminConsole' });
     }
   };
 
@@ -171,7 +172,7 @@ export default function AdminConsole() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log(`Navigating to: ${action.title}`);
+                  logger.debug('Admin navigation', { action: action.title }, { context: 'AdminConsole' });
                   action.action();
                 }}
               >
