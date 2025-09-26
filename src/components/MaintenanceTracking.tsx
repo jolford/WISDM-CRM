@@ -93,7 +93,6 @@ export default function MaintenanceTracking() {
 
   useEffect(() => {
     (async () => {
-      await cleanupUnknownRecords();
       await fetchRecords();
       await fetchAccounts();
     })();
@@ -104,20 +103,6 @@ export default function MaintenanceTracking() {
     window.addEventListener('maintenance:imported', onImported);
     return () => window.removeEventListener('maintenance:imported', onImported);
   }, []);
-
-  const cleanupUnknownRecords = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      await supabase
-        .from('maintenance_records')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_name', 'Unknown Product');
-    } catch (e) {
-      // silent cleanup
-    }
-  };
 
   const fetchRecords = async () => {
     try {
@@ -133,7 +118,7 @@ export default function MaintenanceTracking() {
         .order('end_date', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      const cleaned = ((data || []) as MaintenanceRecord[]).filter(r => (r.product_name || '').toLowerCase() !== 'unknown product');
+      const cleaned = (data || []) as MaintenanceRecord[];
       setRecords(cleaned);
     } catch (error) {
       console.error('Error fetching maintenance records:', error);
