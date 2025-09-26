@@ -299,6 +299,29 @@ export default function MaintenanceTracking() {
       toast({ title: 'Delete failed', description: 'Could not delete bad records.', variant: 'destructive' });
     }
   };
+
+  const handleDeleteAllRecords = async () => {
+    if (records.length === 0) {
+      toast({ title: 'Nothing to delete', description: 'No maintenance records found.' });
+      return;
+    }
+    const confirmed = confirm(`Delete ALL ${records.length} maintenance records? This cannot be undone.`);
+    if (!confirmed) return;
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_records')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all user records
+        .select('id');
+      if (error) throw error;
+      const deleted = data?.length ?? 0;
+      toast({ title: 'All Records Deleted', description: `Removed all ${deleted} maintenance records.` });
+      fetchRecords();
+    } catch (err) {
+      console.error('Bulk delete all error:', err);
+      toast({ title: 'Delete failed', description: 'Could not delete all records.', variant: 'destructive' });
+    }
+  };
   const getStatusBadge = (status: string, endDate: string | null) => {
     const isExpiring = endDate && new Date(endDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     
@@ -601,9 +624,14 @@ export default function MaintenanceTracking() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Maintenance Records</CardTitle>
-          <Button variant="destructive" onClick={handleBulkDeleteUnknown} disabled={unknownCount === 0}>
-            <AlertTriangle className="h-4 w-4 mr-2" /> Delete "Unknown Product" ({unknownCount})
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="destructive" onClick={handleBulkDeleteUnknown} disabled={unknownCount === 0}>
+              <AlertTriangle className="h-4 w-4 mr-2" /> Delete "Unknown Product" ({unknownCount})
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteAllRecords} disabled={records.length === 0}>
+              <Trash2 className="h-4 w-4 mr-2" /> Delete All Records ({records.length})
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table className="table-fixed">
