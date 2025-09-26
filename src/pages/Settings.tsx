@@ -149,21 +149,62 @@ export default function Settings() {
   }
 
   const handleProfileUpdate = async () => {
-    if (!user?.id) return
+    console.log('handleProfileUpdate called');
+    console.log('user:', user);
+    console.log('profileData:', profileData);
+    
+    if (!user?.id) {
+      console.error('No user ID found');
+      toast({
+        title: "Error",
+        description: "User session not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!profileData.first_name?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "First name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!profileData.last_name?.trim()) {
+      toast({
+        title: "Validation Error", 
+        description: "Last name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setLoading(true)
     try {
+      console.log('Attempting to update profile...');
+      
+      const updateData = {
+        first_name: profileData.first_name.trim(),
+        last_name: profileData.last_name.trim(),
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Update data:', updateData);
+      
       const { error } = await supabase
         .from('profiles')
-        .update({
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', user.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
+      console.log('Profile update successful');
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved successfully.",
@@ -172,7 +213,7 @@ export default function Settings() {
       console.error('Profile update error:', error)
       toast({
         title: "Update Failed", 
-        description: "Failed to update profile. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update profile. Please try again.",
         variant: "destructive"
       })
     } finally {
@@ -257,7 +298,13 @@ export default function Settings() {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage your account and application preferences</p>
         </div>
-        <Button onClick={handleProfileUpdate} disabled={loading}>
+        <Button 
+          onClick={() => {
+            console.log('Save button clicked');
+            handleProfileUpdate();
+          }} 
+          disabled={loading}
+        >
           <Save className="h-4 w-4 mr-2" />
           {loading ? 'Saving...' : 'Save Changes'}
         </Button>
