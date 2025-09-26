@@ -36,11 +36,26 @@ Tech Solutions,2023-06-01,2023-06-01,2026-06-01,Dell OptiPlex 7090,SN789XYZ,1599
 Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789,799.99,599.99,200.00,25.0%,Annual subscription`;
 
   const parseCsvData = (csvText: string): MaintenanceRecord[] => {
-    const text = csvText.replace(/^\uFEFF/, '');
-    const firstLine = text.split(/\r?\n/)[0] || '';
-    const detectedDelimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') && !firstLine.includes(',') ? ';' : ',';
+    // Strip BOM and split lines
+    const raw = csvText.replace(/^\uFEFF/, '');
+    const lines = raw.split(/\r?\n/);
 
-    const result = Papa.parse<Record<string, string>>(text, {
+    // Find the real header row (skip preface blank/comma-only rows)
+    let headerIndex = lines.findIndex((line) => {
+      const l = line.replace(/^\uFEFF/, '').trim().toLowerCase();
+      return l.includes('account name') && l.includes('products') && l.includes('serial number');
+    });
+    if (headerIndex === -1) {
+      headerIndex = lines.findIndex((line) => /account\s*name/i.test(line) && /products?/i.test(line));
+      if (headerIndex === -1) headerIndex = 0;
+    }
+
+    const headerLine = lines[headerIndex] || '';
+    const detectedDelimiter = headerLine.includes('\t') ? '\t' : (headerLine.includes(';') && !headerLine.includes(',')) ? ';' : ',';
+
+    const textToParse = lines.slice(headerIndex).join('\n');
+
+    const result = Papa.parse<Record<string, string>>(textToParse, {
       header: true,
       skipEmptyLines: true,
       delimiter: detectedDelimiter,
