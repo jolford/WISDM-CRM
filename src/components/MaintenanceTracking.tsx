@@ -596,34 +596,13 @@ export default function MaintenanceTracking() {
                 <TableHead>
                   <Button 
                     variant="ghost" 
-                    onClick={() => handleSort('product_name')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Product
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => handleSort('product_type')}
-                    className="font-semibold p-0 h-auto"
-                  >
-                    Type
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button 
-                    variant="ghost" 
                     onClick={() => handleSort('vendor_name')}
                     className="font-semibold p-0 h-auto"
                   >
-                    Vendor
+                    Account Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Customer</TableHead>
                 <TableHead>
                   <Button 
                     variant="ghost" 
@@ -631,6 +610,16 @@ export default function MaintenanceTracking() {
                     className="font-semibold p-0 h-auto"
                   >
                     Purchase Date
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => handleSort('start_date')}
+                    className="font-semibold p-0 h-auto"
+                  >
+                    Start Date
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
@@ -647,46 +636,45 @@ export default function MaintenanceTracking() {
                 <TableHead>
                   <Button 
                     variant="ghost" 
-                    onClick={() => handleSort('cost')}
+                    onClick={() => handleSort('product_name')}
                     className="font-semibold p-0 h-auto"
                   >
-                    Cost
+                    Products
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead>Serial Number</TableHead>
+                <TableHead>Income</TableHead>
                 <TableHead>
                   <Button 
                     variant="ghost" 
-                    onClick={() => handleSort('status')}
+                    onClick={() => handleSort('cost')}
                     className="font-semibold p-0 h-auto"
                   >
-                    Status
+                    COGS
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead>Profit</TableHead>
+                <TableHead>Margin %</TableHead>
+                <TableHead>Notes (Hardware Maintenance)</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedRecords.map((record) => (
                 <TableRow key={record.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {record.product_type === 'software' ? (
-                        <Monitor className="h-4 w-4" />
-                      ) : (
-                        <HardDrive className="h-4 w-4" />
-                      )}
-                      {record.product_name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{record.product_type}</TableCell>
-                  <TableCell>{record.vendor_name || 'N/A'}</TableCell>
-                  <TableCell>{record.accounts?.name || 'N/A'}</TableCell>
+                  <TableCell>{record.vendor_name || record.accounts?.name || 'N/A'}</TableCell>
                   <TableCell>{formatDate(record.purchase_date)}</TableCell>
+                  <TableCell>{formatDate(record.start_date)}</TableCell>
                   <TableCell>{formatDate(record.end_date)}</TableCell>
+                  <TableCell className="font-medium">{record.product_name}</TableCell>
+                  <TableCell>{record.serial_number || 'N/A'}</TableCell>
+                  <TableCell>{'N/A'}</TableCell>
                   <TableCell>{formatCurrency(record.cost)}</TableCell>
-                  <TableCell>{getStatusBadge(record.status, record.end_date)}</TableCell>
+                  <TableCell>{'N/A'}</TableCell>
+                  <TableCell>{'N/A'}</TableCell>
+                  <TableCell>{record.notes || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button 

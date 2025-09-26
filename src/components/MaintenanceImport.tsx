@@ -13,15 +13,18 @@ import Papa from "papaparse";
 interface MaintenanceRecord {
   product_name: string;
   product_type: 'software' | 'hardware';
-  vendor_name?: string;
+  vendor_name?: string; // Account Name
   purchase_date?: string;
   start_date?: string;
   end_date?: string;
-  cost?: number;
+  cost?: number; // COGS
+  income?: number;
+  profit?: number;
+  margin_percent?: number; // 0-100 number
   license_key?: string;
   serial_number?: string;
   status: 'active' | 'expired' | 'cancelled';
-  notes?: string;
+  notes?: string; // Notes (Hardware Maintenance)
 }
 
 export default function MaintenanceImport() {
@@ -91,7 +94,6 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       const num = parseFloat(cleaned);
       return isNaN(num) ? undefined : num;
     };
-
     const get = (obj: Record<string, string>, keys: string[]) => {
       for (const k of keys) {
         const found = Object.keys(obj).find((h) => h.trim() === k.toLowerCase());
@@ -121,7 +123,10 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
         purchase_date: normalizeDate(get(row, ['purchase date', 'purchase'])),
         start_date: normalizeDate(get(row, ['start date', 'start'])),
         end_date: normalizeDate(get(row, ['end date', 'end'])),
+        income: parseMoney(get(row, ['income'])),
         cost: parseMoney(get(row, ['cogs', 'cost'])),
+        profit: parseMoney(get(row, ['profit'])),
+        margin_percent: parseMoney(get(row, ['margin %', 'margin'])),
         license_key: undefined,
         serial_number: get(row, ['serial number', 'serial']),
         status: 'active',
@@ -320,23 +325,33 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
               <table className="w-full border-collapse border border-border">
                 <thead>
                   <tr className="bg-muted">
-                    <th className="border border-border p-2 text-left">Product</th>
-                    <th className="border border-border p-2 text-left">Type</th>
-                    <th className="border border-border p-2 text-left">Vendor</th>
+                    <th className="border border-border p-2 text-left">Account Name</th>
+                    <th className="border border-border p-2 text-left">Purchase Date</th>
+                    <th className="border border-border p-2 text-left">Start Date</th>
                     <th className="border border-border p-2 text-left">End Date</th>
-                    <th className="border border-border p-2 text-left">Cost</th>
-                    <th className="border border-border p-2 text-left">Status</th>
+                    <th className="border border-border p-2 text-left">Products</th>
+                    <th className="border border-border p-2 text-left">Serial Number</th>
+                    <th className="border border-border p-2 text-left">Income</th>
+                    <th className="border border-border p-2 text-left">COGS</th>
+                    <th className="border border-border p-2 text-left">Profit</th>
+                    <th className="border border-border p-2 text-left">Margin %</th>
+                    <th className="border border-border p-2 text-left">Notes (Hardware Maintenance)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewData.slice(0, 10).map((record, index) => (
                     <tr key={index}>
-                      <td className="border border-border p-2">{record.product_name}</td>
-                      <td className="border border-border p-2">{record.product_type}</td>
                       <td className="border border-border p-2">{record.vendor_name || 'N/A'}</td>
+                      <td className="border border-border p-2">{record.purchase_date || 'N/A'}</td>
+                      <td className="border border-border p-2">{record.start_date || 'N/A'}</td>
                       <td className="border border-border p-2">{record.end_date || 'N/A'}</td>
-                      <td className="border border-border p-2">{record.cost ? `$${record.cost}` : 'N/A'}</td>
-                      <td className="border border-border p-2">{record.status}</td>
+                      <td className="border border-border p-2">{record.product_name}</td>
+                      <td className="border border-border p-2">{record.serial_number || 'N/A'}</td>
+                      <td className="border border-border p-2">{record.income != null ? `$${record.income}` : 'N/A'}</td>
+                      <td className="border border-border p-2">{record.cost != null ? `$${record.cost}` : 'N/A'}</td>
+                      <td className="border border-border p-2">{record.profit != null ? `$${record.profit}` : 'N/A'}</td>
+                      <td className="border border-border p-2">{record.margin_percent != null ? `${record.margin_percent}%` : 'N/A'}</td>
+                      <td className="border border-border p-2">{record.notes || 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
