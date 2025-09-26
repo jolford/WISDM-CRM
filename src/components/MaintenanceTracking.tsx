@@ -152,7 +152,7 @@ export default function MaintenanceTracking() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         vendor_name: formData.vendor_name || null,
-        account_id: formData.account_id || null,
+        account_id: formData.account_id === 'none' ? null : formData.account_id || null,
         license_key: formData.license_key || null,
         serial_number: formData.serial_number || null,
         notes: formData.notes || null,
@@ -398,7 +398,7 @@ export default function MaintenanceTracking() {
                       <SelectValue placeholder="Select customer..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No customer selected</SelectItem>
+                      <SelectItem value="none">No customer selected</SelectItem>
                       {accounts.map((account) => (
                         <SelectItem key={account.id} value={account.id}>
                           {account.name}

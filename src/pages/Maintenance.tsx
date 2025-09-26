@@ -42,6 +42,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import MaintenanceTracking from "@/components/MaintenanceTracking";
+import MaintenanceImport from "@/components/MaintenanceImport";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Maintenance() {
   return (
@@ -55,7 +57,20 @@ export default function Maintenance() {
         </div>
       </div>
 
-      <MaintenanceTracking />
+      <Tabs defaultValue="records" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="records">Maintenance Records</TabsTrigger>
+          <TabsTrigger value="import">Import Data</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="records" className="mt-6">
+          <MaintenanceTracking />
+        </TabsContent>
+        
+        <TabsContent value="import" className="mt-6">
+          <MaintenanceImport />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
