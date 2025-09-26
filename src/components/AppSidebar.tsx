@@ -10,7 +10,8 @@ import {
   BarChart3,
   FolderKanban,
   Shield,
-  Wrench
+  Wrench,
+  Megaphone
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -33,6 +34,7 @@ const mainItems = [
   { title: "Contacts", url: "/contacts", icon: Users },
   { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Deals", url: "/deals", icon: Target },
+  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Projects", url: "/projects", icon: FolderKanban },
   { title: "Reports", url: "/reports", icon: BarChart3 },
 ]
