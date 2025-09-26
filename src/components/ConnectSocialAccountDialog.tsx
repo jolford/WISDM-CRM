@@ -29,6 +29,10 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
     platform: "",
     account_name: "",
     account_handle: "",
+    site_url: "",
+    connection_type: "",
+    username: "",
+    api_key: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +42,16 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // WordPress-specific validation
+    if (formData.platform === 'wordpress' && (!formData.connection_type || !formData.site_url)) {
+      toast({
+        title: "Missing WordPress Information",
+        description: "Please fill in connection type and site URL for WordPress",
         variant: "destructive",
       });
       return;
@@ -56,6 +70,8 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
           platform: formData.platform,
           account_name: formData.account_name,
           account_handle: formData.account_handle,
+          account_id_external: formData.site_url || null,
+          access_token_ref: formData.api_key || null,
           is_active: true,
         }]);
 
@@ -66,7 +82,7 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
         description: `Successfully connected ${formData.platform} account`,
       });
 
-      setFormData({ platform: "", account_name: "", account_handle: "" });
+      setFormData({ platform: "", account_name: "", account_handle: "", site_url: "", connection_type: "", username: "", api_key: "" });
       onAccountAdded();
       onOpenChange(false);
     } catch (error) {
@@ -130,17 +146,82 @@ export const ConnectSocialAccountDialog = ({ open, onOpenChange, onAccountAdded 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="account_handle">Account Handle *</Label>
+            <Label htmlFor="account_handle">
+              {formData.platform === 'wordpress' ? 'Site Domain' : 'Account Handle'} *
+            </Label>
             <div className="flex items-center">
-              <span className="text-muted-foreground mr-1">@</span>
+              {formData.platform !== 'wordpress' && <span className="text-muted-foreground mr-1">@</span>}
               <Input
                 id="account_handle"
-                placeholder="username"
+                placeholder={formData.platform === 'wordpress' ? 'mycompany.com' : 'username'}
                 value={formData.account_handle}
                 onChange={(e) => setFormData({ ...formData, account_handle: e.target.value })}
               />
             </div>
           </div>
+
+          {formData.platform === 'wordpress' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="connection_type">Connection Type *</Label>
+                <Select
+                  value={formData.connection_type}
+                  onValueChange={(value) => setFormData({ ...formData, connection_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select connection type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wordpress_com">WordPress.com</SelectItem>
+                    <SelectItem value="self_hosted">Self-hosted WordPress</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="site_url">WordPress Site URL *</Label>
+                <Input
+                  id="site_url"
+                  placeholder="https://yoursite.com"
+                  value={formData.site_url}
+                  onChange={(e) => setFormData({ ...formData, site_url: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">WordPress Username</Label>
+                <Input
+                  id="username"
+                  placeholder="Your WordPress username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="api_key">
+                  {formData.connection_type === 'wordpress_com' ? 'OAuth Token' : 'Application Password'}
+                </Label>
+                <Input
+                  id="api_key"
+                  type="password"
+                  placeholder={
+                    formData.connection_type === 'wordpress_com' 
+                      ? 'OAuth access token' 
+                      : 'Application password from WordPress admin'
+                  }
+                  value={formData.api_key}
+                  onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.connection_type === 'wordpress_com' 
+                    ? 'Get this from WordPress.com Developer Console' 
+                    : 'Generate in WordPress Admin > Users > Application Passwords'
+                  }
+                </p>
+              </div>
+            </>
+          )}
 
           <DialogFooter>
             <Button
