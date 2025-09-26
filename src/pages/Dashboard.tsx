@@ -247,7 +247,7 @@ export default function Dashboard() {
 
       {/* Spectacular Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-spectacular hover-lift group perspective-1000">
+        <Card className="card-spectacular hover-lift group perspective-1000 cursor-pointer" onClick={() => navigate('/deals')}>
           <div className="absolute inset-0 bg-gradient-primary/10 rounded-lg blur-sm"></div>
           <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300 animate-pulse"></div>
           <CardContent className="relative p-6 transform-3d group-hover:rotateY-3 transition-transform duration-500">
@@ -272,7 +272,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => navigate('/deals')}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200/30 rounded-full -translate-y-10 translate-x-10"></div>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -293,7 +293,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => navigate('/tasks')}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200/30 rounded-full -translate-y-10 translate-x-10"></div>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -314,7 +314,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 cursor-pointer hover:scale-[1.02] transition-transform" onClick={() => navigate('/deals')}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-200/30 rounded-full -translate-y-10 translate-x-10"></div>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -335,7 +335,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="card-spectacular hover-lift group relative overflow-hidden">
+        <Card className="card-spectacular hover-lift group relative overflow-hidden cursor-pointer" onClick={() => navigate('/sales-reporting')}>
           <div className="absolute inset-0 bg-gradient-to-br from-chart-3/20 to-chart-3/5 rounded-xl"></div>
           <div className="absolute top-0 right-0 w-20 h-20 bg-chart-3/30 rounded-full -translate-y-10 translate-x-10 group-hover:scale-110 transition-transform duration-300"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
