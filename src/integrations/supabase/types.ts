@@ -227,6 +227,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          content: string | null
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           account_id: string | null
@@ -1373,6 +1427,124 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      social_accounts: {
+        Row: {
+          access_token_ref: string | null
+          account_handle: string | null
+          account_id_external: string | null
+          account_name: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_ref?: string | null
+          account_handle?: string | null
+          account_id_external?: string | null
+          account_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          platform: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_ref?: string | null
+          account_handle?: string | null
+          account_id_external?: string | null
+          account_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      social_posts: {
+        Row: {
+          blog_post_id: string | null
+          campaign_id: string | null
+          content: string
+          created_at: string
+          engagement_metrics: Json | null
+          external_post_id: string | null
+          id: string
+          media_urls: string[] | null
+          platform: string
+          published_at: string | null
+          scheduled_at: string | null
+          social_account_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blog_post_id?: string | null
+          campaign_id?: string | null
+          content: string
+          created_at?: string
+          engagement_metrics?: Json | null
+          external_post_id?: string | null
+          id?: string
+          media_urls?: string[] | null
+          platform: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          social_account_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blog_post_id?: string | null
+          campaign_id?: string | null
+          content?: string
+          created_at?: string
+          engagement_metrics?: Json | null
+          external_post_id?: string | null
+          id?: string
+          media_urls?: string[] | null
+          platform?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          social_account_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {

@@ -29,6 +29,7 @@ import ManagerDashboard from "./pages/ManagerDashboard"; // ✅ at the top
 import WonDealsCollections from "./pages/WonDealsCollections";
 import PipelineForecast from "./pages/PipelineForecast";
 import Campaigns from "./pages/Campaigns";
+import Marketing from "./pages/Marketing";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/accounts/:id" element={<Layout><AccountDetail /></Layout>} />
           <Route path="/deals" element={<Layout><Deals /></Layout>} />
           <Route path="/campaigns" element={<Layout><Campaigns /></Layout>} />
+          <Route path="/marketing" element={<Layout><Marketing /></Layout>} />
           <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
           <Route path="/support" element={<Layout><SupportDesk /></Layout>} />
           <Route path="/support/create" element={<Layout><CreateTicket /></Layout>} />
