@@ -427,13 +427,6 @@ export type Database = {
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "contacts_reporting_to_id_fkey"
-            columns: ["reporting_to_id"]
-            isOneToOne: false
-            referencedRelation: "contacts_export_view"
-            referencedColumns: ["id"]
-          },
         ]
       }
       dashboard_widgets: {
@@ -617,13 +610,6 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "deals_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts_export_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1318,13 +1304,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tasks_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts_export_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "tasks_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
@@ -1515,156 +1494,6 @@ export type Database = {
       }
     }
     Views: {
-      contacts_export_view: {
-        Row: {
-          "Account Egnyte Link": string | null
-          "Account Name": string | null
-          city: string | null
-          "Conferences & Organizations Attended": string | null
-          "Contact Name": string | null
-          "Contact Owner": string | null
-          country: string | null
-          county: string | null
-          "Created By": string | null
-          created_at: string | null
-          department: string | null
-          description: string | null
-          "Direct Phone": string | null
-          email: string | null
-          "Email Opt Out": boolean | null
-          "Enrich Status": string | null
-          "First Name": string | null
-          "First Page Visited": string | null
-          "General Phone": string | null
-          id: string | null
-          "Industry & FB Group Memberships": string | null
-          "Last Name": string | null
-          "Lead Source": string | null
-          "LinkedIn Connection": string | null
-          mobile: string | null
-          "Modified By": string | null
-          "Name Pronunciation": string | null
-          notes: string | null
-          phone: string | null
-          "Record Id": string | null
-          "Reference Egnyte Link": string | null
-          "Reference Services Products & Solutions": string | null
-          "Reference Subject Matter, Use Case & Department": string | null
-          "Reference Type": string | null
-          referrer: string | null
-          "Role in deals": string | null
-          salutation: string | null
-          state: string | null
-          street: string | null
-          Tag: string | null
-          title: string | null
-          "Unsubscribed Mode": string | null
-          "Unsubscribed Time": string | null
-          updated_at: string | null
-          user_id: string | null
-          "Vendor Name": string | null
-          "Zip Code": string | null
-        }
-        Insert: {
-          "Account Egnyte Link"?: string | null
-          "Account Name"?: string | null
-          city?: string | null
-          "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: string | null
-          "Contact Owner"?: string | null
-          country?: string | null
-          county?: string | null
-          "Created By"?: string | null
-          created_at?: string | null
-          department?: string | null
-          description?: string | null
-          "Direct Phone"?: string | null
-          email?: string | null
-          "Email Opt Out"?: boolean | null
-          "Enrich Status"?: string | null
-          "First Name"?: string | null
-          "First Page Visited"?: string | null
-          "General Phone"?: string | null
-          id?: string | null
-          "Industry & FB Group Memberships"?: string | null
-          "Last Name"?: string | null
-          "Lead Source"?: string | null
-          "LinkedIn Connection"?: string | null
-          mobile?: string | null
-          "Modified By"?: string | null
-          "Name Pronunciation"?: string | null
-          notes?: string | null
-          phone?: string | null
-          "Record Id"?: string | null
-          "Reference Egnyte Link"?: string | null
-          "Reference Services Products & Solutions"?: string | null
-          "Reference Subject Matter, Use Case & Department"?: string | null
-          "Reference Type"?: string | null
-          referrer?: string | null
-          "Role in deals"?: string | null
-          salutation?: string | null
-          state?: string | null
-          street?: string | null
-          Tag?: string | null
-          title?: string | null
-          "Unsubscribed Mode"?: string | null
-          "Unsubscribed Time"?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          "Vendor Name"?: string | null
-          "Zip Code"?: string | null
-        }
-        Update: {
-          "Account Egnyte Link"?: string | null
-          "Account Name"?: string | null
-          city?: string | null
-          "Conferences & Organizations Attended"?: string | null
-          "Contact Name"?: string | null
-          "Contact Owner"?: string | null
-          country?: string | null
-          county?: string | null
-          "Created By"?: string | null
-          created_at?: string | null
-          department?: string | null
-          description?: string | null
-          "Direct Phone"?: string | null
-          email?: string | null
-          "Email Opt Out"?: boolean | null
-          "Enrich Status"?: string | null
-          "First Name"?: string | null
-          "First Page Visited"?: string | null
-          "General Phone"?: string | null
-          id?: string | null
-          "Industry & FB Group Memberships"?: string | null
-          "Last Name"?: string | null
-          "Lead Source"?: string | null
-          "LinkedIn Connection"?: string | null
-          mobile?: string | null
-          "Modified By"?: string | null
-          "Name Pronunciation"?: string | null
-          notes?: string | null
-          phone?: string | null
-          "Record Id"?: string | null
-          "Reference Egnyte Link"?: string | null
-          "Reference Services Products & Solutions"?: string | null
-          "Reference Subject Matter, Use Case & Department"?: string | null
-          "Reference Type"?: string | null
-          referrer?: string | null
-          "Role in deals"?: string | null
-          salutation?: string | null
-          state?: string | null
-          street?: string | null
-          Tag?: string | null
-          title?: string | null
-          "Unsubscribed Mode"?: string | null
-          "Unsubscribed Time"?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          "Vendor Name"?: string | null
-          "Zip Code"?: string | null
-        }
-        Relationships: []
-      }
       deal_collections_summary: {
         Row: {
           account_name: string | null
@@ -1714,6 +1543,27 @@ export type Database = {
       check_import_rate_limit: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      get_contacts_export_data: {
+        Args: { requesting_user_id?: string }
+        Returns: {
+          "Account Name": string
+          city: string
+          country: string
+          created_at: string
+          department: string
+          email: string
+          "First Name": string
+          id: string
+          "Last Name": string
+          "Lead Source": string
+          mobile: string
+          notes: string
+          phone: string
+          state: string
+          title: string
+          updated_at: string
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>

@@ -147,7 +147,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       setCsvData(text);
       const parsed = parseCsvData(text);
       setPreviewData(parsed);
-      console.log('📄 File parsed CSV sample:', parsed.slice(0, 2));
+      // File parsed successfully - sensitive data logging removed for security
       if (parsed.length === 0) {
         toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
       } else {
@@ -162,7 +162,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
     try {
       const parsed = parseCsvData(csvData);
       setPreviewData(parsed);
-      console.log('🔍 Parsed CSV sample:', parsed.slice(0, 2));
+      // CSV parsed successfully - sensitive data logging removed for security
       if (parsed.length === 0) {
         toast({ title: "No rows detected", description: "Check the delimiter (tabs vs commas) and headers.", variant: "destructive" });
       } else {
@@ -228,7 +228,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
         };
       });
 
-      console.log('📝 Prepared maintenance insert payload (first row):', recordsToInsert[0]);
+      // Data prepared for insert - sensitive data logging removed for security
 
       // Insert in chunks to avoid payload limits
       const chunkSize = 500;

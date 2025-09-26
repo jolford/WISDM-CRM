@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { signUpSchema, signInSchema, validateWithSchema } from "@/lib/validation";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +31,33 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate input with Zod schema
+    const validation = validateWithSchema(signUpSchema, {
+      email: signUpData.email,
+      password: signUpData.password,
+      firstName: signUpData.firstName || undefined,
+      lastName: signUpData.lastName || undefined,
+    });
+
+    if (!validation.success) {
+      const errorMsg = 'errors' in validation ? validation.errors.join(", ") : "Validation failed";
+      toast({
+        title: "Validation Error",
+        description: errorMsg,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const validatedData = validation.data;
+
     try {
       const { error } = await signUp(
-        signUpData.email,
-        signUpData.password,
-        signUpData.firstName,
-        signUpData.lastName
+        validatedData.email,
+        validatedData.password,
+        validatedData.firstName,
+        validatedData.lastName
       );
 
       if (error) {
@@ -74,8 +96,27 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate input with Zod schema
+    const validation = validateWithSchema(signInSchema, {
+      email: signInData.email,
+      password: signInData.password,
+    });
+
+    if (!validation.success) {
+      const errorMsg = 'errors' in validation ? validation.errors.join(", ") : "Validation failed";
+      toast({
+        title: "Validation Error",
+        description: errorMsg,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const validatedData = validation.data;
+
     try {
-      const { error } = await signIn(signInData.email, signInData.password);
+      const { error } = await signIn(validatedData.email, validatedData.password);
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
