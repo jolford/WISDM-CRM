@@ -195,29 +195,49 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const recordsToInsert = previewData.map((r) => ({
-        user_id: user.id,
-        product_name: r.product_name,
-        product_type: r.product_type,
-        vendor_name: r.vendor_name ?? null,
-        purchase_date: r.purchase_date ?? null,
-        start_date: r.start_date ?? null,
-        end_date: r.end_date ?? null,
-        cost: r.cost ?? null,
-        license_key: r.license_key ?? null,
-        serial_number: r.serial_number ?? null,
-        status: r.status,
-        notes: r.notes ?? null,
-        renewal_reminder_days: 30,
-      }));
+      // Try to resolve Account Name -> account_id for better linking
+      const { data: acctList, error: acctErr } = await supabase
+        .from('accounts')
+        .select('id, name');
+      if (acctErr) {
+        console.warn('Could not fetch accounts for mapping:', acctErr.message);
+      }
+      const accountMap = new Map<string, string>();
+      (acctList || []).forEach((a) => accountMap.set((a.name || '').trim().toLowerCase(), a.id));
+
+      const recordsToInsert = previewData.map((r) => {
+        const accountId = r.vendor_name ? accountMap.get(r.vendor_name.trim().toLowerCase()) || null : null;
+        return {
+          user_id: user.id,
+          product_name: r.product_name,
+          product_type: r.product_type,
+          vendor_name: r.vendor_name ?? null,
+          purchase_date: r.purchase_date ?? null,
+          start_date: r.start_date ?? null,
+          end_date: r.end_date ?? null,
+          cost: r.cost ?? null,
+          license_key: r.license_key ?? null,
+          serial_number: r.serial_number ?? null,
+          status: r.status,
+          notes: r.notes ?? null,
+          renewal_reminder_days: 30,
+          account_id: accountId,
+        };
+      });
 
       console.log('📝 Prepared maintenance insert payload (first row):', recordsToInsert[0]);
 
-      const { error } = await supabase
-        .from('maintenance_records')
-        .insert(recordsToInsert);
-
-      if (error) throw error;
+      // Insert in chunks to avoid payload limits
+      const chunkSize = 500;
+      let inserted = 0;
+      for (let i = 0; i < recordsToInsert.length; i += chunkSize) {
+        const chunk = recordsToInsert.slice(i, i + chunkSize);
+        const { error } = await supabase
+          .from('maintenance_records')
+          .insert(chunk);
+        if (error) throw error;
+        inserted += chunk.length;
+      }
 
       // Verify what you can see via RLS immediately after insert
       const { count } = await supabase
@@ -226,7 +246,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
 
       toast({
         title: "Import Successful",
-        description: `Imported ${recordsToInsert.length} records. You now have ${count ?? 0} visible records.`,
+        description: `Imported ${inserted} records. You now have ${count ?? 0} visible records.`,
       });
 
       // Notify other components to refresh
@@ -234,11 +254,11 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
 
       setCsvData("");
       setPreviewData([]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Import error:', error);
       toast({
         title: "Import Failed",
-        description: "Failed to import maintenance records",
+        description: error?.message || "Failed to import maintenance records",
         variant: "destructive",
       });
     } finally {
@@ -285,7 +305,7 @@ Creative Agency,2024-03-01,2024-03-01,2025-03-01,Adobe Creative Suite,CC2024-789
 
           <div className="space-y-2">
             <Label htmlFor="csvFile">Upload CSV File</Label>
-            <Input id="csvFile" type="file" accept=".csv" onChange={onFileChange} />
+            <Input id="csvFile" type="file" accept=".csv,.tsv,.txt" onChange={onFileChange} />
             <p className="text-sm text-muted-foreground">Or paste CSV below</p>
           </div>
 
